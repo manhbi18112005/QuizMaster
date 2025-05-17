@@ -1,7 +1,7 @@
 "use client";
 
 import { ContentLayout } from "@/components/admin-panel/content-layout";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -31,7 +31,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PlusCircledIcon, TrashIcon } from "@radix-ui/react-icons";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation"; // Import useRouter
+import { useRouter } from "next/navigation";
 import { DbQuestionBank, getAllQuestionBanks, saveQuestionBank, deleteQuestionBank } from "@/lib/db";
 
 export default function Home() {
@@ -43,7 +43,7 @@ export default function Home() {
   const [newBankDescription, setNewBankDescription] = useState("");
   const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
   const [bankToDeleteId, setBankToDeleteId] = useState<string | null>(null);
-  const router = useRouter(); // Initialize useRouter
+  const router = useRouter();
 
   useEffect(() => {
     async function loadQuestionBanks() {
@@ -248,7 +248,7 @@ export default function Home() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => setBankToDeleteId(null)}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDeleteBank}>Continue</AlertDialogAction>
+            <AlertDialogAction className={buttonVariants({ variant: "destructive" })} onClick={confirmDeleteBank}>Confirm</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

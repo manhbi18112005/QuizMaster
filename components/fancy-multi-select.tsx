@@ -1,6 +1,6 @@
 "use client";
 
-import * as React from "react";
+import { useRef, useState, useMemo, useCallback, KeyboardEvent } from "react";
 import { X } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -29,17 +29,17 @@ export function FancyMultiSelect({
   placeholder = "Select or create...",
   allowCreate = true, // Default to true
 }: FancyMultiSelectProps) {
-  const inputRef = React.useRef<HTMLInputElement>(null);
-  const [open, setOpen] = React.useState(false);
-  const [inputValue, setInputValue] = React.useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [open, setOpen] = useState(false);
+  const [inputValue, setInputValue] = useState("");
 
   // Convert string array value to Framework array for internal use
-  const selectedFrameworks: Framework[] = React.useMemo(
+  const selectedFrameworks: Framework[] = useMemo(
     () => value.map((v) => ({ value: v, label: v })),
     [value],
   );
 
-  const handleUnselect = React.useCallback(
+  const handleUnselect = useCallback(
     (framework: Framework) => {
       onChange(
         selectedFrameworks
@@ -50,7 +50,7 @@ export function FancyMultiSelect({
     [selectedFrameworks, onChange],
   );
 
-  const handleSelectFramework = React.useCallback(
+  const handleSelectFramework = useCallback(
     (framework: Framework) => {
       setInputValue("");
       if (!selectedFrameworks.find((s) => s.value === framework.value)) {
@@ -62,8 +62,8 @@ export function FancyMultiSelect({
     [selectedFrameworks, onChange],
   );
 
-  const handleKeyDown = React.useCallback(
-    (e: React.KeyboardEvent<HTMLDivElement>) => {
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent<HTMLDivElement>) => {
       const input = inputRef.current;
       if (input) {
         if (e.key === "Delete" || e.key === "Backspace") {
@@ -106,7 +106,7 @@ export function FancyMultiSelect({
     [inputValue, selectedFrameworks, onChange, availableOptions, allowCreate, handleSelectFramework], // Added allowCreate to dependencies
   );
 
-  const allFrameworkOptions = React.useMemo(() => {
+  const allFrameworkOptions = useMemo(() => {
     const baseOptions = availableOptions.map((opt) => ({ value: opt, label: opt }));
     // Add any selected tags that might not be in availableOptions (e.g. created tags)
     selectedFrameworks.forEach((sf) => {
@@ -117,7 +117,7 @@ export function FancyMultiSelect({
     return baseOptions;
   }, [availableOptions, selectedFrameworks]);
 
-  const selectables = React.useMemo(() => {
+  const selectables = useMemo(() => {
     let filteredOptions = allFrameworkOptions.filter(
       (framework) => !selectedFrameworks.some((s) => s.value === framework.value),
     );

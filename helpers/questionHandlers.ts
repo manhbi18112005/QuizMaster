@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-function-type */
-import { ChangeEvent } from 'react';
+import { ChangeEvent, RefObject } from 'react';
 import { DragEndEvent } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
 import { Question, QuestionBank as CoreQuestionBank } from '@/types/quiz';
@@ -58,7 +58,7 @@ export function executeDeleteQuestion(
   toast.success("Question deleted.");
 }
 
-export function handleImportClick(fileInputRef: React.RefObject<HTMLInputElement>) {
+export function handleImportClick(fileInputRef: RefObject<HTMLInputElement>) {
   fileInputRef.current?.click();
 }
 

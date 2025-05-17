@@ -6,7 +6,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Question } from '@/types/quiz';
 import { DifficultyBadge } from '@/components/ui/DifficultyBadge';
-import { sanitizeHtml } from "@/helpers/sanitize";
+import { SafeContent } from '@/components/safecontent';
 
 interface QuestionCardProps {
     id: string;
@@ -18,9 +18,6 @@ interface QuestionCardProps {
 export const QuestionCard: React.FC<QuestionCardProps> = ({ id, question, onClick, isSelected }) => {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
     const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1, zIndex: isDragging ? 10 : undefined };
-
-    const titleText = question.question ? question.question.replace(/<[^>]*>?/gm, '') : "New Question";
-    const sanitizedQuestionHtml = sanitizeHtml(question.question);
 
     return (
         <div
@@ -43,11 +40,9 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({ id, question, onClic
                     <div className="flex-1 flex flex-col min-w-0">
                         <CardTitle
                             className="text-base font-semibold leading-tight"
-                            title={titleText || "New Question"}
-                            {...(question.question
-                                ? { dangerouslySetInnerHTML: { __html: sanitizedQuestionHtml } }
-                                : { children: "New Question" })}
-                        />
+                        >
+                            <SafeContent content={question.question} />
+                        </CardTitle>
                         {question.category && (
                             <Badge variant="outline" className="text-xs font-normal mt-1.5 self-start max-w-full truncate">
                                 {question.category}
@@ -66,10 +61,9 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({ id, question, onClic
                                         className="flex items-start text-muted-foreground font-semibold text-green-600 dark:text-green-400"
                                     >
                                         <CheckCircle2 size={14} className="mr-1.5 mt-0.5 flex-shrink-0" />
-                                        <span
-                                            dangerouslySetInnerHTML={{ __html: sanitizeHtml(choice.value) }}
-                                            className="break-words"
-                                        />
+                                        <span>
+                                            <SafeContent content={choice.value} />
+                                        </span>
                                     </li>
                                 ))}
                             </ul>

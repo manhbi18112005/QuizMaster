@@ -1,4 +1,4 @@
-import React from 'react';
+import { RefObject, FC, ChangeEvent } from 'react';
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -14,11 +14,11 @@ interface QuizToolbarProps {
   onImportClick: () => void;
   onExportData: () => void;
   onClearAllData: () => void;
-  fileInputRef: React.RefObject<HTMLInputElement>;
-  onFileImport: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  fileInputRef: RefObject<HTMLInputElement>;
+  onFileImport: (event: ChangeEvent<HTMLInputElement>) => void;
 }
 
-export const QuizToolbar: React.FC<QuizToolbarProps> = ({
+export const QuizToolbar: FC<QuizToolbarProps> = ({
   onCreateQuestion,
   onDeleteQuestion,
   selectedQuestionId,

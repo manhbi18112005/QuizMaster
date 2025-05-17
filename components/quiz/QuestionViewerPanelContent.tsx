@@ -1,17 +1,17 @@
-import React from 'react';
+import { FC } from 'react';
 import { Card, CardContent, CardHeader, CardFooter, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Check } from "lucide-react";
 import { Question } from '@/types/quiz';
 import { DifficultyBadge } from '@/components/ui/DifficultyBadge';
 import { toast } from "sonner";
-import { sanitizeHtml } from "@/helpers/sanitize";
+import { SafeContent } from '@/components/safecontent';
 
 interface QuestionViewerPanelContentProps {
   selectedQuestion: Question | undefined;
 }
 
-export const QuestionViewerPanelContent: React.FC<QuestionViewerPanelContentProps> = ({
+export const QuestionViewerPanelContent: FC<QuestionViewerPanelContentProps> = ({
   selectedQuestion,
 }) => {
   if (!selectedQuestion) {
@@ -43,28 +43,20 @@ export const QuestionViewerPanelContent: React.FC<QuestionViewerPanelContentProp
     }
   }
 
-  const sanitizedQuestionHtml = sanitizeHtml(selectedQuestion.question);
-  const sanitizedNotesHtml = sanitizeHtml(selectedQuestion.notes);
-
   return (
     <Card>
       <CardHeader>
         <CardTitle>
           <div
             className="p-2 prose dark:prose-invert max-w-full cursor-pointer"
-            dangerouslySetInnerHTML={{ __html: sanitizedQuestionHtml }}
-            onClick={() => {
-              if (selectedQuestion.question) {
-                // Sanitize before creating temp element for text extraction
-                const cleanHtml = sanitizeHtml(selectedQuestion.question);
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = cleanHtml;
-                const textToCopy = tempDiv.textContent || tempDiv.innerText || "";
-                handleCopy(textToCopy);
-              }
+            onClick={e => {
+              const textToCopy = (e.currentTarget as HTMLElement).textContent || "";
+              handleCopy(textToCopy);
             }}
             title="Click to copy question text"
-          />
+          >
+            <SafeContent content={selectedQuestion.question} />
+          </div>
         </CardTitle>
         <div className="flex items-center space-x-2 pt-2">
           {selectedQuestion.category && (
@@ -94,7 +86,9 @@ export const QuestionViewerPanelContent: React.FC<QuestionViewerPanelContentProp
                   onClick={() => handleCopy(choice.value)}
                   title="Click to copy choice text"
                 >
-                  <span className="flex-1">{choice.value}</span>
+                  <span className="flex-1">
+                    <SafeContent content={choice.value} />
+                  </span>
                   {isCorrect && (
                     <Check className="h-5 w-5 text-green-600 dark:text-green-400" />
                   )}
@@ -126,8 +120,9 @@ export const QuestionViewerPanelContent: React.FC<QuestionViewerPanelContentProp
             <h3 className="text-lg font-semibold">Notes</h3>
             <div
               className="min-h-[100px] p-2 prose dark:prose-invert max-w-full"
-              dangerouslySetInnerHTML={{ __html: sanitizedNotesHtml }}
-            />
+            >
+              <SafeContent content={selectedQuestion.notes} />
+            </div>
           </div>
         )}
       </CardContent>

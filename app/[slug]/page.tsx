@@ -6,7 +6,7 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
-import React, { useState, ChangeEvent, useRef, useEffect, useCallback, useMemo } from 'react';
+import { useState, ChangeEvent, useRef, useEffect, useCallback, useMemo } from 'react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -41,6 +41,7 @@ import { toast } from 'sonner';
 import { getQuestionBankById, updateQuestionBank, getAvailableTags, saveAvailableTags, DEFAULT_TAGS_DB, DbQuestionBank } from '@/lib/db';
 import { useParams } from 'next/navigation';
 import { useResponsivePanelDirection } from "@/helpers/useResponsivePanelDirection";
+import { buttonVariants } from "@/components/ui/button";
 
 
 export default function BankPage() {
@@ -60,13 +61,13 @@ export default function BankPage() {
     title: string;
     description: string;
     onConfirm: () => void;
-    onCancel?: () => void;
+    onCancel: () => void;
   }>({
     isOpen: false,
     title: '',
     description: '',
     onConfirm: () => { },
-    onCancel: undefined,
+    onCancel: () => { },
   });
 
   const [availableTags, setAvailableTags] = useState<string[]>([...DEFAULT_TAGS_DB]);
@@ -147,26 +148,38 @@ export default function BankPage() {
         description,
         onConfirm: () => {
           onConfirmAction();
-          setAlertDialogState(prev => ({ ...prev, isOpen: false }));
+          // Reset dialog state completely on confirm
+          setAlertDialogState({ isOpen: false, title: '', description: '', onConfirm: () => { }, onCancel: () => { } });
         },
         onCancel: () => {
           if (onCancelAction) onCancelAction();
-          setAlertDialogState(prev => ({ ...prev, isOpen: false }));
+          // Reset dialog state completely on cancel
+          setAlertDialogState({ isOpen: false, title: '', description: '', onConfirm: () => { }, onCancel: () => { } });
         },
       });
     },
-    [setAlertDialogState]
+    []
   );
 
   const handleDialogConfirm = useCallback(() => {
     alertDialogState.onConfirm();
-  }, [alertDialogState]);
+  }, [alertDialogState.onConfirm]);
 
   const handleDialogCancel = useCallback(() => {
-    if (alertDialogState.onCancel) {
-      alertDialogState.onCancel();
+    alertDialogState.onCancel();
+  }, [alertDialogState.onCancel]);
+
+  const handleAlertDialogOpenChange = useCallback((open: boolean) => {
+    if (!open && alertDialogState.isOpen) {
+      // If the dialog is being closed (e.g., by Escape key or overlay click)
+      // and it was previously open, execute the cancel handler.
+      alertDialogState.onCancel(); // This handler also sets isOpen to false.
+    } else {
+      // For other cases (e.g., programmatic opening, or if the dialog was already closed),
+      // ensure our state reflects the new open status.
+      setAlertDialogState(prev => ({ ...prev, isOpen: open }));
     }
-  }, [alertDialogState]);
+  }, [alertDialogState.isOpen, alertDialogState.onCancel]);
 
 
   const sensors = useSensors(
@@ -324,13 +337,13 @@ export default function BankPage() {
   const handleClearAllData = useCallback(() => {
     if (!currentBank) return;
     showConfirmationDialog(
-      `Confirm Clear Questions in "${currentBank.name}"`,
-      "Are you sure you want to clear ALL questions in this bank? This action cannot be undone.",
+      `Confirm delete all data in "${currentBank.name}"`,
+      "Are you sure you want to delete ALL questions in this bank? This action cannot be undone.",
       () => {
         // This updates the local 'questions' state. useEffect will save the bank.
         setQuestions([]);
         setSelectedQuestionId(null);
-        toast.success(`All questions cleared from bank: ${currentBank.name}`);
+        toast.success(`All questions deleted from bank: ${currentBank.name}`);
         // Note: Global tags are not cleared here, only bank-specific questions.
       }
     );
@@ -443,9 +456,8 @@ export default function BankPage() {
         <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
           <ResizablePanelGroup
             direction={panelDirection}
-            className={`rounded-lg border flex-1 min-h-0 ${
-              panelDirection === "vertical" ? "min-h-[60vh]" : ""
-            }`}
+            className={`rounded-lg border flex-1 min-h-0 ${panelDirection === "vertical" ? "min-h-[60vh]" : ""
+              }`}
           >
             <ResizablePanel defaultSize={33}>
               <div className="flex h-full items-start justify-center p-6 overflow-y-auto">
@@ -500,13 +512,7 @@ export default function BankPage() {
         </DndContext>
       </div>
 
-      <AlertDialog open={alertDialogState.isOpen} onOpenChange={(open) => {
-        if (!open && alertDialogState.isOpen) {
-          handleDialogCancel();
-        } else {
-          setAlertDialogState(prev => ({ ...prev, isOpen: open }));
-        }
-      }}>
+      <AlertDialog open={alertDialogState.isOpen} onOpenChange={handleAlertDialogOpenChange}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>{alertDialogState.title}</AlertDialogTitle>
@@ -514,7 +520,7 @@ export default function BankPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={handleDialogCancel}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDialogConfirm}>Continue</AlertDialogAction>
+            <AlertDialogAction className={buttonVariants({ variant: "destructive" })} onClick={handleDialogConfirm}>Confirm</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
