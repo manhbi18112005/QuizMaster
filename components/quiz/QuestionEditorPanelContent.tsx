@@ -1,9 +1,6 @@
 import React, { ChangeEvent } from 'react';
 import { Card, CardContent, CardHeader, CardFooter, CardTitle } from "@/components/ui/card";
-// Removed Input import as it might not be needed if all text inputs become Tiptap
-// However, it's still used for choices and category, so let's keep it for now.
 import { Input } from "@/components/ui/input";
-// Removed Textarea import
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { FancyMultiSelect } from "@/components/fancy-multi-select";
@@ -12,11 +9,11 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { PlusCircle, Trash2, Check } from "lucide-react"; // Added Check icon
+import { PlusCircle, Trash2, Check } from "lucide-react";
 import { Question } from '@/types/quiz';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
-import { DatetimePicker } from "@/components/ui/datetime-picker"; // Adjust path if you used a new file
-import { MinimalTiptapEditor } from "@/components/minimal-tiptap"; // As per reference
+import { DatetimePicker } from "@/components/ui/datetime-picker";
+import { MinimalTiptapEditor } from "@/components/minimal-tiptap";
 import { Content } from "@tiptap/react";
 
 
@@ -98,11 +95,13 @@ export const QuestionEditorPanelContent: React.FC<QuestionEditorPanelContentProp
     <Card>
       <CardHeader>
         <MinimalTiptapEditor
+          key={`question-editor-${selectedQuestion.id}`}
           value={selectedQuestion.question}
           onChange={handleQuestionTextChange}
           output="html"
           placeholder="Enter the question text..."
-          editorContentClassName="min-h-[80px] p-2" // Adjusted min-height
+          editorContentClassName="min-h-[80px] p-2"
+          immediatelyRender={false}
         />
       </CardHeader>
       <CardContent className="space-y-6">
@@ -137,9 +136,8 @@ export const QuestionEditorPanelContent: React.FC<QuestionEditorPanelContentProp
                     }
                   >
                     <Check
-                      className={`h-4 w-4 ${
-                        selectedQuestion.answers?.includes(choice) ? "" : "text-green-600"
-                      }`}
+                      className={`h-4 w-4 ${selectedQuestion.answers?.includes(choice) ? "" : "text-green-600"
+                        }`}
                     />
                   </Button>
                 </TooltipTrigger>
@@ -221,11 +219,13 @@ export const QuestionEditorPanelContent: React.FC<QuestionEditorPanelContentProp
         <div className="space-y-2">
           <h3 className="text-lg font-semibold">Notes</h3>
           <MinimalTiptapEditor
+            key={`notes-editor-${selectedQuestion.id}`}
             value={selectedQuestion.notes || ""}
             onChange={handleNotesChange}
             output="html"
             placeholder="Enter notes for the question..."
             editorContentClassName="min-h-[100px] p-2"
+            immediatelyRender={false}
           />
         </div>
       </CardContent>
