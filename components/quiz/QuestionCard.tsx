@@ -1,11 +1,12 @@
 import React from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { GripVertical, ListChecks, CalendarDays } from "lucide-react"; // Added ListChecks, CalendarDays
+import { GripVertical, ListChecks, CalendarDays } from "lucide-react";
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Question } from '@/types/quiz';
-import { DifficultyBadge } from '@/components/ui/DifficultyBadge'; // Import the new component
+import { DifficultyBadge } from '@/components/ui/DifficultyBadge';
+import { sanitizeHtml } from "@/helpers/sanitize";
 
 interface QuestionCardProps {
     id: string;
@@ -17,6 +18,9 @@ interface QuestionCardProps {
 export const QuestionCard: React.FC<QuestionCardProps> = ({ id, question, onClick, isSelected }) => {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
     const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1, zIndex: isDragging ? 10 : undefined };
+
+    const titleText = question.question ? question.question.replace(/<[^>]*>?/gm, '') : "New Question";
+    const sanitizedQuestionHtml = sanitizeHtml(question.question);
 
     return (
         <div
@@ -40,8 +44,8 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({ id, question, onClic
                         {question.question ? (
                             <CardTitle
                                 className="text-base font-semibold leading-tight"
-                                title={question.question.replace(/<[^>]*>?/gm, '') || "New Question"}
-                                dangerouslySetInnerHTML={{ __html: question.question }}
+                                title={titleText || "New Question"}
+                                dangerouslySetInnerHTML={{ __html: sanitizedQuestionHtml }}
                             />
                         ) : (
                             <CardTitle

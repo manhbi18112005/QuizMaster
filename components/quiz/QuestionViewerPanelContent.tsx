@@ -3,7 +3,9 @@ import { Card, CardContent, CardHeader, CardFooter, CardTitle } from "@/componen
 import { Label } from "@/components/ui/label";
 import { Check } from "lucide-react";
 import { Question } from '@/types/quiz';
-import { DifficultyBadge } from '@/components/ui/DifficultyBadge'; // Added import
+import { DifficultyBadge } from '@/components/ui/DifficultyBadge';
+import { toast } from "sonner";
+import { sanitizeHtml } from "@/helpers/sanitize";
 
 interface QuestionViewerPanelContentProps {
   selectedQuestion: Question | undefined;
@@ -20,6 +22,19 @@ export const QuestionViewerPanelContent: React.FC<QuestionViewerPanelContentProp
     );
   }
 
+  const handleCopy = async (text: string | undefined) => {
+    if (!text) return;
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.success("Copied to clipboard!"); // Changed
+    } catch (err) {
+      console.error('Failed to copy: ', err);
+      toast.error("Failed to copy", { // Changed
+        description: "Could not copy text to clipboard.",
+      });
+    }
+  };
+
   let createdAtDateFormatted: string = "N/A";
   if (selectedQuestion.createdAt) {
     const parsedDate = new Date(selectedQuestion.createdAt);
@@ -28,13 +43,27 @@ export const QuestionViewerPanelContent: React.FC<QuestionViewerPanelContentProp
     }
   }
 
+  const sanitizedQuestionHtml = sanitizeHtml(selectedQuestion.question);
+  const sanitizedNotesHtml = sanitizeHtml(selectedQuestion.notes);
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>
           <div
-            className="p-2 prose dark:prose-invert max-w-full"
-            dangerouslySetInnerHTML={{ __html: selectedQuestion.question || "" }}
+            className="p-2 prose dark:prose-invert max-w-full cursor-pointer"
+            dangerouslySetInnerHTML={{ __html: sanitizedQuestionHtml }}
+            onClick={() => {
+              if (selectedQuestion.question) {
+                // Sanitize before creating temp element for text extraction
+                const cleanHtml = sanitizeHtml(selectedQuestion.question);
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = cleanHtml;
+                const textToCopy = tempDiv.textContent || tempDiv.innerText || "";
+                handleCopy(textToCopy);
+              }
+            }}
+            title="Click to copy question text"
           />
         </CardTitle>
         <div className="flex items-center space-x-2 pt-2">
@@ -59,7 +88,12 @@ export const QuestionViewerPanelContent: React.FC<QuestionViewerPanelContentProp
                 : "bg-red-100 dark:bg-red-800";
 
               return (
-                <div key={index} className={`${baseClasses} ${correctnessClasses}`}>
+                <div
+                  key={index}
+                  className={`${baseClasses} ${correctnessClasses} cursor-pointer`}
+                  onClick={() => handleCopy(choice)}
+                  title="Click to copy choice text"
+                >
                   <span className="flex-1">{choice}</span>
                   {isCorrect && (
                     <Check className="h-5 w-5 text-green-600 dark:text-green-400" />
@@ -92,7 +126,7 @@ export const QuestionViewerPanelContent: React.FC<QuestionViewerPanelContentProp
             <h3 className="text-lg font-semibold">Notes</h3>
             <div
               className="min-h-[100px] p-2 prose dark:prose-invert max-w-full"
-              dangerouslySetInnerHTML={{ __html: selectedQuestion.notes || "" }}
+              dangerouslySetInnerHTML={{ __html: sanitizedNotesHtml }}
             />
           </div>
         )}
