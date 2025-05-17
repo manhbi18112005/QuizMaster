@@ -81,7 +81,7 @@ export const QuestionViewerPanelContent: React.FC<QuestionViewerPanelContentProp
         <div className="space-y-2">
           {selectedQuestion.choices.length > 0 ? (
             selectedQuestion.choices.map((choice, index) => {
-              const isCorrect = selectedQuestion.answers?.includes(choice);
+              const isCorrect = choice.isCorrect;
               const baseClasses = "flex items-center space-x-2 p-2 border rounded";
               const correctnessClasses = isCorrect
                 ? "bg-green-100 dark:bg-green-800"
@@ -91,10 +91,10 @@ export const QuestionViewerPanelContent: React.FC<QuestionViewerPanelContentProp
                 <div
                   key={index}
                   className={`${baseClasses} ${correctnessClasses} cursor-pointer`}
-                  onClick={() => handleCopy(choice)}
+                  onClick={() => handleCopy(choice.value)}
                   title="Click to copy choice text"
                 >
-                  <span className="flex-1">{choice}</span>
+                  <span className="flex-1">{choice.value}</span>
                   {isCorrect && (
                     <Check className="h-5 w-5 text-green-600 dark:text-green-400" />
                   )}

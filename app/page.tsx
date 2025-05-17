@@ -127,7 +127,7 @@ export default function Home() {
   return (
     <ContentLayout title="Student Revision Quizzes">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-semibold">Your Question Banks</h2>
+        <h2 className="text-2xl font-semibold hidden sm:block">Your Question Banks</h2>
         <Button onClick={openCreateModal}>
           <PlusCircledIcon className="mr-2 h-4 w-4" /> Create New Bank
         </Button>

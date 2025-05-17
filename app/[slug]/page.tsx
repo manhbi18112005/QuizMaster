@@ -40,6 +40,7 @@ import * as handlers from '@/helpers/questionHandlers';
 import { toast } from 'sonner';
 import { getQuestionBankById, updateQuestionBank, getAvailableTags, saveAvailableTags, DEFAULT_TAGS_DB, DbQuestionBank } from '@/lib/db';
 import { useParams } from 'next/navigation';
+import { useResponsivePanelDirection } from "@/helpers/useResponsivePanelDirection";
 
 
 export default function BankPage() {
@@ -71,6 +72,8 @@ export default function BankPage() {
   const [availableTags, setAvailableTags] = useState<string[]>([...DEFAULT_TAGS_DB]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const panelDirection = useResponsivePanelDirection();
 
   useEffect(() => {
     async function loadData() {
@@ -217,7 +220,7 @@ export default function BankPage() {
       (parsedData) => {
         let importedQuestions: Question[];
         const importedFileBankMetadata: Partial<Pick<CoreQuestionBank, 'name' | 'description'>> = {};
-        const currentBankName = currentBank?.name || "current bank"; // Name of the bank being modified
+        const currentBankName = currentBank?.name || "current bank";
         const dialogTitle = "Confirm Import";
         let dialogDescription: string;
         // To distinguish between importing a full bank object vs. just an array of questions
@@ -331,7 +334,7 @@ export default function BankPage() {
         // Note: Global tags are not cleared here, only bank-specific questions.
       }
     );
-  }, [showConfirmationDialog, currentBank]); // Removed setQuestions, setSelectedQuestionId
+  }, [showConfirmationDialog, currentBank]);
 
 
   const handleCardClick = useCallback((questionId: string) =>
@@ -361,8 +364,14 @@ export default function BankPage() {
   const handleRemoveChoice = useCallback((index: number) =>
     handlers.handleRemoveChoice(index, selectedQuestionId, questions, setQuestions), [selectedQuestionId, questions, setQuestions]);
 
-  const handleAnswersChange = useCallback((newAnswers: string[]) =>
-    handlers.handleAnswersChange(newAnswers, selectedQuestionId, setQuestions), [selectedQuestionId, setQuestions]);
+  const handleChoiceIsCorrectChange = useCallback((choiceIndex: number, isCorrect: boolean) =>
+    handlers.handleChoiceIsCorrectChange(
+      choiceIndex,
+      isCorrect,
+      selectedQuestionId,
+      questions,
+      setQuestions
+    ), [selectedQuestionId, questions, setQuestions]);
 
   const handleTagsChange = useCallback((newTags: string[]) =>
     handlers.handleTagsChange(
@@ -377,19 +386,29 @@ export default function BankPage() {
     handlers.handleSearchTermChange(value, setSearchTerm), [setSearchTerm]);
 
   const selectedQuestion = useMemo(() => questions.find(q => q.id === selectedQuestionId), [questions, selectedQuestionId]);
-
-  // Filter questions based on searchTerm
   const filteredQuestions = useMemo(() => {
+    if (!searchTerm.trim()) {
+      return questions;
+    }
+    const term = searchTerm.toLowerCase();
     return questions.filter(question => {
-      const term = searchTerm.toLowerCase();
-      if (!term) { // If search term is empty, show all questions
-        return true;
+      for (const value of Object.values(question)) {
+        // Check if the value is a string and includes the term
+        if (typeof value === 'string' && value.toLowerCase().includes(term)) {
+          return true;
+        }
+        if (Array.isArray(value)) {
+          for (const item of value) {
+            if (typeof item === 'string' && item.toLowerCase().includes(term)) {
+              return true;
+            }
+            if (typeof item === 'object' && item !== null && 'value' in item && typeof item.value === 'string' && item.value.toLowerCase().includes(term)) {
+              return true;
+            }
+          }
+        }
       }
-      return (
-        question.question.toLowerCase().includes(term) ||
-        question.tags.some(tag => tag.toLowerCase().includes(term)) ||
-        (question.notes && question.notes.toLowerCase().includes(term))
-      );
+      return false;
     });
   }, [questions, searchTerm]);
 
@@ -403,79 +422,83 @@ export default function BankPage() {
 
   return (
     <ContentLayout title={`Bank: ${currentBank.name}`}>
-      <div className="flex justify-between items-center mb-4 gap-2 flex-wrap">
-        <QuestionSearchInput
-          searchTerm={searchTerm}
-          onSearchTermChange={handleSearchTermChange}
-        />
-        <QuizToolbar
-          onCreateQuestion={handleCreateQuestion}
-          onDeleteQuestion={handleDeleteQuestion}
-          selectedQuestionId={selectedQuestionId}
-          onImportClick={handleImportClick}
-          onExportData={handleExportData}
-          onClearAllData={handleClearAllData}
-          fileInputRef={fileInputRef}
-          onFileImport={handleFileImport}
-        />
-      </div>
+      <div className="flex flex-col h-full">
+        <div className="flex justify-between items-center mb-4 gap-2 flex-wrap">
+          <QuestionSearchInput
+            searchTerm={searchTerm}
+            onSearchTermChange={handleSearchTermChange}
+          />
+          <QuizToolbar
+            onCreateQuestion={handleCreateQuestion}
+            onDeleteQuestion={handleDeleteQuestion}
+            selectedQuestionId={selectedQuestionId}
+            onImportClick={handleImportClick}
+            onExportData={handleExportData}
+            onClearAllData={handleClearAllData}
+            fileInputRef={fileInputRef}
+            onFileImport={handleFileImport}
+          />
+        </div>
 
-      <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
-        <ResizablePanelGroup
-          direction="horizontal"
-          className="rounded-lg border flex-1"
-        >
-          <ResizablePanel defaultSize={33}>
-            <div className="flex h-full items-start justify-center p-6 overflow-y-auto">
-              <QuestionListPanelContent
-                questions={filteredQuestions}
-                selectedQuestionId={selectedQuestionId}
-                onCardClick={handleCardClick}
-              />
-            </div>
-          </ResizablePanel>
-          <ResizableHandle withHandle />
-          <ResizablePanel defaultSize={67}>
-            <div className="flex h-full items-start justify-center p-6 overflow-y-auto">
-              <div className="w-full">
-                <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "edit" | "view")} className="w-full">
-                  <TabsList className="grid w-full grid-cols-2 mb-4">
-                    <TabsTrigger value="edit">Edit Mode</TabsTrigger>
-                    <TabsTrigger value="view">View Mode</TabsTrigger>
-                  </TabsList>
-                  <TabsContent value="edit">
-                    {selectedQuestion && (
-                      <QuestionEditorPanelContent
-                        selectedQuestion={selectedQuestion}
-                        availableTags={availableTags}
-                        onQuestionDetailChange={handleQuestionDetailChange}
-                        onAddChoice={handleAddChoice}
-                        onRemoveChoice={handleRemoveChoice}
-                        onChoiceChange={handleChoiceChange}
-                        onAnswersChange={handleAnswersChange}
-                        onTagsChange={handleTagsChange}
-                      />
-                    )}
-                    {!selectedQuestion && (
-                      <p className="text-center text-muted-foreground">Select a question to edit or create a new one.</p>
-                    )}
-                  </TabsContent>
-                  <TabsContent value="view">
-                    {selectedQuestion && (
-                      <QuestionViewerPanelContent
-                        selectedQuestion={selectedQuestion}
-                      />
-                    )}
-                    {!selectedQuestion && (
-                      <p className="text-center text-muted-foreground">Select a question to edit or create a new one.</p>
-                    )}
-                  </TabsContent>
-                </Tabs>
+        <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+          <ResizablePanelGroup
+            direction={panelDirection}
+            className={`rounded-lg border flex-1 min-h-0 ${
+              panelDirection === "vertical" ? "min-h-[60vh]" : ""
+            }`}
+          >
+            <ResizablePanel defaultSize={33}>
+              <div className="flex h-full items-start justify-center p-6 overflow-y-auto">
+                <QuestionListPanelContent
+                  questions={filteredQuestions}
+                  selectedQuestionId={selectedQuestionId}
+                  onCardClick={handleCardClick}
+                />
               </div>
-            </div>
-          </ResizablePanel>
-        </ResizablePanelGroup>
-      </DndContext>
+            </ResizablePanel>
+            <ResizableHandle withHandle />
+            <ResizablePanel defaultSize={67}>
+              <div className="flex h-full items-start justify-center p-6 overflow-y-auto">
+                <div className="w-full">
+                  <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "edit" | "view")} className="w-full">
+                    <TabsList className="grid w-full grid-cols-2 mb-4">
+                      <TabsTrigger value="edit">Edit Mode</TabsTrigger>
+                      <TabsTrigger value="view">View Mode</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="edit">
+                      {selectedQuestion && (
+                        <QuestionEditorPanelContent
+                          selectedQuestion={selectedQuestion}
+                          availableTags={availableTags}
+                          onQuestionDetailChange={handleQuestionDetailChange}
+                          onAddChoice={handleAddChoice}
+                          onRemoveChoice={handleRemoveChoice}
+                          onChoiceChange={handleChoiceChange}
+                          onChoiceIsCorrectChange={handleChoiceIsCorrectChange}
+                          onTagsChange={handleTagsChange}
+                        />
+                      )}
+                      {!selectedQuestion && (
+                        <p className="text-center text-muted-foreground">Select a question to edit or create a new one.</p>
+                      )}
+                    </TabsContent>
+                    <TabsContent value="view">
+                      {selectedQuestion && (
+                        <QuestionViewerPanelContent
+                          selectedQuestion={selectedQuestion}
+                        />
+                      )}
+                      {!selectedQuestion && (
+                        <p className="text-center text-muted-foreground">Select a question to edit or create a new one.</p>
+                      )}
+                    </TabsContent>
+                  </Tabs>
+                </div>
+              </div>
+            </ResizablePanel>
+          </ResizablePanelGroup>
+        </DndContext>
+      </div>
 
       <AlertDialog open={alertDialogState.isOpen} onOpenChange={(open) => {
         if (!open && alertDialogState.isOpen) {

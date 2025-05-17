@@ -1,10 +1,14 @@
 export type QuestionDifficulty = 'easy' | 'medium' | 'hard' | undefined;
 
+export interface QuestionAnswer {
+  value: string;
+  isCorrect: boolean;
+}
+
 export interface Question {
   id: string;
   question: string;
-  choices: string[];
-  answers: string[];
+  choices: QuestionAnswer[];
   tags: string[];
   notes: string;
   category?: string;

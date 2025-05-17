@@ -24,7 +24,7 @@ interface QuestionEditorPanelContentProps {
   onAddChoice: () => void;
   onRemoveChoice: (index: number) => void;
   onChoiceChange: (index: number, value: string) => void;
-  onAnswersChange: (newAnswers: string[]) => void;
+  onChoiceIsCorrectChange: (choiceIndex: number, isCorrect: boolean) => void;
   onTagsChange: (newTags: string[]) => void;
 }
 
@@ -35,7 +35,7 @@ export const QuestionEditorPanelContent: React.FC<QuestionEditorPanelContentProp
   onAddChoice,
   onRemoveChoice,
   onChoiceChange,
-  onAnswersChange,
+  onChoiceIsCorrectChange,
   onTagsChange,
 }) => {
   if (!selectedQuestion) {
@@ -47,14 +47,12 @@ export const QuestionEditorPanelContent: React.FC<QuestionEditorPanelContentProp
   }
 
   const handleCreatedAtChange = (date: Date | undefined) => {
-    // Adapt this to how onQuestionDetailChange updates your state.
-    // It needs to create a synthetic event or be handled by a modified onQuestionDetailChange.
     const syntheticEvent = {
       target: {
         name: 'createdAt',
         value: date ?? new Date()
       },
-    } as unknown as ChangeEvent<HTMLInputElement>; // Cast to satisfy existing handler
+    } as unknown as ChangeEvent<HTMLInputElement>;
     onQuestionDetailChange(syntheticEvent);
   };
 
@@ -70,8 +68,6 @@ export const QuestionEditorPanelContent: React.FC<QuestionEditorPanelContentProp
   };
 
   const handleNotesChange = (notesContent: Content) => {
-    // Assuming MinimalTiptapEditor with output="html" provides an HTML string.
-    // If output is JSON, this needs to be stringified or handled differently.
     const valueToUpdate = typeof notesContent === 'string' ? notesContent : JSON.stringify(notesContent);
     const syntheticEvent = {
       target: {
@@ -109,7 +105,7 @@ export const QuestionEditorPanelContent: React.FC<QuestionEditorPanelContentProp
           {selectedQuestion.choices.map((choice, index) => (
             <div key={index} className="flex items-center space-x-2">
               <Input
-                value={choice}
+                value={choice.value}
                 onChange={(e) => onChoiceChange(index, e.target.value)}
                 placeholder={`Choice ${index + 1}`}
                 className="flex-1"
@@ -118,31 +114,26 @@ export const QuestionEditorPanelContent: React.FC<QuestionEditorPanelContentProp
                 <TooltipTrigger asChild>
                   <Button
                     onClick={() => {
-                      if (choice.trim() === "") return; // Do not mark empty choice as answer
-                      const currentAnswers = selectedQuestion.answers || [];
-                      if (currentAnswers.includes(choice)) {
-                        onAnswersChange(currentAnswers.filter(ans => ans !== choice));
-                      } else {
-                        onAnswersChange([...currentAnswers, choice]);
-                      }
+                      if (choice.value.trim() === "" && !choice.isCorrect) return; // Prevent marking empty new choice as correct
+                      onChoiceIsCorrectChange(index, !choice.isCorrect);
                     }}
-                    variant={selectedQuestion.answers?.includes(choice) ? "default" : "ghost"}
+                    variant={choice.isCorrect ? "default" : "ghost"}
                     size="icon"
-                    disabled={choice.trim() === ""}
+                    disabled={choice.value.trim() === "" && !choice.isCorrect}
                     className={
-                      selectedQuestion.answers?.includes(choice)
+                      choice.isCorrect
                         ? "bg-green-600 hover:bg-green-700 text-white"
                         : ""
                     }
                   >
                     <Check
-                      className={`h-4 w-4 ${selectedQuestion.answers?.includes(choice) ? "" : "text-green-600"
+                      className={`h-4 w-4 ${choice.isCorrect ? "" : "text-green-600"
                         }`}
                     />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>{selectedQuestion.answers?.includes(choice) ? "Unmark as answer" : "Mark as answer"}</p>
+                  <p>{choice.isCorrect ? "Unmark as correct" : "Mark as correct"}</p>
                 </TooltipContent>
               </Tooltip>
               <Tooltip>

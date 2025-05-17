@@ -2,9 +2,9 @@
 import { ChangeEvent } from 'react';
 import { DragEndEvent } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
-import { Question, QuestionBank as CoreQuestionBank } from '@/types/quiz'; // Added CoreQuestionBank
+import { Question, QuestionBank as CoreQuestionBank } from '@/types/quiz';
 import { toast } from 'sonner';
-import { DEFAULT_TAGS_DB } from '@/lib/db'; // Import centralized default tags
+import { DEFAULT_TAGS_DB } from '@/lib/db';
 
 export function handleCreateQuestion(
   setQuestions: Function,
@@ -14,8 +14,10 @@ export function handleCreateQuestion(
   const newQuestion: Question = {
     id: `question-${Date.now()}`,
     question: `New Question ${questions.length + 1}`,
-    choices: ["A", "B"],
-    answers: ["A"],
+    choices: [
+      { value: "A", isCorrect: true },
+      { value: "B", isCorrect: false },
+    ],
     tags: [],
     notes: "New note",
     category: "",
@@ -44,9 +46,8 @@ export function handleExportData(questions: Question[]) {
   toast.success("Question data has been exported as questions.json");
 }
 
-// Renamed and refactored: Core logic for deleting a question
 export function executeDeleteQuestion(
-  selectedId: string, // Assume selectedId is validated before calling
+  selectedId: string,
   setQuestions: Function,
   setSelectedQuestionId: Function
 ) {
@@ -61,11 +62,10 @@ export function handleImportClick(fileInputRef: React.RefObject<HTMLInputElement
   fileInputRef.current?.click();
 }
 
-// Refactored: Reads and parses the file, then calls a success callback with data
 export function readFileAndParse(
   event: ChangeEvent<HTMLInputElement>,
-  onSuccess: (parsedData: Question[] | CoreQuestionBank) => void, // Updated type
-  onFinally: () => void // To reset file input
+  onSuccess: (parsedData: Question[] | CoreQuestionBank) => void,
+  onFinally: () => void
 ) {
   const file = event.target.files?.[0];
   if (!file) {
@@ -88,7 +88,6 @@ export function readFileAndParse(
           'questions' in parsedJson &&
           Array.isArray(parsedJson.questions)
         ) {
-          // Basic validation for questions within the bank
           const bank = parsedJson as CoreQuestionBank;
           if (bank.questions.every((q: object) => 'id' in q && 'question' in q)) {
             onSuccess(bank);
@@ -96,7 +95,6 @@ export function readFileAndParse(
             toast.error("Invalid QuestionBank format: questions array contains invalid items.");
           }
         }
-        // Check if it's an array of Question objects
         else if (
           Array.isArray(parsedJson) &&
           parsedJson.every((q) => 'id' in q && 'question' in q)
@@ -120,7 +118,6 @@ export function readFileAndParse(
   reader.readAsText(file);
 }
 
-// New: Core logic for importing questions after confirmation
 export function executeImport(
   importedQuestions: Question[],
   setQuestions: Function,
@@ -134,20 +131,19 @@ export function executeImport(
     q.tags?.forEach((t) => allTags.add(t))
   );
   setAvailableTags((prev: string[]) =>
-    Array.from(new Set([...prev, ...DEFAULT_TAGS_DB, ...allTags])) // Use DEFAULT_TAGS_DB
+    Array.from(new Set([...prev, ...DEFAULT_TAGS_DB, ...allTags]))
   );
   toast.success("Questions imported successfully.");
 }
 
 
-// Renamed and refactored: Core logic for clearing all data
 export function executeClearAllData(
   setQuestions: Function,
   setAvailableTags: Function,
   setSelectedQuestionId: Function
 ) {
   setQuestions([]);
-  setAvailableTags([...DEFAULT_TAGS_DB]); // Use DEFAULT_TAGS_DB
+  setAvailableTags([...DEFAULT_TAGS_DB]);
   setSelectedQuestionId(null);
   toast.success("All data has been cleared.");
 }
@@ -207,19 +203,20 @@ export function handleChoiceChange(
   if (!selectedId) return;
   const q = questions.find((x) => x.id === selectedId);
   if (!q) return;
-  const oldVal = q.choices[index];
-  const newChoices = [...q.choices];
-  newChoices[index] = value;
-  let newAnswers = [...q.answers];
-  if (q.answers.includes(oldVal)) {
-    newAnswers = newAnswers.map((ans) =>
-      ans === oldVal ? value : ans
-    );
-    if (value.trim() === "") {
-      newAnswers = newAnswers.filter((ans) => ans !== value);
+
+  const newChoices = q.choices.map((choice, i) => {
+    if (i === index) {
+      return { ...choice, value: value };
     }
-  }
-  updateQuestion(selectedId, { choices: newChoices, answers: newAnswers }, setQuestions);
+    return choice;
+  });
+
+  // If the choice text becomes empty, and it was marked as correct,
+  // it might be desirable to also mark it as incorrect.
+  // For now, we only update the value. Correctness is handled separately.
+  // If an empty choice should not be correct, that logic would go here or in validation.
+
+  updateQuestion(selectedId, { choices: newChoices }, setQuestions);
 }
 
 export function handleAddChoice(
@@ -230,7 +227,11 @@ export function handleAddChoice(
   if (!selectedId) return;
   const q = questions.find((x) => x.id === selectedId);
   if (!q) return;
-  updateQuestion(selectedId, { choices: [...q.choices, ""] }, setQuestions);
+  updateQuestion(
+    selectedId,
+    { choices: [...q.choices, { value: "", isCorrect: false }] },
+    setQuestions
+  );
 }
 
 export function handleRemoveChoice(
@@ -242,19 +243,29 @@ export function handleRemoveChoice(
   if (!selectedId) return;
   const q = questions.find((x) => x.id === selectedId);
   if (!q) return;
-  const removeVal = q.choices[index];
+
   const newChoices = q.choices.filter((_, i) => i !== index);
-  const newAnswers = q.answers.filter((ans) => ans !== removeVal);
-  updateQuestion(selectedId, { choices: newChoices, answers: newAnswers }, setQuestions);
+  updateQuestion(selectedId, { choices: newChoices }, setQuestions);
 }
 
-export function handleAnswersChange(
-  newAnswers: string[],
+export function handleChoiceIsCorrectChange(
+  choiceIndex: number,
+  isCorrect: boolean,
   selectedId: string | null,
+  questions: Question[],
   setQuestions: Function
 ) {
   if (!selectedId) return;
-  updateQuestion(selectedId, { answers: newAnswers }, setQuestions);
+  const q = questions.find((x) => x.id === selectedId);
+  if (!q) return;
+
+  const newChoices = q.choices.map((choice, i) => {
+    if (i === choiceIndex) {
+      return { ...choice, isCorrect: isCorrect };
+    }
+    return choice;
+  });
+  updateQuestion(selectedId, { choices: newChoices }, setQuestions);
 }
 
 export function handleTagsChange(
