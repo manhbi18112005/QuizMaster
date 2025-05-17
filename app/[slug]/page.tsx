@@ -17,8 +17,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  DndContext, // Add DndContext import
+  DndContext,
   KeyboardSensor,
   PointerSensor,
   useSensor,
@@ -33,6 +34,7 @@ import { Question, QuestionBank as CoreQuestionBank } from '@/types/quiz';
 import { QuizToolbar } from '@/components/quiz/QuizToolbar';
 import { QuestionListPanelContent } from '@/components/quiz/QuestionListPanelContent';
 import { QuestionEditorPanelContent } from '@/components/quiz/QuestionEditorPanelContent';
+import { QuestionViewerPanelContent } from '@/components/quiz/QuestionViewerPanelContent';
 import { QuestionSearchInput } from '@/components/quiz/QuestionSearchInput';
 import * as handlers from '@/helpers/questionHandlers';
 import { toast } from 'sonner';
@@ -40,7 +42,7 @@ import { getQuestionBankById, updateQuestionBank, getAvailableTags, saveAvailabl
 import { useParams } from 'next/navigation';
 
 
-export default function BankPage() { // Renamed component for clarity
+export default function BankPage() {
   const params = useParams();
   const bankId = typeof params.slug === 'string' ? params.slug : null;
 
@@ -49,7 +51,8 @@ export default function BankPage() { // Renamed component for clarity
   const [isLoading, setIsLoading] = useState(true);
 
   const [selectedQuestionId, setSelectedQuestionId] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState<string>(""); // State for the search term
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [activeTab, setActiveTab] = useState<"edit" | "view">("edit");
 
   const [alertDialogState, setAlertDialogState] = useState<{
     isOpen: boolean;
@@ -69,7 +72,6 @@ export default function BankPage() { // Renamed component for clarity
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Effect to load the specific QuestionBank and its questions, and global tags
   useEffect(() => {
     async function loadData() {
       if (!bankId) {
@@ -103,10 +105,9 @@ export default function BankPage() { // Renamed component for clarity
   }, [bankId]);
 
 
-  // Effect to save the current bank (with its questions) to Dexie whenever 'questions' state changes
   useEffect(() => {
-    if (!isLoading && currentBank && questions !== currentBank.questions) { // Save only if questions array instance changes
-      const updatedBank = { ...currentBank, questions: [...questions] }; // Create new array instance
+    if (!isLoading && currentBank && questions !== currentBank.questions) {
+      const updatedBank = { ...currentBank, questions: [...questions] };
       updateQuestionBank(updatedBank)
         .then(() => {
           // setCurrentBank(updatedBank); // Update local bank state if needed, ensure no loops
@@ -117,7 +118,7 @@ export default function BankPage() { // Renamed component for clarity
           toast.error("Failed to save bank questions.");
         });
     }
-  }, [questions, currentBank, isLoading]); // Dependency on currentBank to ensure it's loaded
+  }, [questions, currentBank, isLoading]);
 
   // Effect to save availableTags to Dexie whenever they change (remains global)
   useEffect(() => {
@@ -172,9 +173,6 @@ export default function BankPage() { // Renamed component for clarity
     })
   );
 
-  // Most handlers (handleCreateQuestion, handleDeleteQuestion, etc.) will now primarily update the 'questions' state.
-  // The useEffect above will then persist these changes by saving the entire 'currentBank'.
-
   const handleCreateQuestion = useCallback(() => {
     handlers.handleCreateQuestion(setQuestions, setSelectedQuestionId, questions);
   }, [questions]);
@@ -186,7 +184,7 @@ export default function BankPage() { // Renamed component for clarity
       id: currentBank.id,
       name: currentBank.name,
       description: currentBank.description,
-      questions: questions, // Use the current state of questions
+      questions: questions,
       createdAt: currentBank.createdAt,
       updatedAt: currentBank.updatedAt,
     };
@@ -206,7 +204,6 @@ export default function BankPage() { // Renamed component for clarity
       toast.error("No question selected to delete.");
       return;
     }
-    // This updates the local 'questions' state. useEffect will save the bank.
     handlers.executeDeleteQuestion(selectedQuestionId, setQuestions, setSelectedQuestionId);
   }, [selectedQuestionId]);
 
@@ -217,9 +214,8 @@ export default function BankPage() { // Renamed component for clarity
   const handleFileImport = useCallback((event: ChangeEvent<HTMLInputElement>) => {
     handlers.readFileAndParse(
       event,
-      (parsedData) => { // onSuccess callback for readFileAndParse
+      (parsedData) => {
         let importedQuestions: Question[];
-        // Store metadata from the imported file (CoreQuestionBank)
         const importedFileBankMetadata: Partial<Pick<CoreQuestionBank, 'name' | 'description'>> = {};
         const currentBankName = currentBank?.name || "current bank"; // Name of the bank being modified
         const dialogTitle = "Confirm Import";
@@ -407,7 +403,7 @@ export default function BankPage() { // Renamed component for clarity
 
   return (
     <ContentLayout title={`Bank: ${currentBank.name}`}>
-      <div className="flex justify-between items-center mb-4 gap-2 flex-wrap"> {/* Wrapper for toolbar items */}
+      <div className="flex justify-between items-center mb-4 gap-2 flex-wrap">
         <QuestionSearchInput
           searchTerm={searchTerm}
           onSearchTermChange={handleSearchTermChange}
@@ -421,7 +417,6 @@ export default function BankPage() { // Renamed component for clarity
           onClearAllData={handleClearAllData}
           fileInputRef={fileInputRef}
           onFileImport={handleFileImport}
-        // searchTerm and onSearchTermChange props removed from QuizToolbar
         />
       </div>
 
@@ -443,16 +438,39 @@ export default function BankPage() { // Renamed component for clarity
           <ResizablePanel defaultSize={67}>
             <div className="flex h-full items-start justify-center p-6 overflow-y-auto">
               <div className="w-full">
-                <QuestionEditorPanelContent
-                  selectedQuestion={selectedQuestion}
-                  availableTags={availableTags}
-                  onQuestionDetailChange={handleQuestionDetailChange}
-                  onAddChoice={handleAddChoice}
-                  onRemoveChoice={handleRemoveChoice}
-                  onChoiceChange={handleChoiceChange}
-                  onAnswersChange={handleAnswersChange}
-                  onTagsChange={handleTagsChange}
-                />
+                <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "edit" | "view")} className="w-full">
+                  <TabsList className="grid w-full grid-cols-2 mb-4">
+                    <TabsTrigger value="edit">Edit Mode</TabsTrigger>
+                    <TabsTrigger value="view">View Mode</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="edit">
+                    {selectedQuestion && (
+                      <QuestionEditorPanelContent
+                        selectedQuestion={selectedQuestion}
+                        availableTags={availableTags}
+                        onQuestionDetailChange={handleQuestionDetailChange}
+                        onAddChoice={handleAddChoice}
+                        onRemoveChoice={handleRemoveChoice}
+                        onChoiceChange={handleChoiceChange}
+                        onAnswersChange={handleAnswersChange}
+                        onTagsChange={handleTagsChange}
+                      />
+                    )}
+                    {!selectedQuestion && (
+                      <p className="text-center text-muted-foreground">Select a question to edit or create a new one.</p>
+                    )}
+                  </TabsContent>
+                  <TabsContent value="view">
+                    {selectedQuestion && (
+                      <QuestionViewerPanelContent
+                        selectedQuestion={selectedQuestion}
+                      />
+                    )}
+                    {!selectedQuestion && (
+                      <p className="text-center text-muted-foreground">Select a question to edit or create a new one.</p>
+                    )}
+                  </TabsContent>
+                </Tabs>
               </div>
             </div>
           </ResizablePanel>
