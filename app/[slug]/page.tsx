@@ -7,16 +7,6 @@ import {
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
 import { useState, ChangeEvent, useRef, useEffect, useCallback, useMemo } from 'react';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   DndContext,
@@ -37,11 +27,16 @@ import { QuestionEditorPanelContent } from '@/components/quiz/QuestionEditorPane
 import { QuestionViewerPanelContent } from '@/components/quiz/QuestionViewerPanelContent';
 import { QuestionSearchInput } from '@/components/quiz/QuestionSearchInput';
 import * as handlers from '@/helpers/questionHandlers';
+import * as importHandlers from '@/helpers/importHandlers';
 import { toast } from 'sonner';
 import { getQuestionBankById, updateQuestionBank, getAvailableTags, saveAvailableTags, DEFAULT_TAGS_DB, DbQuestionBank } from '@/lib/db';
 import { useParams } from 'next/navigation';
 import { useResponsivePanelDirection } from "@/helpers/useResponsivePanelDirection";
+import { Button } from "@/components/ui/button";
 import { buttonVariants } from "@/components/ui/button";
+import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
+import { VariantProps } from "class-variance-authority";
+import { Maximize, Minimize } from 'lucide-react';
 
 
 export default function BankPage() {
@@ -51,23 +46,26 @@ export default function BankPage() {
   const [currentBank, setCurrentBank] = useState<DbQuestionBank | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isFullScreen, setIsFullScreen] = useState(false);
 
   const [selectedQuestionId, setSelectedQuestionId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [activeTab, setActiveTab] = useState<"edit" | "view">("edit");
 
-  const [alertDialogState, setAlertDialogState] = useState<{
+  const [dialogProps, setDialogProps] = useState<{
     isOpen: boolean;
     title: string;
     description: string;
     onConfirm: () => void;
     onCancel: () => void;
+    confirmButtonVariant?: VariantProps<typeof buttonVariants>["variant"];
   }>({
     isOpen: false,
     title: '',
     description: '',
     onConfirm: () => { },
     onCancel: () => { },
+    confirmButtonVariant: 'destructive',
   });
 
   const [availableTags, setAvailableTags] = useState<string[]>([...DEFAULT_TAGS_DB]);
@@ -134,52 +132,55 @@ export default function BankPage() {
     }
   }, [availableTags, isLoading]);
 
+  // Effect to toggle body scrollbar based on fullscreen state
+  useEffect(() => {
+    if (isFullScreen) {
+      document.body.classList.add('overflow-hidden');
+    } else {
+      document.body.classList.remove('overflow-hidden');
+    }
+    // Cleanup function to remove the class if the component unmounts while in fullscreen
+    return () => {
+      document.body.classList.remove('overflow-hidden');
+    };
+  }, [isFullScreen]);
 
   const showConfirmationDialog = useCallback(
     (
       title: string,
       description: string,
       onConfirmAction: () => void,
-      onCancelAction?: () => void
+      onCancelAction?: () => void,
+      confirmButtonVariant: VariantProps<typeof buttonVariants>["variant"] = "destructive"
     ) => {
-      setAlertDialogState({
+      setDialogProps({
         isOpen: true,
         title,
         description,
         onConfirm: () => {
           onConfirmAction();
-          // Reset dialog state completely on confirm
-          setAlertDialogState({ isOpen: false, title: '', description: '', onConfirm: () => { }, onCancel: () => { } });
+          setDialogProps(prev => ({ ...prev, isOpen: false, title: '', description: '', onConfirm: () => { }, onCancel: () => { } }));
         },
         onCancel: () => {
-          if (onCancelAction) onCancelAction();
-          // Reset dialog state completely on cancel
-          setAlertDialogState({ isOpen: false, title: '', description: '', onConfirm: () => { }, onCancel: () => { } });
+          if (onCancelAction) {
+            onCancelAction();
+          }
+          setDialogProps(prev => ({ ...prev, isOpen: false, title: '', description: '', onConfirm: () => { }, onCancel: () => { } }));
         },
+        confirmButtonVariant,
       });
-    },
-    []
+    }, []
   );
 
-  const handleDialogConfirm = useCallback(() => {
-    alertDialogState.onConfirm();
-  }, [alertDialogState.onConfirm]);
-
-  const handleDialogCancel = useCallback(() => {
-    alertDialogState.onCancel();
-  }, [alertDialogState.onCancel]);
-
-  const handleAlertDialogOpenChange = useCallback((open: boolean) => {
-    if (!open && alertDialogState.isOpen) {
-      // If the dialog is being closed (e.g., by Escape key or overlay click)
-      // and it was previously open, execute the cancel handler.
-      alertDialogState.onCancel(); // This handler also sets isOpen to false.
-    } else {
-      // For other cases (e.g., programmatic opening, or if the dialog was already closed),
-      // ensure our state reflects the new open status.
-      setAlertDialogState(prev => ({ ...prev, isOpen: open }));
+  const handleDialogSystemClose = useCallback((open: boolean) => {
+    if (!open && dialogProps.isOpen) {
+      // If the dialog is being closed by system (Escape key or overlay click)
+      // and it was previously open, execute the configured cancel action.
+      dialogProps.onCancel(); // This will also set isOpen to false via the onCancel closure
     }
-  }, [alertDialogState.isOpen, alertDialogState.onCancel]);
+    // If opening, it's handled by showConfirmationDialog.
+    // If already closed by onConfirm/onCancel, isOpen is already false.
+  }, [dialogProps.isOpen, dialogProps.onCancel]);
 
 
   const sensors = useSensors(
@@ -195,7 +196,6 @@ export default function BankPage() {
 
   const handleExportData = useCallback(() => {
     if (!currentBank) return;
-    // Export only the questions of the current bank
     const bankToExport: CoreQuestionBank = {
       id: currentBank.id,
       name: currentBank.name,
@@ -225,114 +225,111 @@ export default function BankPage() {
 
 
   const handleImportClick = useCallback(() =>
-    handlers.handleImportClick(fileInputRef), [fileInputRef]);
+    importHandlers.handleImportClick(fileInputRef), [fileInputRef]);
 
   const handleFileImport = useCallback((event: ChangeEvent<HTMLInputElement>) => {
-    handlers.readFileAndParse(
+    importHandlers.readFileAndParse(
       event,
       (parsedData) => {
         let importedQuestions: Question[];
         const importedFileBankMetadata: Partial<Pick<CoreQuestionBank, 'name' | 'description'>> = {};
         const currentBankName = currentBank?.name || "current bank";
-        const dialogTitle = "Confirm Import";
         let dialogDescription: string;
-        // To distinguish between importing a full bank object vs. just an array of questions
         let importType: 'fullBankImport' | 'questionsArrayImport';
-        console.log(parsedData)
+
         if (Array.isArray(parsedData)) {
-          // Case 1: Importing a direct array of Question objects
-          importedQuestions = parsedData as Question[];
+          importedQuestions = parsedData;
           importType = 'questionsArrayImport';
-          dialogDescription = `Import ${importedQuestions.length} questions into "${currentBankName}"? This will replace current questions in this bank.`;
+          dialogDescription = `Append ${importedQuestions.length} questions to "${currentBankName}"? This will add the imported questions to the existing ones.`;
         } else if (parsedData && typeof parsedData === 'object' && 'questions' in parsedData && Array.isArray(parsedData.questions)) {
-          // Case 2: Importing a CoreQuestionBank object
           const fileBank = parsedData as CoreQuestionBank;
           importedQuestions = fileBank.questions;
           importType = 'fullBankImport';
 
-          // Capture name and description from the imported file if they exist
-          if (fileBank.hasOwnProperty('name')) {
-            importedFileBankMetadata.name = fileBank.name;
-          }
-          if (fileBank.hasOwnProperty('description')) {
-            importedFileBankMetadata.description = fileBank.description;
-          }
+          if (fileBank.name !== undefined) importedFileBankMetadata.name = fileBank.name;
+          if (fileBank.description !== undefined) importedFileBankMetadata.description = fileBank.description;
 
           const importedFileNameDisplay = fileBank.name || "Unnamed Imported Bank";
-          dialogDescription = `Import ${importedQuestions.length} questions from file "${importedFileNameDisplay}" into current bank "${currentBankName}"? This will replace all current questions.`;
+          dialogDescription = `Append ${importedQuestions.length} questions from file "${importedFileNameDisplay}" to current bank "${currentBankName}"? This will add the imported questions to the existing ones.`;
 
           const metadataChangeMessages: string[] = [];
-          if (importedFileBankMetadata.name !== undefined && importedFileBankMetadata.name !== currentBankName) {
+          if (importedFileBankMetadata.name !== undefined && importedFileBankMetadata.name !== currentBank?.name) {
             metadataChangeMessages.push(`Bank name will be updated to "${importedFileBankMetadata.name}".`);
           }
-          // Compare imported description with current, treating undefined/null as empty string for comparison consistency
           const currentDesc = currentBank?.description ?? "";
           const importedDesc = importedFileBankMetadata.description ?? "";
-          if (importedFileBankMetadata.hasOwnProperty('description') && importedDesc !== currentDesc) {
+          if (importedFileBankMetadata.description !== undefined && importedDesc !== currentDesc) {
             metadataChangeMessages.push(`Bank description will also be updated.`);
           }
 
           if (metadataChangeMessages.length > 0) {
-            dialogDescription += " " + metadataChangeMessages.join(" ");
+            dialogDescription += ` ${metadataChangeMessages.join(" ")}`;
           }
         } else {
           toast.error("Invalid file format. Expected an array of questions or a question bank object with a 'questions' array.");
-          if (fileInputRef.current) fileInputRef.current.value = ""; // Reset file input on format error
+          if (fileInputRef.current) fileInputRef.current.value = "";
           return;
         }
 
         showConfirmationDialog(
-          dialogTitle,
+          "Confirm Import",
           dialogDescription,
-          () => { // onConfirm action for the dialog
+          () => {
             if (importType === 'fullBankImport') {
               setCurrentBank(prevBank => {
                 if (!prevBank) return null;
                 const updates: Partial<DbQuestionBank> = {};
-                if (importedFileBankMetadata.hasOwnProperty('name')) {
+                if (importedFileBankMetadata.name !== undefined) {
                   updates.name = importedFileBankMetadata.name;
                 }
-                if (importedFileBankMetadata.hasOwnProperty('description')) {
+                if (importedFileBankMetadata.description !== undefined) {
                   updates.description = importedFileBankMetadata.description;
                 }
                 return { ...prevBank, ...updates };
               });
             }
 
-            handlers.executeImport(
-              importedQuestions,
-              setQuestions,
-              setSelectedQuestionId,
-              setAvailableTags
-            );
+            // Append questions instead of replacing
+            setQuestions(prevQuestions => [...prevQuestions, ...importedQuestions]);
+            setSelectedQuestionId(null); // Deselect any selected question
 
-            // Determine final bank name for the success message
+            // Update available tags based on newly imported questions
+            const allTagsFromImport = new Set<string>();
+            importedQuestions.forEach(q => {
+              if (q.tags) {
+                q.tags.forEach(tag => allTagsFromImport.add(tag));
+              }
+            });
+            setAvailableTags(prevTags => {
+              const newTags = new Set([...prevTags, ...allTagsFromImport]);
+              return Array.from(newTags);
+            });
+
+
             const finalBankName = (importType === 'fullBankImport' && importedFileBankMetadata.name)
               ? importedFileBankMetadata.name
               : currentBankName;
-            let successMessage = `Imported ${importedQuestions.length} questions into "${finalBankName}".`;
-            if (importType === 'fullBankImport' && (importedFileBankMetadata.hasOwnProperty('name') || importedFileBankMetadata.hasOwnProperty('description'))) {
-              successMessage = `Imported ${importedQuestions.length} questions. Bank details for "${finalBankName}" updated from file.`;
+            let successMessage = `Appended ${importedQuestions.length} questions to "${finalBankName}".`;
+            if (importType === 'fullBankImport' && (importedFileBankMetadata.name !== undefined || importedFileBankMetadata.description !== undefined)) {
+              successMessage = `Appended ${importedQuestions.length} questions. Bank details for "${finalBankName}" updated from file.`;
             }
             toast.success(successMessage);
-            if (fileInputRef.current) fileInputRef.current.value = ""; // Reset file input
+            if (fileInputRef.current) fileInputRef.current.value = "";
           },
-          () => {
-            if (fileInputRef.current) fileInputRef.current.value = ""; // Reset file input
+          () => { // onCancel
+            if (fileInputRef.current) fileInputRef.current.value = "";
           }
         );
       },
-      () => { // onFinally callback for readFileAndParse (called after success or error of file reading/parsing)
-        // It's generally good to reset the file input here too,
-        // though primary reset happens after dialog confirmation/cancellation.
-        // This handles cases where parsing itself fails before dialog.
+      () => { // onFinally
+        // Resetting file input is handled by onConfirm/onCancel,
+        // but this ensures it's cleared if readFileAndParse itself fails before dialog.
         if (fileInputRef.current && fileInputRef.current.value !== "") {
-          // console.log("Resetting file input in readFileAndParse onFinally");
-          // fileInputRef.current.value = ""; // Avoid resetting if already cleared by dialog handlers
+          // fileInputRef.current.value = ""; // Already handled, but can be a safeguard
         }
       }
     );
-  }, [showConfirmationDialog, currentBank, setAvailableTags, setCurrentBank, setQuestions, setSelectedQuestionId]); // Added setCurrentBank, setQuestions, setSelectedQuestionId to deps for completeness, though they are stable setters
+  }, [showConfirmationDialog, currentBank]);
 
   const handleClearAllData = useCallback(() => {
     if (!currentBank) return;
@@ -351,13 +348,13 @@ export default function BankPage() {
 
 
   const handleCardClick = useCallback((questionId: string) =>
-    handlers.handleCardClick(questionId, setSelectedQuestionId), [setSelectedQuestionId]);
+    handlers.handleCardClick(questionId, setSelectedQuestionId), []);
 
   const handleDragEnd = useCallback((event: DragEndEvent) =>
-    handlers.handleDragEnd(event, setQuestions), [setQuestions]);
+    handlers.handleDragEnd(event, setQuestions), []);
 
   const handleQuestionDetailChange = useCallback((e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
-    handlers.handleQuestionDetailChange(e, selectedQuestionId, setQuestions), [selectedQuestionId, setQuestions]);
+    handlers.handleQuestionDetailChange(e, selectedQuestionId, setQuestions), [selectedQuestionId]);
 
   /*   const updateQuestion = useCallback((id: string, updates: Partial<Question>) =>
       handlers.updateQuestion(id, updates, setQuestions), [setQuestions]); */
@@ -369,13 +366,13 @@ export default function BankPage() {
       selectedQuestionId,
       questions,
       setQuestions
-    ), [selectedQuestionId, questions, setQuestions]);
+    ), [selectedQuestionId, questions]);
 
   const handleAddChoice = useCallback(() =>
-    handlers.handleAddChoice(selectedQuestionId, questions, setQuestions), [selectedQuestionId, questions, setQuestions]);
+    handlers.handleAddChoice(selectedQuestionId, questions, setQuestions), [selectedQuestionId, questions]);
 
   const handleRemoveChoice = useCallback((index: number) =>
-    handlers.handleRemoveChoice(index, selectedQuestionId, questions, setQuestions), [selectedQuestionId, questions, setQuestions]);
+    handlers.handleRemoveChoice(index, selectedQuestionId, questions, setQuestions), [selectedQuestionId, questions]);
 
   const handleChoiceIsCorrectChange = useCallback((choiceIndex: number, isCorrect: boolean) =>
     handlers.handleChoiceIsCorrectChange(
@@ -384,7 +381,7 @@ export default function BankPage() {
       selectedQuestionId,
       questions,
       setQuestions
-    ), [selectedQuestionId, questions, setQuestions]);
+    ), [selectedQuestionId, questions]);
 
   const handleTagsChange = useCallback((newTags: string[]) =>
     handlers.handleTagsChange(
@@ -393,10 +390,14 @@ export default function BankPage() {
       setQuestions,
       availableTags,
       setAvailableTags
-    ), [selectedQuestionId, setQuestions, availableTags, setAvailableTags]);
+    ), [selectedQuestionId, availableTags]);
 
   const handleSearchTermChange = useCallback((value: string) =>
-    handlers.handleSearchTermChange(value, setSearchTerm), [setSearchTerm]);
+    handlers.handleSearchTermChange(value, setSearchTerm), []);
+
+  const toggleFullScreen = useCallback(() => {
+    setIsFullScreen(prev => !prev);
+  }, []);
 
   const selectedQuestion = useMemo(() => questions.find(q => q.id === selectedQuestionId), [questions, selectedQuestionId]);
   const filteredQuestions = useMemo(() => {
@@ -433,34 +434,47 @@ export default function BankPage() {
     return <ContentLayout title="Bank Not Found"><p>The requested question bank could not be found.</p></ContentLayout>;
   }
 
+  const fullScreenButtonElement = (
+    <Button onClick={toggleFullScreen} variant="outline" size="icon" title={isFullScreen ? "Exit Fullscreen" : "Enter Fullscreen"}>
+      {isFullScreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
+    </Button>
+  );
+
+  const searchInputElement = (
+    <QuestionSearchInput
+      searchTerm={searchTerm}
+      onSearchTermChange={handleSearchTermChange}
+    />
+  );
+
   return (
-    <ContentLayout title={`Bank: ${currentBank.name}`}>
-      <div className="flex flex-col h-full">
+    <ContentLayout title={currentBank.name}>
+      <div className={`flex flex-col flex-1 overflow-hidden transition-all duration-300 ease-in-out ${isFullScreen ? 'fixed inset-0 bg-background z-40 p-2 sm:p-4' : 'relative'}`}>
+
         <div className="flex justify-between items-center mb-4 gap-2 flex-wrap">
-          <QuestionSearchInput
-            searchTerm={searchTerm}
-            onSearchTermChange={handleSearchTermChange}
-          />
-          <QuizToolbar
-            onCreateQuestion={handleCreateQuestion}
-            onDeleteQuestion={handleDeleteQuestion}
-            selectedQuestionId={selectedQuestionId}
-            onImportClick={handleImportClick}
-            onExportData={handleExportData}
-            onClearAllData={handleClearAllData}
-            fileInputRef={fileInputRef}
-            onFileImport={handleFileImport}
-          />
+          {searchInputElement}
+          <div className="flex items-center gap-2">
+            <QuizToolbar
+              onCreateQuestion={handleCreateQuestion}
+              onDeleteQuestion={handleDeleteQuestion}
+              selectedQuestionId={selectedQuestionId}
+              onImportClick={handleImportClick}
+              onExportData={handleExportData}
+              onClearAllData={handleClearAllData}
+              fileInputRef={fileInputRef}
+              onFileImport={handleFileImport}
+            />
+            {fullScreenButtonElement}
+          </div>
         </div>
 
         <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
           <ResizablePanelGroup
             direction={panelDirection}
-            className={`rounded-lg border flex-1 min-h-0 ${panelDirection === "vertical" ? "min-h-[60vh]" : ""
-              }`}
+            className="flex-1 rounded-lg border"
           >
-            <ResizablePanel defaultSize={33}>
-              <div className="flex h-full items-start justify-center p-6 overflow-y-auto">
+            <ResizablePanel defaultSize={33} minSize={10} collapsedSize={5} collapsible={true}>
+              <div className="h-full min-h-0 overflow-y-auto p-6">
                 <QuestionListPanelContent
                   questions={filteredQuestions}
                   selectedQuestionId={selectedQuestionId}
@@ -468,62 +482,58 @@ export default function BankPage() {
                 />
               </div>
             </ResizablePanel>
+
             <ResizableHandle withHandle />
-            <ResizablePanel defaultSize={67}>
-              <div className="flex h-full items-start justify-center p-6 overflow-y-auto">
-                <div className="w-full">
-                  <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "edit" | "view")} className="w-full">
-                    <TabsList className="grid w-full grid-cols-2 mb-4">
-                      <TabsTrigger value="edit">Edit Mode</TabsTrigger>
-                      <TabsTrigger value="view">View Mode</TabsTrigger>
-                    </TabsList>
-                    <TabsContent value="edit">
-                      {selectedQuestion && (
-                        <QuestionEditorPanelContent
-                          selectedQuestion={selectedQuestion}
-                          availableTags={availableTags}
-                          onQuestionDetailChange={handleQuestionDetailChange}
-                          onAddChoice={handleAddChoice}
-                          onRemoveChoice={handleRemoveChoice}
-                          onChoiceChange={handleChoiceChange}
-                          onChoiceIsCorrectChange={handleChoiceIsCorrectChange}
-                          onTagsChange={handleTagsChange}
-                        />
-                      )}
-                      {!selectedQuestion && (
-                        <p className="text-center text-muted-foreground">Select a question to edit or create a new one.</p>
-                      )}
-                    </TabsContent>
-                    <TabsContent value="view">
-                      {selectedQuestion && (
-                        <QuestionViewerPanelContent
-                          selectedQuestion={selectedQuestion}
-                        />
-                      )}
-                      {!selectedQuestion && (
-                        <p className="text-center text-muted-foreground">Select a question to edit or create a new one.</p>
-                      )}
-                    </TabsContent>
-                  </Tabs>
-                </div>
+
+            <ResizablePanel defaultSize={67} minSize={10}>
+              <div className="h-full min-h-0 overflow-y-auto p-6">
+                <Tabs value={activeTab} onValueChange={v => setActiveTab(v as "edit" | "view")} className="w-full">
+                  <TabsList className="grid w-full grid-cols-2 mb-4">
+                    <TabsTrigger value="edit">Edit Mode</TabsTrigger>
+                    <TabsTrigger value="view">View Mode</TabsTrigger>
+                  </TabsList>
+
+                  <TabsContent value="edit">
+                    {selectedQuestion ? (
+                      <QuestionEditorPanelContent
+                        selectedQuestion={selectedQuestion}
+                        availableTags={availableTags}
+                        onQuestionDetailChange={handleQuestionDetailChange}
+                        onAddChoice={handleAddChoice}
+                        onRemoveChoice={handleRemoveChoice}
+                        onChoiceChange={handleChoiceChange}
+                        onChoiceIsCorrectChange={handleChoiceIsCorrectChange}
+                        onTagsChange={handleTagsChange}
+                      />
+                    ) : (
+                      <p className="text-center text-muted-foreground">Select a question to edit or create a new one.</p>
+                    )}
+                  </TabsContent>
+
+                  <TabsContent value="view">
+                    {selectedQuestion ? (
+                      <QuestionViewerPanelContent selectedQuestion={selectedQuestion} />
+                    ) : (
+                      <p className="text-center text-muted-foreground">Select a question to edit or create a new one.</p>
+                    )}
+                  </TabsContent>
+                </Tabs>
               </div>
             </ResizablePanel>
           </ResizablePanelGroup>
         </DndContext>
+
       </div>
 
-      <AlertDialog open={alertDialogState.isOpen} onOpenChange={handleAlertDialogOpenChange}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{alertDialogState.title}</AlertDialogTitle>
-            <AlertDialogDescription>{alertDialogState.description}</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={handleDialogCancel}>Cancel</AlertDialogCancel>
-            <AlertDialogAction className={buttonVariants({ variant: "destructive" })} onClick={handleDialogConfirm}>Confirm</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmationDialog
+        open={dialogProps.isOpen}
+        onOpenChange={handleDialogSystemClose}
+        title={dialogProps.title}
+        description={dialogProps.description}
+        onConfirm={dialogProps.onConfirm}
+        onCancel={dialogProps.onCancel}
+        confirmButtonVariant={dialogProps.confirmButtonVariant}
+      />
     </ContentLayout>
   );
 }

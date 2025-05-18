@@ -1,21 +1,18 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { ReactNode } from "react";
+import { Quicksand } from "next/font/google";
 import AdminPanelLayout from "@/components/admin-panel/admin-panel-layout";
-import { Toaster } from "@/components/providers/toaster";
+import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 import {
   TooltipProvider,
 } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+const quicksand = Quicksand({
+  variable: "--font-quicksand",
+  subsets: ["latin", "latin-ext", "vietnamese"],
+  preload: true
 });
 
 export const metadata: Metadata = {
@@ -23,8 +20,8 @@ export const metadata: Metadata = {
     process.env.APP_URL
       ? `${process.env.APP_URL}`
       : process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : `http://localhost:${process.env.PORT || 3000}`
+        ? `https://${process.env.VERCEL_URL}`
+        : `http://localhost:${process.env.PORT || 3000}`
   ),
   title: "QuizMaster - Student Revision Quizzes",
   description:
@@ -47,22 +44,19 @@ export const metadata: Metadata = {
   }
 };
 
-
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+    <html lang="en" className={`${quicksand.variable} antialiased`}>
+      <body>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-        <Toaster />
-        <TooltipProvider>
-          <AdminPanelLayout>{children}</AdminPanelLayout>
-        </TooltipProvider>
+          <Toaster />
+          <TooltipProvider>
+            <AdminPanelLayout>{children}</AdminPanelLayout>
+          </TooltipProvider>
         </ThemeProvider>
       </body>
     </html>

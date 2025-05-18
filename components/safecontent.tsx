@@ -1,7 +1,7 @@
 import { FC } from 'react';
 import { useSanitizeHtml } from '@/helpers/useSanitizeHtml';
 
-interface UserContentProps {
+export interface UserContentProps {
     content: string | undefined | null;
 }
 

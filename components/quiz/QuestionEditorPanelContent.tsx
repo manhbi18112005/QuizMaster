@@ -91,7 +91,7 @@ export const QuestionEditorPanelContent: React.FC<QuestionEditorPanelContentProp
     <Card>
       <CardHeader>
         <MinimalTiptapEditor
-          key={`question-editor-${selectedQuestion.id}`}
+          key={`q-editor-${selectedQuestion.id}`}
           value={selectedQuestion.question}
           onChange={handleQuestionTextChange}
           output="html"

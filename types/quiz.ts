@@ -1,5 +1,8 @@
-export type QuestionDifficulty = 'easy' | 'medium' | 'hard' | undefined;
-
+export enum QuestionDifficulty {
+  Easy = 'easy',
+  Medium = 'medium',
+  Hard = 'hard'
+}
 export interface QuestionAnswer {
   value: string;
   isCorrect: boolean;

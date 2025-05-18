@@ -178,8 +178,8 @@ export async function updateQuestionBank(
   // Merge existing with updates. Ensure 'questions' array is handled correctly.
   const bankToUpdate: DbQuestionBank = {
     ...existingBank,
-    ...bankUpdateData, // Apply partial updates
-    questions: bankUpdateData.questions !== undefined ? bankUpdateData.questions : existingBank.questions, // Explicitly handle questions array
+    ...bankUpdateData,
+    questions: bankUpdateData.questions !== undefined ? bankUpdateData.questions : existingBank.questions,
     updatedAt: new Date(),
   };
   await db.questionBanks.put(bankToUpdate);

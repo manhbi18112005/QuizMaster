@@ -1,4 +1,4 @@
-import React from 'react';
+import { FC } from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { GripVertical, CalendarDays, CheckCircle2 } from "lucide-react";
@@ -15,7 +15,7 @@ interface QuestionCardProps {
     isSelected: boolean;
 }
 
-export const QuestionCard: React.FC<QuestionCardProps> = ({ id, question, onClick, isSelected }) => {
+export const QuestionCard: FC<QuestionCardProps> = ({ id, question, onClick, isSelected }) => {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
     const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1, zIndex: isDragging ? 10 : undefined };
 
@@ -24,44 +24,46 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({ id, question, onClic
             ref={setNodeRef}
             style={style}
             {...attributes}
-            className="flex items-stretch mb-3 group"
+            className="flex items-stretch mb-1 group"
         >
             <Card
-                className={`flex-1 rounded-md ${isSelected
-                    ? 'bg-primary/10 dark:bg-primary/20'
-                    : 'bg-background'
-                    } ${isDragging ? 'shadow-xl scale-105' : 'shadow-sm'} transition-all duration-150 ease-in-out group-hover:shadow-md`}
+                className={`gap-2 py-2 flex-1 rounded-md cursor-pointer
+                    ${isSelected
+                    ? 'bg-primary/20 dark:bg-primary/20'
+                    : 'bg-background hover:bg-primary/10 dark:hover:bg-primary/20'}
+                    ${isDragging ? 'shadow-xl scale-105' : 'shadow-sm'}
+                    transition-all duration-150 ease-in-out
+                    ${!isSelected ? 'hover:shadow-md' : ''}`}
                 onClick={onClick}
             >
-                <CardHeader className="px-4 flex items-start">
-                    <div {...listeners} className="mr-3 cursor-grab text-muted-foreground pt-0.5">
-                        <GripVertical size={20} />
+                <CardHeader className="px-3 py-2 flex items-start">
+                    <div {...listeners} className="mr-2 cursor-grab text-muted-foreground pt-0.5">
+                        <GripVertical size={18} />
                     </div>
                     <div className="flex-1 flex flex-col min-w-0">
                         <CardTitle
-                            className="text-base font-semibold leading-tight"
+                            className="text-sm font-semibold leading-tight"
                         >
                             <SafeContent content={question.question} />
                         </CardTitle>
                         {question.category && (
-                            <Badge variant="outline" className="text-xs font-normal mt-1.5 self-start max-w-full truncate">
+                            <Badge variant="outline" className="text-xs font-normal mt-1 self-start max-w-full truncate">
                                 {question.category}
                             </Badge>
                         )}
                     </div>
                 </CardHeader>
-                <CardContent className="pt-0 pb-3 px-4">
+                <CardContent className="pt-0 pb-2 px-3">
                     {question.choices && question.choices.some(choice => choice.isCorrect) && (
-                        <div className="mt-2 space-y-1.5 text-sm">
-                            <h4 className="text-xs font-medium text-muted-foreground mb-1">Answers:</h4>
+                        <div className="mt-1 space-y-1 text-xs">
                             <ul className="list-none pl-0">
                                 {question.choices.filter(choice => choice.isCorrect).map((choice, index) => (
                                     <li
                                         key={index}
                                         className="flex items-start text-muted-foreground font-semibold text-green-600 dark:text-green-400"
                                     >
-                                        <CheckCircle2 size={14} className="mr-1.5 mt-0.5 flex-shrink-0" />
-                                        <span>
+                                        <CheckCircle2 size={12} className="mr-1 mt-0.5 flex-shrink-0" />
+                                        <span className="whitespace-normal break-words">
                                             <SafeContent content={choice.value} />
                                         </span>
                                     </li>
@@ -70,27 +72,27 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({ id, question, onClic
                         </div>
                     )}
                 </CardContent>
-                <CardFooter className="px-4">
+                <CardFooter className="px-3 py-2">
                     <div className="flex justify-between items-center text-xs text-muted-foreground w-full">
-                        <div className="flex flex-wrap gap-1.5 mt-2">
-                            {question.tags?.slice(0, 3).map((tag, i) => (
+                        <div className="flex flex-wrap gap-1 mt-1">
+                            {question.tags?.slice(0, 2).map((tag, i) => (
                                 <Badge key={i} variant="secondary" className="text-xs">
                                     {tag}
                                 </Badge>
                             ))}
-                            {question.tags && question.tags.length > 3 && (
+                            {question.tags && question.tags.length > 2 && (
                                 <Badge variant="outline" className="text-xs">
-                                    +{question.tags.length - 3} more
+                                    +{question.tags.length - 2} more
                                 </Badge>
                             )}
                             {question.difficulty && (
-                                <DifficultyBadge difficulty={question.difficulty} />
+                                <DifficultyBadge difficulty={question.difficulty} size="xs" />
                             )}
                         </div>
                         {question.createdAt && (
-                            <span className="flex items-center gap-1">
-                                <CalendarDays size={12} />
-                                {new Date(question.createdAt).toLocaleDateString()}
+                            <span className="flex items-center gap-1 text-xxs">
+                                <CalendarDays size={10} />
+                                {new Date(question.createdAt).toLocaleDateString(undefined, { year: '2-digit', month: 'numeric', day: 'numeric' })}
                             </span>
                         )}
                     </div>

@@ -6,6 +6,8 @@ import { Question } from '@/types/quiz';
 import { DifficultyBadge } from '@/components/ui/DifficultyBadge';
 import { toast } from "sonner";
 import { SafeContent } from '@/components/safecontent';
+import { Blockquote } from '@/components/ui/block-quote';
+import { TipTapViewer } from '@/components/tiptap-viewer';
 
 interface QuestionViewerPanelContentProps {
   selectedQuestion: Question | undefined;
@@ -26,10 +28,10 @@ export const QuestionViewerPanelContent: FC<QuestionViewerPanelContentProps> = (
     if (!text) return;
     try {
       await navigator.clipboard.writeText(text);
-      toast.success("Copied to clipboard!"); // Changed
+      toast.success("Copied to clipboard!");
     } catch (err) {
       console.error('Failed to copy: ', err);
-      toast.error("Failed to copy", { // Changed
+      toast.error("Failed to copy", {
         description: "Could not copy text to clipboard.",
       });
     }
@@ -46,18 +48,6 @@ export const QuestionViewerPanelContent: FC<QuestionViewerPanelContentProps> = (
   return (
     <Card>
       <CardHeader>
-        <CardTitle>
-          <div
-            className="p-2 prose dark:prose-invert max-w-full cursor-pointer"
-            onClick={e => {
-              const textToCopy = (e.currentTarget as HTMLElement).textContent || "";
-              handleCopy(textToCopy);
-            }}
-            title="Click to copy question text"
-          >
-            <SafeContent content={selectedQuestion.question} />
-          </div>
-        </CardTitle>
         <div className="flex items-center space-x-2 pt-2">
           {selectedQuestion.category && (
             <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-md text-xs dark:bg-blue-700 dark:text-blue-200">
@@ -68,6 +58,18 @@ export const QuestionViewerPanelContent: FC<QuestionViewerPanelContentProps> = (
             <DifficultyBadge difficulty={selectedQuestion.difficulty} />
           )}
         </div>
+        <CardTitle>
+          <div
+            className="p-2 prose dark:prose-invert max-w-full cursor-pointer"
+            onClick={e => {
+              const textToCopy = (e.currentTarget as HTMLElement).textContent || "";
+              handleCopy(textToCopy);
+            }}
+            title="Click to copy question text"
+          >
+            <TipTapViewer content={selectedQuestion.question} />
+          </div>
+        </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="space-y-2">
@@ -86,7 +88,7 @@ export const QuestionViewerPanelContent: FC<QuestionViewerPanelContentProps> = (
                   onClick={() => handleCopy(choice.value)}
                   title="Click to copy choice text"
                 >
-                  <span className="flex-1">
+                  <span className="flex-1 font-semibold">
                     <SafeContent content={choice.value} />
                   </span>
                   {isCorrect && (
@@ -116,18 +118,13 @@ export const QuestionViewerPanelContent: FC<QuestionViewerPanelContentProps> = (
         </div>
 
         {selectedQuestion.notes && (
-          <div className="space-y-2">
-            <h3 className="text-lg font-semibold">Notes</h3>
-            <div
-              className="min-h-[100px] p-2 prose dark:prose-invert max-w-full"
-            >
-              <SafeContent content={selectedQuestion.notes} />
-            </div>
-          </div>
+          <Blockquote>
+            <TipTapViewer content={selectedQuestion.notes} />
+          </Blockquote>
         )}
       </CardContent>
-      <CardFooter>
-        <CardTitle className='text-sm text-muted-foreground'>{selectedQuestion.id} - {createdAtDateFormatted}</CardTitle>
+      <CardFooter className="text-sm font-semibold text-muted-foreground flex justify-end">
+        {selectedQuestion.id} - {createdAtDateFormatted}
       </CardFooter>
     </Card>
   );

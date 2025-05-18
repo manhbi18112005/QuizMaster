@@ -1,29 +1,20 @@
 /* eslint-disable @typescript-eslint/no-unsafe-function-type */
-import { ChangeEvent, RefObject } from 'react';
+import { ChangeEvent } from 'react';
 import { DragEndEvent } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
-import { Question, QuestionBank as CoreQuestionBank } from '@/types/quiz';
+import { Question } from '@/types/quiz';
 import { toast } from 'sonner';
 import { DEFAULT_TAGS_DB } from '@/lib/db';
+import { createDefaultQuestion } from './questionUtils';
 
 export function handleCreateQuestion(
   setQuestions: Function,
   setSelectedQuestionId: Function,
   questions: Question[]
 ) {
-  const newQuestion: Question = {
-    id: `question-${Date.now()}`,
-    question: `New Question ${questions.length + 1}`,
-    choices: [
-      { value: "A", isCorrect: true },
-      { value: "B", isCorrect: false },
-    ],
-    tags: [],
-    notes: "New note",
-    category: "",
-    difficulty: "easy",
-    createdAt: new Date(),
-  };
+  const newQuestion = createDefaultQuestion({
+    question: `New Question ${questions.length + 1}`
+  });
   setQuestions((prev: Question[]) => [...prev, newQuestion]);
   setSelectedQuestionId(newQuestion.id);
 }
@@ -57,85 +48,6 @@ export function executeDeleteQuestion(
   setSelectedQuestionId(null);
   toast.success("Question deleted.");
 }
-
-export function handleImportClick(fileInputRef: RefObject<HTMLInputElement>) {
-  fileInputRef.current?.click();
-}
-
-export function readFileAndParse(
-  event: ChangeEvent<HTMLInputElement>,
-  onSuccess: (parsedData: Question[] | CoreQuestionBank) => void,
-  onFinally: () => void
-) {
-  const file = event.target.files?.[0];
-  if (!file) {
-    onFinally();
-    return;
-  }
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    try {
-      const text = e.target?.result;
-      if (typeof text === "string") {
-        const parsedJson = JSON.parse(text);
-
-        // Check if it's a CoreQuestionBank object
-        if (
-          parsedJson &&
-          typeof parsedJson === 'object' &&
-          'id' in parsedJson &&
-          'name' in parsedJson &&
-          'questions' in parsedJson &&
-          Array.isArray(parsedJson.questions)
-        ) {
-          const bank = parsedJson as CoreQuestionBank;
-          if (bank.questions.every((q: object) => 'id' in q && 'question' in q)) {
-            onSuccess(bank);
-          } else {
-            toast.error("Invalid QuestionBank format: questions array contains invalid items.");
-          }
-        }
-        else if (
-          Array.isArray(parsedJson) &&
-          parsedJson.every((q) => 'id' in q && 'question' in q)
-        ) {
-          onSuccess(parsedJson as Question[]);
-        } else {
-          toast.error("Invalid file format. Expected an array of questions or a question bank object.");
-        }
-      }
-    } catch (err) {
-      console.error("Error importing data:", err);
-      toast.error("Error importing data. Check the console for details.");
-    } finally {
-      onFinally();
-    }
-  };
-  reader.onerror = () => {
-    toast.error("Error reading file.");
-    onFinally();
-  };
-  reader.readAsText(file);
-}
-
-export function executeImport(
-  importedQuestions: Question[],
-  setQuestions: Function,
-  setSelectedQuestionId: Function,
-  setAvailableTags: Function
-) {
-  setQuestions(importedQuestions);
-  setSelectedQuestionId(null);
-  const allTags = new Set<string>();
-  importedQuestions.forEach((q) =>
-    q.tags?.forEach((t) => allTags.add(t))
-  );
-  setAvailableTags((prev: string[]) =>
-    Array.from(new Set([...prev, ...DEFAULT_TAGS_DB, ...allTags]))
-  );
-  toast.success("Questions imported successfully.");
-}
-
 
 export function executeClearAllData(
   setQuestions: Function,
