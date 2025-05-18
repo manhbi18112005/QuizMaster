@@ -45,7 +45,7 @@ export function createDefaultQuestion(partialData: Partial<Question> = {}): Ques
 
     const finalDifficulty = (partialData.difficulty && DIFFICULTY_OPTIONS.includes(partialData.difficulty))
         ? partialData.difficulty
-        : 'easy';
+        : 'easy' as Question['difficulty'];
 
     return {
         id: partialData.id ?? uuidv4(),
