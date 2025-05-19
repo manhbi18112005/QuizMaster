@@ -38,7 +38,6 @@ import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { VariantProps } from "class-variance-authority";
 import { Maximize, Minimize } from 'lucide-react';
 
-
 export default function BankPage() {
   const params = useParams();
   const bankId = typeof params.slug === 'string' ? params.slug : null;
@@ -426,6 +425,32 @@ export default function BankPage() {
     });
   }, [questions, searchTerm]);
 
+  const currentQuestionIndex = useMemo(() => {
+    if (!selectedQuestionId) return -1;
+    return filteredQuestions.findIndex(q => q.id === selectedQuestionId);
+  }, [filteredQuestions, selectedQuestionId]);
+
+  const canGoPrevious = useMemo(() => {
+    return currentQuestionIndex > 0;
+  }, [currentQuestionIndex]);
+
+  const canGoNext = useMemo(() => {
+    return currentQuestionIndex !== -1 && currentQuestionIndex < filteredQuestions.length - 1;
+  }, [currentQuestionIndex, filteredQuestions.length]);
+
+  const handlePreviousQuestion = useCallback(() => {
+    if (canGoPrevious) {
+      setSelectedQuestionId(filteredQuestions[currentQuestionIndex - 1].id);
+    }
+  }, [canGoPrevious, currentQuestionIndex, filteredQuestions]);
+
+  const handleNextQuestion = useCallback(() => {
+    if (canGoNext) {
+      setSelectedQuestionId(filteredQuestions[currentQuestionIndex + 1].id);
+    }
+  }, [canGoNext, currentQuestionIndex, filteredQuestions]);
+
+
   if (isLoading) {
     return <ContentLayout title="Loading Bank..."><p>Loading bank details...</p></ContentLayout>;
   }
@@ -504,6 +529,10 @@ export default function BankPage() {
                         onChoiceChange={handleChoiceChange}
                         onChoiceIsCorrectChange={handleChoiceIsCorrectChange}
                         onTagsChange={handleTagsChange}
+                        onPrevious={handlePreviousQuestion}
+                        onNext={handleNextQuestion}
+                        canGoPrevious={canGoPrevious}
+                        canGoNext={canGoNext}
                       />
                     ) : (
                       <p className="text-center text-muted-foreground">Select a question to edit or create a new one.</p>
@@ -512,7 +541,13 @@ export default function BankPage() {
 
                   <TabsContent value="view">
                     {selectedQuestion ? (
-                      <QuestionViewerPanelContent selectedQuestion={selectedQuestion} />
+                      <QuestionViewerPanelContent
+                        selectedQuestion={selectedQuestion}
+                        onPrevious={handlePreviousQuestion}
+                        onNext={handleNextQuestion}
+                        canGoPrevious={canGoPrevious}
+                        canGoNext={canGoNext}
+                      />
                     ) : (
                       <p className="text-center text-muted-foreground">Select a question to edit or create a new one.</p>
                     )}

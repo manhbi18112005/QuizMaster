@@ -8,13 +8,22 @@ import { toast } from "sonner";
 import { SafeContent } from '@/components/safecontent';
 import { Blockquote } from '@/components/ui/block-quote';
 import { TipTapViewer } from '@/components/tiptap-viewer';
+import { Button } from '@/components/ui/button';
 
 interface QuestionViewerPanelContentProps {
   selectedQuestion: Question | undefined;
+  onPrevious: () => void;
+  onNext: () => void;
+  canGoPrevious: boolean;
+  canGoNext: boolean;
 }
 
 export const QuestionViewerPanelContent: FC<QuestionViewerPanelContentProps> = ({
   selectedQuestion,
+  onPrevious,
+  onNext,
+  canGoPrevious,
+  canGoNext,
 }) => {
   if (!selectedQuestion) {
     return (
@@ -48,15 +57,27 @@ export const QuestionViewerPanelContent: FC<QuestionViewerPanelContentProps> = (
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center space-x-2 pt-2">
-          {selectedQuestion.category && (
-            <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-md text-xs dark:bg-blue-700 dark:text-blue-200">
-              {selectedQuestion.category}
-            </span>
-          )}
-          {selectedQuestion.difficulty && (
-            <DifficultyBadge difficulty={selectedQuestion.difficulty} />
-          )}
+        <div className="flex items-center justify-between">
+          <CardTitle className='text-sm text-muted-foreground'>{selectedQuestion.id} - {createdAtDateFormatted}
+            <div className="flex items-center space-x-2 pt-2">
+              {selectedQuestion.category && (
+                <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-md text-xs dark:bg-blue-700 dark:text-blue-200">
+                  {selectedQuestion.category}
+                </span>
+              )}
+              {selectedQuestion.difficulty && (
+                <DifficultyBadge difficulty={selectedQuestion.difficulty} />
+              )}
+            </div>
+          </CardTitle>
+          <div className="space-x-2 flex-shrink-0">
+            <Button onClick={onPrevious} disabled={!canGoPrevious} variant="outline">
+              Previous
+            </Button>
+            <Button onClick={onNext} disabled={!canGoNext} variant="outline">
+              Next
+            </Button>
+          </div>
         </div>
         <CardTitle>
           <div
@@ -123,9 +144,6 @@ export const QuestionViewerPanelContent: FC<QuestionViewerPanelContentProps> = (
           </Blockquote>
         )}
       </CardContent>
-      <CardFooter className="text-sm font-semibold text-muted-foreground flex justify-end">
-        {selectedQuestion.id} - {createdAtDateFormatted}
-      </CardFooter>
     </Card>
   );
 };

@@ -26,6 +26,10 @@ interface QuestionEditorPanelContentProps {
   onChoiceChange: (index: number, value: string) => void;
   onChoiceIsCorrectChange: (choiceIndex: number, isCorrect: boolean) => void;
   onTagsChange: (newTags: string[]) => void;
+  onPrevious: () => void;
+  onNext: () => void;
+  canGoPrevious: boolean;
+  canGoNext: boolean;
 }
 
 export const QuestionEditorPanelContent: React.FC<QuestionEditorPanelContentProps> = ({
@@ -37,6 +41,10 @@ export const QuestionEditorPanelContent: React.FC<QuestionEditorPanelContentProp
   onChoiceChange,
   onChoiceIsCorrectChange,
   onTagsChange,
+  onPrevious,
+  onNext,
+  canGoPrevious,
+  canGoNext,
 }) => {
   if (!selectedQuestion) {
     return (
@@ -90,17 +98,30 @@ export const QuestionEditorPanelContent: React.FC<QuestionEditorPanelContentProp
   return (
     <Card>
       <CardHeader>
-        <MinimalTiptapEditor
-          key={`q-editor-${selectedQuestion.id}`}
-          value={selectedQuestion.question}
-          onChange={handleQuestionTextChange}
-          output="html"
-          placeholder="Enter the question text..."
-          editorContentClassName="min-h-[80px] p-2"
-          immediatelyRender={false}
-        />
+        <div className="flex items-center justify-between">
+          <CardTitle className='text-sm text-muted-foreground'>{selectedQuestion.id}</CardTitle>
+          <div className="space-x-2 flex-shrink-0">
+            <Button onClick={onPrevious} disabled={!canGoPrevious} variant="outline">
+              Previous
+            </Button>
+            <Button onClick={onNext} disabled={!canGoNext} variant="outline">
+              Next
+            </Button>
+          </div>
+        </div>
       </CardHeader>
       <CardContent className="space-y-6">
+        <div className="space-y-2">
+          <MinimalTiptapEditor
+            key={`q-editor-${selectedQuestion.id}`}
+            value={selectedQuestion.question}
+            onChange={handleQuestionTextChange}
+            output="html"
+            placeholder="Enter the question text..."
+            editorContentClassName="min-h-[80px] p-2 rounded-md"
+            immediatelyRender={false}
+          />
+        </div>
         <div className="space-y-2">
           {selectedQuestion.choices.map((choice, index) => (
             <div key={index} className="flex items-center space-x-2">
@@ -205,8 +226,6 @@ export const QuestionEditorPanelContent: React.FC<QuestionEditorPanelContentProp
             />
           </div>
         </div>
-
-        {/* Notes Section */}
         <div className="space-y-2">
           <h3 className="text-lg font-semibold">Notes</h3>
           <MinimalTiptapEditor
@@ -220,9 +239,6 @@ export const QuestionEditorPanelContent: React.FC<QuestionEditorPanelContentProp
           />
         </div>
       </CardContent>
-      <CardFooter>
-        <CardTitle className='text-sm text-muted-foreground'>{selectedQuestion.id}</CardTitle>
-      </CardFooter>
     </Card>
   );
 };
