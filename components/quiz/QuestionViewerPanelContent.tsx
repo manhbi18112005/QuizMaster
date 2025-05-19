@@ -1,5 +1,5 @@
 import { FC } from 'react';
-import { Card, CardContent, CardHeader, CardFooter, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Check } from "lucide-react";
 import { Question } from '@/types/quiz';
@@ -57,9 +57,10 @@ export const QuestionViewerPanelContent: FC<QuestionViewerPanelContentProps> = (
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className='text-sm text-muted-foreground'>{selectedQuestion.id} - {createdAtDateFormatted}
-            <div className="flex items-center space-x-2 pt-2">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+          <div className="flex-grow">
+            <CardTitle className='text-sm text-muted-foreground'>{selectedQuestion.id} - {createdAtDateFormatted}</CardTitle>
+            <div className="flex items-center space-x-2 pt-1 sm:pt-2">
               {selectedQuestion.category && (
                 <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-md text-xs dark:bg-blue-700 dark:text-blue-200">
                   {selectedQuestion.category}
@@ -69,8 +70,8 @@ export const QuestionViewerPanelContent: FC<QuestionViewerPanelContentProps> = (
                 <DifficultyBadge difficulty={selectedQuestion.difficulty} />
               )}
             </div>
-          </CardTitle>
-          <div className="space-x-2 flex-shrink-0">
+          </div>
+          <div className="space-x-2 flex-shrink-0 self-end sm:self-center">
             <Button onClick={onPrevious} disabled={!canGoPrevious} variant="outline">
               Previous
             </Button>

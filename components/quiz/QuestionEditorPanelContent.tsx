@@ -1,5 +1,5 @@
 import React, { ChangeEvent } from 'react';
-import { Card, CardContent, CardHeader, CardFooter, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -98,9 +98,11 @@ export const QuestionEditorPanelContent: React.FC<QuestionEditorPanelContentProp
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className='text-sm text-muted-foreground'>{selectedQuestion.id}</CardTitle>
-          <div className="space-x-2 flex-shrink-0">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+          <div className="flex-grow">
+            <CardTitle className='text-sm text-muted-foreground'>{selectedQuestion.id}</CardTitle>
+          </div>
+          <div className="space-x-2 flex-shrink-0 self-end sm:self-center">
             <Button onClick={onPrevious} disabled={!canGoPrevious} variant="outline">
               Previous
             </Button>
