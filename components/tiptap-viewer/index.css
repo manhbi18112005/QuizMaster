@@ -39,3 +39,7 @@
 .tiptap-viewer a.link:hover {
   @apply underline;
 }
+
+.tiptap-viewer p {
+  @apply leading-[1.5];
+}
