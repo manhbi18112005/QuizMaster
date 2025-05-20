@@ -1,6 +1,7 @@
 import {
   LayoutGrid,
-  Library
+  Library,
+  Search
 } from "lucide-react";
 
 import { getAllQuestionBanks } from "@/lib/db";
@@ -17,15 +18,22 @@ export async function getMenuList(pathname: string): Promise<Group[]> {
           active: pathname === "/",
           icon: LayoutGrid,
           submenus: []
+        },
+        {
+          href: "/search",
+          label: "Search",
+          active: pathname === "/search",
+          icon: Search,
+          submenus: []
         }
       ]
     },
     {
       groupLabel: "Question Banks",
       menus: (await getAllQuestionBanks()).map((bank) => ({
-        href: `/${bank.id}`,
+        href: `/banks/${bank.id}`,
         label: bank.name,
-        active: pathname === `/${bank.id}`,
+        active: pathname === `/banks/${bank.id}`,
         icon: Library,
         submenus: []
       })),

@@ -170,7 +170,7 @@ export default function Home() {
   };
 
   const handleViewBank = (bankId: string) => {
-    router.push(`/${bankId}`);
+    router.push(`/banks/${bankId}`);
   };
 
   if (isLoading) {
