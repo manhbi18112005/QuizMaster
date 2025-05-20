@@ -1,4 +1,4 @@
-import React, { ChangeEvent } from 'react';
+import React, { ChangeEvent, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -26,10 +26,10 @@ interface QuestionEditorPanelContentProps {
   onChoiceChange: (index: number, value: string) => void;
   onChoiceIsCorrectChange: (choiceIndex: number, isCorrect: boolean) => void;
   onTagsChange: (newTags: string[]) => void;
-  onPrevious: () => void;
-  onNext: () => void;
-  canGoPrevious: boolean;
-  canGoNext: boolean;
+  onPrevious?: () => void;
+  onNext?: () => void;
+  canGoPrevious?: boolean;
+  canGoNext?: boolean;
 }
 
 export const QuestionEditorPanelContent: React.FC<QuestionEditorPanelContentProps> = ({
@@ -46,15 +46,8 @@ export const QuestionEditorPanelContent: React.FC<QuestionEditorPanelContentProp
   canGoPrevious,
   canGoNext,
 }) => {
-  if (!selectedQuestion) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <p className="text-muted-foreground">Select a question to see its details or create a new one.</p>
-      </div>
-    );
-  }
 
-  const handleCreatedAtChange = (date: Date | undefined) => {
+  const handleCreatedAtChange = useCallback((date: Date | undefined) => {
     const syntheticEvent = {
       target: {
         name: 'createdAt',
@@ -62,29 +55,43 @@ export const QuestionEditorPanelContent: React.FC<QuestionEditorPanelContentProp
       },
     } as unknown as ChangeEvent<HTMLInputElement>;
     onQuestionDetailChange(syntheticEvent);
-  };
+  }, [onQuestionDetailChange]);
 
-  const handleQuestionTextChange = (questionContent: Content) => {
+  const handleQuestionTextChange = useCallback((questionContent: Content) => {
     const valueToUpdate = typeof questionContent === 'string' ? questionContent : JSON.stringify(questionContent);
     const syntheticEvent = {
       target: {
-        name: 'question', // Corresponds to the 'question' field in the Question type
+        name: 'question',
         value: valueToUpdate,
       },
-    } as unknown as ChangeEvent<HTMLTextAreaElement>; // Using HTMLTextAreaElement for type consistency
+    } as unknown as ChangeEvent<HTMLTextAreaElement>;
     onQuestionDetailChange(syntheticEvent);
-  };
+  }, [onQuestionDetailChange]);
 
-  const handleNotesChange = (notesContent: Content) => {
+  const handleNotesChange = useCallback((notesContent: Content) => {
     const valueToUpdate = typeof notesContent === 'string' ? notesContent : JSON.stringify(notesContent);
     const syntheticEvent = {
       target: {
         name: 'notes',
         value: valueToUpdate,
       },
-    } as unknown as ChangeEvent<HTMLTextAreaElement>; // Using HTMLTextAreaElement for type consistency
+    } as unknown as ChangeEvent<HTMLTextAreaElement>;
     onQuestionDetailChange(syntheticEvent);
-  };
+  }, [onQuestionDetailChange]);
+
+  const handleDifficultyChange = useCallback((value: string) => {
+    onQuestionDetailChange({
+      target: { name: 'difficulty', value }
+    } as unknown as ChangeEvent<HTMLInputElement>);
+  }, [onQuestionDetailChange]);
+
+  if (!selectedQuestion) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <p className="text-muted-foreground">Select a question to see its details or create a new one.</p>
+      </div>
+    );
+  }
 
   // Convert string from selectedQuestion.createdAt to Date object for the picker
   let createdAtDate: Date | undefined = undefined;
@@ -103,12 +110,16 @@ export const QuestionEditorPanelContent: React.FC<QuestionEditorPanelContentProp
             <CardTitle className='text-sm text-muted-foreground'>{selectedQuestion.id}</CardTitle>
           </div>
           <div className="space-x-2 flex-shrink-0 self-end sm:self-center">
-            <Button onClick={onPrevious} disabled={!canGoPrevious} variant="outline">
-              Previous
-            </Button>
-            <Button onClick={onNext} disabled={!canGoNext} variant="outline">
-              Next
-            </Button>
+            {onPrevious && onNext && (
+              <>
+                <Button onClick={onPrevious} disabled={!canGoPrevious} variant="outline">
+                  Previous
+                </Button>
+                <Button onClick={onNext} disabled={!canGoNext} variant="outline">
+                  Next
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </CardHeader>
@@ -202,11 +213,7 @@ export const QuestionEditorPanelContent: React.FC<QuestionEditorPanelContentProp
               <Label htmlFor="questionDifficulty" className="font-semibold">Difficulty:</Label>
               <Select
                 value={selectedQuestion.difficulty || ""}
-                onValueChange={val =>
-                  onQuestionDetailChange({
-                    target: { name: 'difficulty', value: val }
-                  } as unknown as ChangeEvent<HTMLInputElement>)
-                }
+                onValueChange={handleDifficultyChange}
               >
                 <SelectTrigger id="questionDifficulty">
                   <SelectValue placeholder="Select difficulty" />

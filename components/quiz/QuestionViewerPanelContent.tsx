@@ -12,10 +12,10 @@ import { Button } from '@/components/ui/button';
 
 interface QuestionViewerPanelContentProps {
   selectedQuestion: Question | undefined;
-  onPrevious: () => void;
-  onNext: () => void;
-  canGoPrevious: boolean;
-  canGoNext: boolean;
+  onPrevious?: () => void;
+  onNext?: () => void;
+  canGoPrevious?: boolean;
+  canGoNext?: boolean;
 }
 
 export const QuestionViewerPanelContent: FC<QuestionViewerPanelContentProps> = ({
@@ -72,12 +72,16 @@ export const QuestionViewerPanelContent: FC<QuestionViewerPanelContentProps> = (
             </div>
           </div>
           <div className="space-x-2 flex-shrink-0 self-end sm:self-center">
-            <Button onClick={onPrevious} disabled={!canGoPrevious} variant="outline">
-              Previous
-            </Button>
-            <Button onClick={onNext} disabled={!canGoNext} variant="outline">
-              Next
-            </Button>
+            {onPrevious && onNext && (
+              <>
+                <Button onClick={onPrevious} disabled={!canGoPrevious} variant="outline">
+                  Previous
+                </Button>
+                <Button onClick={onNext} disabled={!canGoNext} variant="outline">
+                  Next
+                </Button>
+              </>
+            )}
           </div>
         </div>
         <CardTitle>
