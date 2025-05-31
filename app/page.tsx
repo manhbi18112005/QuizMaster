@@ -53,14 +53,12 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { DbQuestionBank, getAllQuestionBanks, saveQuestionBank, deleteQuestionBank } from "@/lib/db";
 import { WelcomeTour } from "@/components/welcome-tour";
+import { CreateBankDialog } from "@/components/quiz/CreateBankDialog";
 
 export default function Home() {
   const [questionBanks, setQuestionBanks] = useState<DbQuestionBank[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [newBankId, setNewBankId] = useState("");
-  const [newBankName, setNewBankName] = useState("");
-  const [newBankDescription, setNewBankDescription] = useState("");
   const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
   const [bankToDeleteId, setBankToDeleteId] = useState<string | null>(null);
 
@@ -89,34 +87,11 @@ export default function Home() {
   }, []);
 
   const openCreateModal = () => {
-    setNewBankId(""); // Reset ID field
-    setNewBankName("");
-    setNewBankDescription("");
     setIsCreateModalOpen(true);
   };
 
-  const handleConfirmCreateBank = async () => {
-    if (!newBankName.trim()) {
-      alert("Bank name cannot be empty.");
-      return;
-    }
-    // Basic validation for ID if provided (e.g., not just whitespace)
-    // More complex validation (e.g., uniqueness) would ideally be handled by the DB layer or backend
-    const idToSave = newBankId.trim() !== "" ? newBankId.trim() : undefined;
-
-    try {
-      await saveQuestionBank({
-        id: idToSave, // Pass the ID if provided
-        name: newBankName,
-        description: newBankDescription,
-        questions: [],
-      });
-      const updatedBanks = await getAllQuestionBanks();
-      setQuestionBanks(updatedBanks);
-      setIsCreateModalOpen(false);
-    } catch (error) {
-      console.error("Failed to create new bank:", error);
-    }
+  const handleBankCreated = (updatedBanks: DbQuestionBank[]) => {
+    setQuestionBanks(updatedBanks);
   };
 
   const openEditModal = (bank: DbQuestionBank) => {
@@ -293,59 +268,12 @@ export default function Home() {
         </div>
       )}
 
-      <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Create New Question Bank</DialogTitle>
-            <DialogDescription>
-              Fill in the details below to create a new question bank. Click create when you are done.
-              You can optionally provide an ID, or one will be generated.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="id" className="text-right">ID</Label>
-              <Input
-                id="id"
-                value={newBankId}
-                onChange={(e) => setNewBankId(e.target.value)}
-                className="col-span-3"
-                placeholder="e.g., custom-bank-id (or leave blank)"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="name" className="text-right">
-                Name
-              </Label>
-              <Input
-                id="name"
-                value={newBankName}
-                onChange={(e) => setNewBankName(e.target.value)}
-                className="col-span-3"
-                placeholder="e.g., Algebra Basics"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="description" className="text-right">
-                Description
-              </Label>
-              <Input
-                id="description"
-                value={newBankDescription}
-                onChange={(e) => setNewBankDescription(e.target.value)}
-                className="col-span-3"
-                placeholder="e.g., A collection of fundamental algebra questions."
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsCreateModalOpen(false)}>Cancel</Button>
-            <Button onClick={handleConfirmCreateBank}>Create Bank</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <CreateBankDialog
+        isOpen={isCreateModalOpen}
+        onOpenChange={setIsCreateModalOpen}
+        onBankCreated={handleBankCreated}
+      />
 
-      {/* Edit Bank Dialog */}
       <Dialog open={isEditModalOpen} onOpenChange={(isOpen) => {
         setIsEditModalOpen(isOpen);
         if (!isOpen) setBankToEdit(null);
