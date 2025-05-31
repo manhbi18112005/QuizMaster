@@ -28,6 +28,7 @@ import { QuestionViewerPanelContent } from '@/components/quiz/QuestionViewerPane
 import { QuestionSearchInput } from '@/components/quiz/QuestionSearchInput';
 import * as handlers from '@/helpers/questionHandlers';
 import * as importHandlers from '@/helpers/importHandlers';
+import { exportQuestionBank } from '@/helpers/exportHandlers';
 import { toast } from 'sonner';
 import { getQuestionBankById, updateQuestionBank, getAvailableTags, saveAvailableTags, DEFAULT_TAGS_DB, DbQuestionBank } from '@/lib/db';
 import { useParams } from 'next/navigation';
@@ -37,6 +38,8 @@ import { buttonVariants } from "@/components/ui/button";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { VariantProps } from "class-variance-authority";
 import { Maximize, Minimize } from 'lucide-react';
+import { PasswordInputDialog } from '@/components/quiz/PasswordInputDialog';
+
 
 export default function BankPage() {
   const params = useParams();
@@ -66,6 +69,14 @@ export default function BankPage() {
     onCancel: () => { },
     confirmButtonVariant: 'destructive',
   });
+
+  // State for password dialog
+  const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
+  const [passwordRequest, setPasswordRequest] = useState<{
+    encryptedData: string;
+    resolve: (password: string | null) => void;
+  } | null>(null);
+
 
   const [availableTags, setAvailableTags] = useState<string[]>([...DEFAULT_TAGS_DB]);
 
@@ -193,8 +204,9 @@ export default function BankPage() {
     handlers.handleCreateQuestion(setQuestions, setSelectedQuestionId, questions);
   }, [questions]);
 
-  const handleExportData = useCallback(() => {
+  const handleExportData = useCallback((filename?: string, formatted?: boolean, password?: string) => {
     if (!currentBank) return;
+
     const bankToExport: CoreQuestionBank = {
       id: currentBank.id,
       name: currentBank.name,
@@ -203,14 +215,8 @@ export default function BankPage() {
       createdAt: currentBank.createdAt,
       updatedAt: currentBank.updatedAt,
     };
-    const dataStr = JSON.stringify(bankToExport, null, 2);
-    const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
-    const exportFileDefaultName = `${currentBank.name.replace(/\s+/g, '_')}_banks.json`;
-    const linkElement = document.createElement('a');
-    linkElement.setAttribute('href', dataUri);
-    linkElement.setAttribute('download', exportFileDefaultName);
-    linkElement.click();
-    toast.success(`Exported questions for bank: ${currentBank.name}`);
+
+    exportQuestionBank(bankToExport, filename, formatted, password);
   }, [questions, currentBank]);
 
 
@@ -225,6 +231,22 @@ export default function BankPage() {
 
   const handleImportClick = useCallback(() =>
     importHandlers.handleImportClick(fileInputRef), [fileInputRef]);
+
+  const requestPasswordForImport = useCallback((encryptedData: string): Promise<string | null> => {
+    return new Promise((resolve) => {
+      setPasswordRequest({ encryptedData, resolve });
+      setIsPasswordDialogOpen(true);
+    });
+  }, []);
+
+  const handlePasswordDialogSubmit = (password: string | null) => {
+    if (passwordRequest) {
+      passwordRequest.resolve(password);
+    }
+    setIsPasswordDialogOpen(false);
+    setPasswordRequest(null);
+  };
+
 
   const handleFileImport = useCallback((event: ChangeEvent<HTMLInputElement>) => {
     importHandlers.readFileAndParse(
@@ -326,9 +348,10 @@ export default function BankPage() {
         if (fileInputRef.current && fileInputRef.current.value !== "") {
           // fileInputRef.current.value = ""; // Already handled, but can be a safeguard
         }
-      }
+      },
+      requestPasswordForImport // Pass the callback here
     );
-  }, [showConfirmationDialog, currentBank]);
+  }, [showConfirmationDialog, currentBank, requestPasswordForImport]);
 
   const handleClearAllData = useCallback(() => {
     if (!currentBank) return;
@@ -569,6 +592,23 @@ export default function BankPage() {
         onCancel={dialogProps.onCancel}
         confirmButtonVariant={dialogProps.confirmButtonVariant}
       />
+
+      {/* Placeholder for Password Input Dialog */}
+      {isPasswordDialogOpen && passwordRequest && (
+        <PasswordInputDialog
+          open={isPasswordDialogOpen}
+          onOpenChange={(open) => {
+            if (!open) { // If dialog is closed (e.g., by Escape key or overlay click)
+              handlePasswordDialogSubmit(null); // Treat as cancellation
+            }
+            // setIsPasswordDialogOpen(open); // This will be handled by onOpenChange in PasswordInputDialog if needed
+          }}
+          onSubmit={handlePasswordDialogSubmit} // onSubmit should pass the password string
+          onCancel={() => handlePasswordDialogSubmit(null)} // onCancel should pass null
+          title="Enter Password for Import"
+          description="This file is encrypted. Please enter the password to decrypt it."
+        />
+      )}
     </ContentLayout>
   );
 }

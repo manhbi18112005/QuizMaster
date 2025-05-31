@@ -9,9 +9,10 @@ import {
     CommandItem,
     CommandList,
 } from "@/components/ui/command";
+import { Button } from "@/components/ui/button";
 import { Question } from "@/types/quiz";
 import { getAllQuestionBanks, DbQuestionBank } from "@/lib/db";
-import { FileText, Loader2 } from "lucide-react";
+import { FileText, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 import { TipTapViewer } from '@/components/tiptap-viewer';
 
@@ -28,7 +29,6 @@ export function GlobalSearchCommand({ onQuestionSelect }: GlobalSearchCommandPro
     const [isInputFocused, setIsInputFocused] = useState(false);
 
     useEffect(() => {
-        // Initial data fetch logic
         async function initialFetch() {
             setIsLoading(true);
             try {
@@ -82,7 +82,7 @@ export function GlobalSearchCommand({ onQuestionSelect }: GlobalSearchCommandPro
         return () => {
             clearTimeout(handler); // Cleanup the timeout
         };
-    }, [inputValue, allQuestions, questionBankMap]); // Dependencies for the effect
+    }, [inputValue, allQuestions, questionBankMap]);
 
     const parseHtml = (html: string) => {
         const parser = new DOMParser();
@@ -101,23 +101,40 @@ export function GlobalSearchCommand({ onQuestionSelect }: GlobalSearchCommandPro
         setIsInputFocused(false); // This line causes the list to hide
     };
 
+    const handleClearInput = () => {
+        setInputValue("");
+        setIsInputFocused(true); // Keep the list visible after clearing
+    };
+
     const showCommandList = isLoading || isInputFocused; // Visibility depends on isInputFocused
 
     return (
-        <Command className="rounded-lg border shadow-md"
-        >
-            <CommandInput
-                placeholder="Search questions, tags, notes, banks..."
-                value={inputValue} // inputValue is preserved
-                onValueChange={setInputValue}
-                onFocus={() => setIsInputFocused(true)} // Re-focusing will set this to true
-                onBlur={() => {
-                    // Delay setting isInputFocused to false to allow click/select event on CommandItem to fire
-                    setTimeout(() => {
-                        setIsInputFocused(false);
-                    }, 150); // Adjust delay if needed (e.g., 100-200ms)
-                }} 
-            />
+        <Command className="rounded-lg border shadow-md">
+            <div className="relative">
+                <CommandInput
+                    placeholder="Search questions, tags, notes, banks..."
+                    value={inputValue}
+                    onValueChange={setInputValue}
+                    onFocus={() => setIsInputFocused(true)}
+                    onBlur={() => {
+                        setTimeout(() => {
+                            setIsInputFocused(false);
+                        }, 150);
+                    }}
+                    className={inputValue ? "pr-10" : ""}
+                />
+                {inputValue && (
+                    <Button
+                        onClick={handleClearInput}
+                        variant="ghost"
+                        size="icon"
+                        className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 p-0"
+                        type="button"
+                    >
+                        <X className="h-4 w-4" />
+                    </Button>
+                )}
+            </div>
             <div
                 className={`
                     transition-all duration-300 ease-in-out overflow-hidden

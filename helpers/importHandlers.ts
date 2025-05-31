@@ -36,10 +36,68 @@ function isCoreQuestionBank(data: any): data is CoreQuestionBank {
     );
 }
 
+// Helper to convert binary string (from atob) to Uint8Array
+function binaryStringToUint8Array(binaryString: string): Uint8Array {
+    const len = binaryString.length;
+    const bytes = new Uint8Array(len);
+    for (let i = 0; i < len; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+    }
+    return bytes;
+}
+
+async function decryptData(encryptedBase64Data: string, passwordStr: string): Promise<string> {
+    const encoder = new TextEncoder();
+    const decoder = new TextDecoder();
+    const passwordBuffer = encoder.encode(passwordStr);
+
+    // Decode base64 and convert to Uint8Array
+    const binaryString = atob(encryptedBase64Data);
+    const combined = binaryStringToUint8Array(binaryString);
+
+    // Extract salt, IV, and encrypted data
+    const salt = combined.subarray(0, 16);
+    const iv = combined.subarray(16, 16 + 12);
+    const encryptedContent = combined.subarray(16 + 12);
+
+    // Derive key using PBKDF2
+    const keyMaterial = await crypto.subtle.importKey(
+        'raw',
+        passwordBuffer,
+        'PBKDF2',
+        false,
+        ['deriveKey']
+    );
+
+    const key = await crypto.subtle.deriveKey(
+        {
+            name: 'PBKDF2',
+            salt: salt,
+            iterations: 100000,
+            hash: 'SHA-256'
+        },
+        keyMaterial,
+        { name: 'AES-GCM', length: 256 },
+        false,
+        ['decrypt']
+    );
+
+    // Decrypt the data
+    const decryptedBuffer = await crypto.subtle.decrypt(
+        { name: 'AES-GCM', iv: iv },
+        key,
+        encryptedContent
+    );
+
+    return decoder.decode(decryptedBuffer);
+}
+
+
 export function readFileAndParse(
     event: ChangeEvent<HTMLInputElement>,
     onSuccess: (parsedData: Question[] | CoreQuestionBank) => void,
-    onFinally: () => void
+    onFinally: () => void,
+    requestPasswordCallback: (encryptedFileContent: string) => Promise<string | null>
 ) {
     const file = event.target.files?.[0];
     if (!file) {
@@ -47,33 +105,60 @@ export function readFileAndParse(
         return;
     }
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
         try {
             const text = e.target?.result;
             if (typeof text === "string") {
-                const parsedJson = JSON.parse(text);
+                let dataToProcess: any = JSON.parse(text);
 
-                if (isCoreQuestionBank(parsedJson)) {
-                    if (parsedJson.questions.every(isValidQuestionStructure)) {
-                        const questionsWithDefaults = parsedJson.questions.map(createDefaultQuestion);
-                        onSuccess({ ...parsedJson, questions: questionsWithDefaults });
+                // Check if the file is encrypted
+                if (dataToProcess && dataToProcess.encrypted === true && dataToProcess.algorithm === 'AES-GCM' && typeof dataToProcess.data === 'string') {
+                    const password = await requestPasswordCallback(dataToProcess.data);
+
+                    if (password === null) {
+                        toast.info("Import cancelled: Password not provided for encrypted file.");
+                        onFinally();
+                        return;
+                    }
+                    if (password === "") {
+                        toast.error("Import failed: Password cannot be empty for encrypted file.");
+                        onFinally();
+                        return;
+                    }
+
+                    try {
+                        const decryptedJsonString = await decryptData(dataToProcess.data, password);
+                        dataToProcess = JSON.parse(decryptedJsonString);
+                        toast.success("File decrypted successfully.");
+                    } catch (decryptError) {
+                        console.error("Decryption error:", decryptError);
+                        toast.error("Failed to decrypt file. Incorrect password or corrupted file.");
+                        onFinally();
+                        return;
+                    }
+                }
+
+                // Proceed with processing the (potentially decrypted) data
+                if (isCoreQuestionBank(dataToProcess)) {
+                    if (dataToProcess.questions.every(isValidQuestionStructure)) {
+                        const questionsWithDefaults = dataToProcess.questions.map(createDefaultQuestion);
+                        onSuccess({ ...dataToProcess, questions: questionsWithDefaults });
                     } else {
                         toast.error("Invalid QuestionBank format: questions array contains invalid items.");
                     }
-                }
-                else if (
-                    Array.isArray(parsedJson) &&
-                    parsedJson.every(isValidQuestionStructure)
+                } else if (
+                    Array.isArray(dataToProcess) &&
+                    dataToProcess.every(isValidQuestionStructure)
                 ) {
-                    const questionsWithDefaults = parsedJson.map(createDefaultQuestion);
+                    const questionsWithDefaults = dataToProcess.map(createDefaultQuestion);
                     onSuccess(questionsWithDefaults);
                 } else {
-                    toast.error("Invalid file format. Expected an array of questions or a question bank object.");
+                    toast.error("Invalid file format. Expected an array of questions or a question bank object (potentially encrypted).");
                 }
             }
         } catch (err) {
             console.error("Error importing data:", err);
-            toast.error("Error importing data. Check the console for details.");
+            toast.error("Error importing data. Check the console for details or ensure file is valid JSON.");
         } finally {
             onFinally();
         }
