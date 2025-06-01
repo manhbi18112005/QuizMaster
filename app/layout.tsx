@@ -50,7 +50,7 @@ export default function RootLayout({
   children: ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${quicksand.variable} antialiased`}>
+    <html lang="en" className={`${quicksand.variable} antialiased`} suppressHydrationWarning>
       <body>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <Toaster />
