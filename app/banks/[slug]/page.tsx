@@ -6,7 +6,7 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
-import { useState, ChangeEvent, useRef, useEffect, useCallback, useMemo } from 'react';
+import { useState, ChangeEvent, useEffect, useCallback, useMemo } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   DndContext,
@@ -79,8 +79,6 @@ export default function BankPage() {
 
 
   const [availableTags, setAvailableTags] = useState<string[]>([...DEFAULT_TAGS_DB]);
-
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const panelDirection = useResponsivePanelDirection();
 
@@ -228,10 +226,6 @@ export default function BankPage() {
     handlers.executeDeleteQuestion(selectedQuestionId, setQuestions, setSelectedQuestionId);
   }, [selectedQuestionId]);
 
-
-  const handleImportClick = useCallback(() =>
-    importHandlers.handleImportClick(fileInputRef), [fileInputRef]);
-
   const requestPasswordForImport = useCallback((encryptedData: string): Promise<string | null> => {
     return new Promise((resolve) => {
       setPasswordRequest({ encryptedData, resolve });
@@ -288,7 +282,6 @@ export default function BankPage() {
           }
         } else {
           toast.error("Invalid file format. Expected an array of questions or a question bank object with a 'questions' array.");
-          if (fileInputRef.current) fileInputRef.current.value = "";
           return;
         }
 
@@ -335,19 +328,14 @@ export default function BankPage() {
               successMessage = `Appended ${importedQuestions.length} questions. Bank details for "${finalBankName}" updated from file.`;
             }
             toast.success(successMessage);
-            if (fileInputRef.current) fileInputRef.current.value = "";
           },
           () => { // onCancel
-            if (fileInputRef.current) fileInputRef.current.value = "";
+
           }
         );
       },
       () => { // onFinally
-        // Resetting file input is handled by onConfirm/onCancel,
-        // but this ensures it's cleared if readFileAndParse itself fails before dialog.
-        if (fileInputRef.current && fileInputRef.current.value !== "") {
-          // fileInputRef.current.value = ""; // Already handled, but can be a safeguard
-        }
+
       },
       requestPasswordForImport // Pass the callback here
     );
@@ -506,10 +494,8 @@ export default function BankPage() {
               onCreateQuestion={handleCreateQuestion}
               onDeleteQuestion={handleDeleteQuestion}
               selectedQuestionId={selectedQuestionId}
-              onImportClick={handleImportClick}
               onExportData={handleExportData}
               onClearAllData={handleClearAllData}
-              fileInputRef={fileInputRef}
               onFileImport={handleFileImport}
             />
             {fullScreenButtonElement}
