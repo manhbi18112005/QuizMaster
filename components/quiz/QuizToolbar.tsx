@@ -1,11 +1,11 @@
-import { RefObject, FC, ChangeEvent, useState } from 'react';
+import { FC, ChangeEvent, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { FilePlus2, Trash2, Upload, Download } from "lucide-react";
+import { PlusCircle, Trash2, Upload, FileText, AlertTriangle } from "lucide-react";
 import { motion } from "framer-motion";
 import { ImportDialog } from './ImportDialog';
 import { ExportDialog } from './ExportDialog';
@@ -32,64 +32,86 @@ export const QuizToolbar: FC<QuizToolbarProps> = ({
 
   return (
     <>
-      <div className="space-x-2 flex flex-wrap gap-1 items-center">
+      <div className="flex flex-wrap gap-3 items-center">
+        {/* Primary Actions Group */}
+        <div className="flex gap-2 items-center">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button onClick={onCreateQuestion} size="sm" className="gap-1.5">
+                <PlusCircle className="h-4 w-4" />
+                <span className="hidden sm:inline">New Question</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Add a new question</p>
+            </TooltipContent>
+          </Tooltip>
+
+          {selectedQuestionId && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.5 }}
+              transition={{ duration: 0.2 }}
+            >
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button onClick={onDeleteQuestion} variant="destructive" size="sm" className="gap-1.5">
+                    <Trash2 className="h-4 w-4" />
+                    <span className="hidden sm:inline">Delete</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Delete selected question</p>
+                </TooltipContent>
+              </Tooltip>
+            </motion.div>
+          )}
+        </div>
+
+        {/* Separator */}
+        <div className="w-px h-6 bg-border" />
+
+        {/* Data Management Group */}
+        <div className="flex gap-2 items-center">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button onClick={() => setIsImportDialogOpen(true)} variant="outline" size="sm" className="gap-1.5">
+                <Upload className="h-4 w-4" />
+                <span className="hidden sm:inline">Import</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Import quiz data</p>
+            </TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button onClick={() => setIsExportDialogOpen(true)} variant="outline" size="sm" className="gap-1.5">
+                <FileText className="h-4 w-4" />
+                <span className="hidden sm:inline">Export</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Export quiz data</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
+
+        {/* Separator */}
+        <div className="w-px h-6 bg-border" />
+
+        {/* Danger Zone */}
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button onClick={onCreateQuestion} size="icon">
-              <FilePlus2 className="h-4 w-4" />
+            <Button onClick={onClearAllData} variant="ghost" size="sm" className="gap-1.5 text-destructive hover:text-destructive hover:bg-destructive/10">
+              <AlertTriangle className="h-4 w-4" />
+              <span className="hidden sm:inline">Clear All</span>
             </Button>
           </TooltipTrigger>
           <TooltipContent>
-            <p>Create Question Card</p>
-          </TooltipContent>
-        </Tooltip>
-        {selectedQuestionId && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.5 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.5 }}
-            transition={{ duration: 0.2 }}
-          >
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button onClick={onDeleteQuestion} variant="destructive" size="icon">
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Delete Selected Question</p>
-              </TooltipContent>
-            </Tooltip>
-          </motion.div>
-        )}
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button onClick={() => setIsImportDialogOpen(true)} variant="outline" size="icon">
-              <Upload className="h-4 w-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Import Data</p>
-          </TooltipContent>
-        </Tooltip>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button onClick={() => setIsExportDialogOpen(true)} variant="outline" size="icon">
-              <Download className="h-4 w-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Export Data</p>
-          </TooltipContent>
-        </Tooltip>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button onClick={onClearAllData} variant="destructive" size="icon">
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Clear All Data</p>
+            <p>Clear all quiz data</p>
           </TooltipContent>
         </Tooltip>
       </div>
