@@ -24,6 +24,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { saveQuestionBank, getAllQuestionBanks, DbQuestionBank } from "@/lib/db";
+import { logger } from "@/packages/logger";
 
 const formSchema = z.object({
     id: z.string().optional(),
@@ -70,7 +71,7 @@ export function CreateBankDialog({ isOpen, onOpenChange, onBankCreated }: Create
             resetForm();
             toast.success("Question bank created successfully.");
         } catch (error) {
-            console.error("Failed to create new bank:", error);
+            logger.error(error, "Failed to create new bank");
             toast.error("Failed to create question bank. Please try again.");
         } finally {
             setIsCreating(false);

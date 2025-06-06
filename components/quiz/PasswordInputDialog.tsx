@@ -71,6 +71,7 @@ export const PasswordInputDialog: FC<PasswordInputDialogProps> = ({
                 onChange={(e) => setPassword(e.target.value)}
                 className="col-span-3"
                 autoFocus
+                autoComplete="off"
               />
             </div>
           </div>

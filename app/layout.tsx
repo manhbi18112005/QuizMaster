@@ -1,13 +1,21 @@
-import type { Metadata } from "next";
-import { ReactNode } from "react";
+import "../modules/ui/globals.css";
+
+import { ReactNode, Suspense } from "react";
+import { SentryProvider } from "@/app/sentry/SentryProvider";
+import { IS_PRODUCTION, SENTRY_DSN } from "@/lib/constants";
 import { Quicksand } from "next/font/google";
-import AdminPanelLayout from "@/components/admin-panel/admin-panel-layout";
+import { MouseCursorProvider } from '@/components/mouse-cursor/provider';
 import { Toaster } from "@/components/ui/sonner";
-import "./globals.css";
 import {
   TooltipProvider,
 } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/providers/theme-provider";
+import { metadata as appMetadata, viewport as appViewport } from "@/lib/metadata";
+import { SessionProvider } from "next-auth/react"
+import { cn } from "@/lib/utils";
+import LoadingScreen from "@/components/loading-screen";
+import { SpeedInsights } from "@vercel/speed-insights/next"
+import { Analytics } from "@vercel/analytics/next"
 
 const quicksand = Quicksand({
   variable: "--font-quicksand",
@@ -15,34 +23,8 @@ const quicksand = Quicksand({
   preload: true
 });
 
-export const metadata: Metadata = {
-  metadataBase: new URL(
-    process.env.APP_URL
-      ? `${process.env.APP_URL}`
-      : process.env.VERCEL_URL
-        ? `https://${process.env.VERCEL_URL}`
-        : `http://localhost:${process.env.PORT || 3000}`
-  ),
-  title: "QuizMaster - Student Revision Quizzes",
-  description:
-    "QuizMaster is a powerful quiz platform designed to help students revise and master their subjects through interactive quizzes and instant feedback.",
-  alternates: {
-    canonical: "/"
-  },
-  openGraph: {
-    url: "/",
-    title: "QuizMaster - Student Revision Quizzes",
-    description:
-      "QuizMaster helps students revise effectively with interactive quizzes, progress tracking, and instant feedback.",
-    type: "website"
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "QuizMaster - Student Revision Quizzes",
-    description:
-      "QuizMaster is a quiz platform for students to revise and test their knowledge with engaging quizzes."
-  }
-};
+export const metadata = appMetadata;
+export const viewport = appViewport;
 
 export default function RootLayout({
   children,
@@ -50,14 +32,27 @@ export default function RootLayout({
   children: ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${quicksand.variable} antialiased`} suppressHydrationWarning>
-      <body>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <Toaster />
-          <TooltipProvider>
-            <AdminPanelLayout>{children}</AdminPanelLayout>
-          </TooltipProvider>
-        </ThemeProvider>
+    <html lang="en" className="cursor-none" suppressHydrationWarning>
+      <head />
+      {IS_PRODUCTION && <SpeedInsights sampleRate={0.1} />}
+      {IS_PRODUCTION && <Analytics />}
+      <body className={cn(
+        "antialiased",
+        quicksand.variable,
+      )} >
+        <SessionProvider>
+          <SentryProvider sentryDsn={SENTRY_DSN} isEnabled={IS_PRODUCTION}>
+            <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+              <Suspense fallback={<LoadingScreen />}>
+                <MouseCursorProvider />
+                <Toaster />
+                <TooltipProvider>
+                  {children}
+                </TooltipProvider>
+              </Suspense>
+            </ThemeProvider>
+          </SentryProvider>
+        </SessionProvider>
       </body>
     </html>
   );

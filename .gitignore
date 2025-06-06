@@ -151,6 +151,7 @@ dist
 # next.js
 /.next/
 /out/
+/.vercel
 
 # production
 /build
@@ -175,6 +176,7 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-.open-next/
-
-.wrangler/
+# Sentry Config File
+.env.sentry-build-plugin
+.env.local
+.env*.local

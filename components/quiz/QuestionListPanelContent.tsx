@@ -1,4 +1,4 @@
-import { FC, useRef, useEffect } from 'react';
+import { FC, useRef, useEffect, memo } from 'react';
 import {
   SortableContext,
   verticalListSortingStrategy,
@@ -11,7 +11,7 @@ interface QuestionListPanelContentProps {
   onCardClick: (questionId: string) => void;
 }
 
-export const QuestionListPanelContent: FC<QuestionListPanelContentProps> = ({
+export const QuestionListPanelContent: FC<QuestionListPanelContentProps> = memo(({
   questions,
   selectedQuestionId,
   onCardClick,
@@ -52,7 +52,7 @@ export const QuestionListPanelContent: FC<QuestionListPanelContentProps> = ({
               // key={q.id} // Key is now on the parent div
               id={q.id}
               question={q}
-              onClick={() => onCardClick(q.id)}
+              onItemClick={onCardClick}
               isSelected={q.id === selectedQuestionId}
             />
           </div>
@@ -60,4 +60,6 @@ export const QuestionListPanelContent: FC<QuestionListPanelContentProps> = ({
       </div>
     </SortableContext>
   );
-};
+});
+
+QuestionListPanelContent.displayName = 'QuestionListPanelContent';

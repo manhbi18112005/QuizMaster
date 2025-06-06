@@ -4,6 +4,7 @@ import { Question, QuestionBank as CoreQuestionBank } from '@/types/quiz';
 import { toast } from 'sonner';
 import { DEFAULT_TAGS_DB } from '@/lib/db';
 import { createDefaultQuestion } from './questionUtils';
+import { logger } from '@/packages/logger';
 
 export function handleImportClick(fileInputRef: RefObject<HTMLInputElement>) {
     fileInputRef.current?.click();
@@ -131,7 +132,7 @@ export function readFileAndParse(
                         dataToProcess = JSON.parse(decryptedJsonString);
                         toast.success("File decrypted successfully.");
                     } catch (decryptError) {
-                        console.error("Decryption error:", decryptError);
+                        logger.error(decryptError, "Error decrypting file");
                         toast.error("Failed to decrypt file. Incorrect password or corrupted file.");
                         onFinally();
                         return;
@@ -157,8 +158,8 @@ export function readFileAndParse(
                 }
             }
         } catch (err) {
-            console.error("Error importing data:", err);
-            toast.error("Error importing data. Check the console for details or ensure file is valid JSON.");
+            logger.error(err, "Error parsing imported data");
+            toast.error("Error importing data. Check the logger for details or ensure file is valid JSON.");
         } finally {
             onFinally();
         }

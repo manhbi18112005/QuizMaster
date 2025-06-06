@@ -9,6 +9,7 @@ import { SafeContent } from '@/components/safecontent';
 import { Blockquote } from '@/components/ui/block-quote';
 import { TipTapViewer } from '@/components/tiptap-viewer';
 import { Button } from '@/components/ui/button';
+import { logger } from "@/packages/logger";
 
 interface QuestionViewerPanelContentProps {
   selectedQuestion: Question | undefined;
@@ -39,7 +40,7 @@ export const QuestionViewerPanelContent: FC<QuestionViewerPanelContentProps> = (
       await navigator.clipboard.writeText(text);
       toast.success("Copied to clipboard!");
     } catch (err) {
-      console.error('Failed to copy: ', err);
+      logger.error(err, 'Failed to copy');
       toast.error("Failed to copy", {
         description: "Could not copy text to clipboard.",
       });

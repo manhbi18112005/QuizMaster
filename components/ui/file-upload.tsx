@@ -1,3 +1,8 @@
+/* eslint-disable @next/next/no-img-element */
+/* eslint-disable jsx-a11y/role-supports-aria-props */
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable react-hooks/rules-of-hooks */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import { cn } from "@/lib/utils";
@@ -40,7 +45,7 @@ function useLazyRef<T>(fn: () => T) {
   if (ref.current === null) {
     ref.current = fn();
   }
-  return ref as React.RefObject<T>;
+  return ref as React.MutableRefObject<T>;
 }
 
 type Direction = "ltr" | "rtl";

@@ -1,4 +1,4 @@
-import { FC, ChangeEvent, useState } from 'react';
+import { FC, ChangeEvent, useState, memo } from 'react';
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -17,15 +17,17 @@ interface QuizToolbarProps {
   onExportData: (filename?: string, formatted?: boolean, password?: string) => void;
   onClearAllData: () => void;
   onFileImport: (event: ChangeEvent<HTMLInputElement>) => void;
+  disabled?: boolean;
 }
 
-export const QuizToolbar: FC<QuizToolbarProps> = ({
+export const QuizToolbar: FC<QuizToolbarProps> = memo(({
   onCreateQuestion,
   onDeleteQuestion,
   selectedQuestionId,
   onExportData,
   onClearAllData,
   onFileImport,
+  disabled = false,
 }) => {
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
@@ -37,7 +39,7 @@ export const QuizToolbar: FC<QuizToolbarProps> = ({
         <div className="flex gap-2 items-center">
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button onClick={onCreateQuestion} size="sm" className="gap-1.5">
+              <Button onClick={onCreateQuestion} size="sm" className="gap-1.5" disabled={disabled}>
                 <PlusCircle className="h-4 w-4" />
                 <span className="hidden sm:inline">New Question</span>
               </Button>
@@ -56,7 +58,7 @@ export const QuizToolbar: FC<QuizToolbarProps> = ({
             >
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button onClick={onDeleteQuestion} variant="destructive" size="sm" className="gap-1.5">
+                  <Button onClick={onDeleteQuestion} variant="destructive" size="sm" className="gap-1.5" disabled={disabled}>
                     <Trash2 className="h-4 w-4" />
                     <span className="hidden sm:inline">Delete</span>
                   </Button>
@@ -76,7 +78,7 @@ export const QuizToolbar: FC<QuizToolbarProps> = ({
         <div className="flex gap-2 items-center">
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button onClick={() => setIsImportDialogOpen(true)} variant="outline" size="sm" className="gap-1.5">
+              <Button onClick={() => setIsImportDialogOpen(true)} variant="outline" size="sm" className="gap-1.5" disabled={disabled}>
                 <Upload className="h-4 w-4" />
                 <span className="hidden sm:inline">Import</span>
               </Button>
@@ -88,7 +90,7 @@ export const QuizToolbar: FC<QuizToolbarProps> = ({
 
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button onClick={() => setIsExportDialogOpen(true)} variant="outline" size="sm" className="gap-1.5">
+              <Button onClick={() => setIsExportDialogOpen(true)} variant="outline" size="sm" className="gap-1.5" disabled={disabled}>
                 <FileText className="h-4 w-4" />
                 <span className="hidden sm:inline">Export</span>
               </Button>
@@ -105,7 +107,7 @@ export const QuizToolbar: FC<QuizToolbarProps> = ({
         {/* Danger Zone */}
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button onClick={onClearAllData} variant="ghost" size="sm" className="gap-1.5 text-destructive hover:text-destructive hover:bg-destructive/10">
+            <Button onClick={onClearAllData} variant="ghost" size="sm" className="gap-1.5 text-destructive hover:text-destructive hover:bg-destructive/10" disabled={disabled}>
               <AlertTriangle className="h-4 w-4" />
               <span className="hidden sm:inline">Clear All</span>
             </Button>
@@ -129,4 +131,6 @@ export const QuizToolbar: FC<QuizToolbarProps> = ({
       />
     </>
   );
-};
+});
+
+QuizToolbar.displayName = 'QuizToolbar';

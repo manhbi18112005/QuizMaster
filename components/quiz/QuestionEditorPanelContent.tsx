@@ -32,7 +32,7 @@ interface QuestionEditorPanelContentProps {
   canGoNext?: boolean;
 }
 
-export const QuestionEditorPanelContent: React.FC<QuestionEditorPanelContentProps> = ({
+export const QuestionEditorPanelContent: React.FC<QuestionEditorPanelContentProps> = React.memo(({
   selectedQuestion,
   availableTags,
   onQuestionDetailChange,
@@ -250,4 +250,6 @@ export const QuestionEditorPanelContent: React.FC<QuestionEditorPanelContentProp
       </CardContent>
     </Card>
   );
-};
+});
+
+QuestionEditorPanelContent.displayName = 'QuestionEditorPanelContent';

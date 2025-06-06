@@ -12,6 +12,7 @@ export type Menu = {
   active?: boolean;
   icon: LucideIcon;
   submenus?: Submenu[];
+  disabled?: boolean;
 };
 
 export type Group = {

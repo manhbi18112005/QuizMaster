@@ -1,5 +1,5 @@
 import { Question, QuestionAnswer } from '@/types/quiz';
-import { v4 as uuidv4 } from 'uuid';
+import { generateNumericId } from './idUtils';
 
 const DIFFICULTY_OPTIONS = ['easy', 'medium', 'hard'] as const;
 const DEFAULT_CHOICES: QuestionAnswer[] = [
@@ -48,7 +48,7 @@ export function createDefaultQuestion(partialData: Partial<Question> = {}): Ques
         : 'easy' as Question['difficulty'];
 
     return {
-        id: partialData.id ?? uuidv4(),
+        id: partialData.id ?? generateNumericId(),
         question: partialData.question ?? "New Question",
         choices: finalChoices,
         tags: partialData.tags ?? [],

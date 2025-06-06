@@ -1,5 +1,6 @@
 import { QuestionBank as CoreQuestionBank } from '@/types/quiz';
 import { toast } from 'sonner';
+import { logger } from "@/packages/logger";
 
 export const exportQuestionBank = async (
     currentBank: CoreQuestionBank,
@@ -27,7 +28,6 @@ export const exportQuestionBank = async (
         try {
             // Use native Web Crypto API with PBKDF2 and AES-GCM
             const encoder = new TextEncoder();
-            const decoder = new TextDecoder();
             const passwordBuffer = encoder.encode(password);
 
             // Generate a random salt
@@ -55,10 +55,7 @@ export const exportQuestionBank = async (
                 ['encrypt']
             );
 
-            // Generate a random IV
             const iv = crypto.getRandomValues(new Uint8Array(12));
-
-            // Encrypt the data
             const encryptedData = await crypto.subtle.encrypt(
                 { name: 'AES-GCM', iv: iv },
                 key,
@@ -85,14 +82,14 @@ export const exportQuestionBank = async (
             dataStr = JSON.stringify({
                 encrypted: true,
                 algorithm: 'AES-GCM',
-                data: finalBase64Data, // Use the actual base64 encoded string
+                data: finalBase64Data,
                 timestamp: new Date().toISOString()
             }, null, formatted ? 2 : 0);
             fileExtension = '.encrypted.json';
             mimeType = 'application/json';
         } catch (error) {
             toast.error("Failed to encrypt data. Exporting without encryption.");
-            console.error("Encryption error:", error);
+            logger.error(error, "Encryption error");
         }
     }
 

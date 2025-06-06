@@ -7,12 +7,14 @@ interface QuestionSearchInputProps {
   searchTerm: string;
   onSearchTermChange: (value: string) => void;
   debounceDelay?: number;
+  disabled?: boolean;
 }
 
 export function QuestionSearchInput({
   searchTerm,
   onSearchTermChange,
   debounceDelay = 150,
+  disabled = false,
 }: QuestionSearchInputProps) {
   const [inputValue, setInputValue] = useState(searchTerm);
   useEffect(() => {
@@ -55,6 +57,7 @@ export function QuestionSearchInput({
         value={inputValue}
         onChange={handleInputChange}
         className="h-9 md:w-[250px] lg:w-[300px] pr-10"
+        disabled={disabled}
       />
       {inputValue && (
         <Button

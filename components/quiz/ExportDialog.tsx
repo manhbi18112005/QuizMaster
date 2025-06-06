@@ -106,6 +106,7 @@ export const ExportDialog: FC<ExportDialogProps> = ({
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Enter password"
                     className="pr-10"
+                    autoComplete="off"
                   />
                   <Button
                     type="button"
@@ -128,6 +129,7 @@ export const ExportDialog: FC<ExportDialogProps> = ({
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="Confirm password"
                     className={`pr-10 ${confirmPassword && !passwordsMatch ? 'border-destructive' : ''}`}
+                    autoComplete="off"
                   />
                   <Button
                     type="button"

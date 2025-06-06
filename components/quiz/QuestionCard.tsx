@@ -1,4 +1,4 @@
-import { FC } from 'react';
+import { FC, useCallback, memo } from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { GripVertical, CalendarDays, CheckCircle2 } from "lucide-react";
@@ -11,13 +11,17 @@ import { SafeContent } from '@/components/safecontent';
 interface QuestionCardProps {
     id: string;
     question: Question;
-    onClick: () => void;
+    onItemClick: (id: string) => void;
     isSelected: boolean;
 }
 
-export const QuestionCard: FC<QuestionCardProps> = ({ id, question, onClick, isSelected }) => {
+export const QuestionCard: FC<QuestionCardProps> = memo(({ id, question, onItemClick, isSelected }) => {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
     const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1, zIndex: isDragging ? 10 : undefined };
+
+    const handleClick = useCallback(() => {
+        onItemClick(id);
+    }, [onItemClick, id]);
 
     return (
         <div
@@ -34,7 +38,7 @@ export const QuestionCard: FC<QuestionCardProps> = ({ id, question, onClick, isS
                     ${isDragging ? 'shadow-xl scale-105' : 'shadow-sm'}
                     transition-all duration-150 ease-in-out
                     ${!isSelected ? 'hover:shadow-md' : ''}`}
-                onClick={onClick}
+                onClick={handleClick} // Use the memoized handleClick
             >
                 <CardHeader className="px-3 py-2 flex items-start">
                     <div {...listeners} className="mr-2 cursor-grab text-muted-foreground pt-0.5">
@@ -60,7 +64,7 @@ export const QuestionCard: FC<QuestionCardProps> = ({ id, question, onClick, isS
                                 {question.choices.filter(choice => choice.isCorrect).map((choice, index) => (
                                     <li
                                         key={index}
-                                        className="flex items-start text-muted-foreground font-semibold text-green-600 dark:text-green-400"
+                                        className="flex items-start font-semibold text-green-600 dark:text-green-400"
                                     >
                                         <CheckCircle2 size={12} className="mr-1 mt-0.5 flex-shrink-0" />
                                         <span className="whitespace-normal break-words">
@@ -100,4 +104,6 @@ export const QuestionCard: FC<QuestionCardProps> = ({ id, question, onClick, isS
             </Card>
         </div>
     );
-};
+});
+
+QuestionCard.displayName = 'QuestionCard';

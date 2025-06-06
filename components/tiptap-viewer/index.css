@@ -1,4 +1,4 @@
-@reference "../../app/globals.css";
+@reference "../../modules/ui/globals.css";
 
 .tiptap-viewer .heading-node {
   @apply relative font-semibold;
