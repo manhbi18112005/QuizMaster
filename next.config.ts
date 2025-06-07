@@ -1,6 +1,5 @@
 import { withSentryConfig } from "@sentry/nextjs";
 import type { NextConfig } from "next";
-import nextBundleAnalyzer from '@next/bundle-analyzer';
 import withSerwistInit from "@serwist/next";
 import { IS_PRODUCTION } from "./lib/constants";
 
@@ -164,17 +163,13 @@ if (process.env.WEBAPP_URL) {
   };
 }
 
-const withBundleAnalyzer = nextBundleAnalyzer({
-  enabled: process.env.ANALYZE === 'true',
-});
-
 const withSerwist = withSerwistInit({
   swSrc: "app/sw.ts",
   swDest: "public/sw.js",
   disable: !IS_PRODUCTION
 });
 
-export default withSentryConfig(withBundleAnalyzer(withSerwist(nextConfig)), {
+export default withSentryConfig(withSerwist(nextConfig), {
   org: process.env.SENTRY_ORG || "no-name-studio",
   project: process.env.SENTRY_PROJECT || "quizmaster",
   silent: !process.env.CI,
