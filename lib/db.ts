@@ -139,12 +139,25 @@ export async function saveQuestionBank(
   const now = new Date();
   const id = bankData.id || crypto.randomUUID();
 
+  let createdAt = now;
+  let questions = bankData.questions || [];
+
+  if (bankData.id) {
+    const existingBank = await db.questionBanks.get(id);
+    if (existingBank) {
+      createdAt = existingBank.createdAt;
+      if (bankData.questions === undefined) {
+        questions = existingBank.questions;
+      }
+    }
+  }
+
   const newDbBank: DbQuestionBank = {
     id,
     name: bankData.name,
     description: bankData.description,
-    questions: bankData.questions || [], // Embed questions
-    createdAt: now,
+    questions,
+    createdAt,
     updatedAt: now,
   };
   await db.questionBanks.put(newDbBank);
