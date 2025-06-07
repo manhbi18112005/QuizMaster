@@ -18,7 +18,7 @@ import {
   isVerifyEmailRoute,
 } from "@/app/middleware/endpoint-validator";
 import { IS_PRODUCTION, RATE_LIMITING_DISABLED, WEBAPP_URL, NEXTAUTH_SECRET } from "@/lib/constants";
-import { isValidCallbackUrl } from "@/lib/utils/url";
+import { isValidCallbackUrl } from "@/packages/url";
 import { logApiError } from "@/modules/api/lib/utils";
 import { ApiErrorResponseV2 } from "@/modules/api/types/api-error";
 import { ipAddress } from "@vercel/functions";

@@ -6,11 +6,9 @@ import { IS_PRODUCTION, SENTRY_DSN } from "@/lib/constants";
 import { Quicksand } from "next/font/google";
 import { MouseCursorProvider } from '@/components/mouse-cursor/provider';
 import { Toaster } from "@/components/ui/sonner";
-import {
-  TooltipProvider,
-} from "@/components/ui/tooltip";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/providers/theme-provider";
-import { metadata as appMetadata, viewport as appViewport } from "@/lib/metadata";
+import { constructMetadata, constructViewport } from "@/lib/metadata";
 import { SessionProvider } from "next-auth/react"
 import { cn } from "@/lib/utils";
 import LoadingScreen from "@/components/loading-screen";
@@ -23,8 +21,9 @@ const quicksand = Quicksand({
   preload: true
 });
 
-export const metadata = appMetadata;
-export const viewport = appViewport;
+
+export const metadata = constructMetadata();
+export const viewport = constructViewport();
 
 export default function RootLayout({
   children,

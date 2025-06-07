@@ -11,7 +11,6 @@ import {
   Database,
   Upload,
   Star,
-  Github,
   ArrowRight,
   CheckCircle,
   Brain,
@@ -19,6 +18,7 @@ import {
   Users,
   Sparkles
 } from "lucide-react"
+import { Github } from "@/components/icons/github";
 import ColourfulText from "@/components/ui/colourful-text"
 import { Footer } from '@/components/admin-panel/footer';
 import { motion } from 'framer-motion'
