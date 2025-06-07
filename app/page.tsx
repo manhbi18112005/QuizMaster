@@ -385,39 +385,6 @@ export default function Home() {
             </div>
           </div>
         </section>
-
-        {/* CTA Section */}
-        <section className="relative z-10 py-32">
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-3xl p-12 sm:p-16 shadow-2xl relative overflow-hidden">
-              <div className="relative z-10">
-                <h2 className="text-5xl font-bold mb-6 text-white leading-tight">
-                  Ready to enhance
-                  <br />your learning?
-                </h2>
-                <p className="text-xl sm:text-2xl text-blue-100 mb-10 leading-relaxed max-w-3xl mx-auto">
-                  Join students worldwide who are using QuizMaster to ace their studies.
-                </p>
-                <div className="flex flex-col sm:flex-row gap-6 justify-center">
-                  <Link href="/dashboard">
-                    <Button size="lg" className="gap-3 text-lg px-8 py-6 bg-white text-blue-600 hover:bg-blue-50 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 rounded-2xl font-bold">
-                      <Sparkles className="h-5 w-5" />
-                      Get Started Now
-                      <ArrowRight className="h-5 w-5" />
-                    </Button>
-                  </Link>
-                  <Link href="https://github.com/manhbi18112005/QuizMaster" target="_blank">
-                    <Button variant="outline" size="lg" className="gap-3 text-lg px-8 py-6 border-2 border-white/30 text-white hover:bg-white/10 transition-all duration-300 hover:scale-105 rounded-2xl backdrop-blur-sm">
-                      <Github className="h-5 w-5" />
-                      Source Code
-                    </Button>
-                  </Link>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
         {/* Footer */}
         <Footer />
       </div>
