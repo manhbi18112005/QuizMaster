@@ -539,6 +539,7 @@ export function TestSettings({
                                     { key: 'shuffleQuestions', label: 'Shuffle questions', desc: 'Randomize question order' },
                                     { key: 'shuffleAnswers', label: 'Shuffle answer options', desc: 'Randomize answer choice order' },
                                     { key: 'showScoreAtEnd', label: 'Show score at end', desc: 'Display final score after completion' },
+                                    { key: 'showCorrectAnswers', label: 'Show test feedback', desc: 'Reveal answers and explanations after completion' },
                                     { key: 'allowRetake', label: 'Allow retaking test', desc: 'Permit multiple attempts' },
                                 ].map((setting) => (
                                     <div key={setting.key} className="flex items-start space-x-3 p-3 rounded-lg hover:bg-white/50 dark:hover:bg-gray-800/50 transition-colors">
