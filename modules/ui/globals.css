@@ -122,3 +122,23 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Implement a custom scrollbar to preventing ugly looking scroll-overflows */
+.norm-scrollbar {
+  scrollbar-width: auto;
+  scrollbar-color: #d1d5db #ffffff;
+}
+
+.norm-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.norm-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.norm-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #d1d5db;
+  border-radius: 10px;
+}

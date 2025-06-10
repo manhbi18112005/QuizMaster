@@ -59,7 +59,23 @@ const productionConfig: LoggerOptions = {
   ...baseLoggerConfig,
 };
 
-const logger: Logger = IS_PRODUCTION ? Pino(productionConfig) : Pino(developmentConfig);
+// Create logger with fallback handling
+const createLogger = (): Logger => {
+  if (IS_PRODUCTION) {
+    return Pino(productionConfig);
+  }
+
+  try {
+    return Pino(developmentConfig);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  } catch (error) {
+    // Fallback to basic config if pino-pretty transport fails
+    console.warn("Failed to initialize pino-pretty transport, falling back to basic logger");
+    return Pino(baseLoggerConfig);
+  }
+};
+
+const logger: Logger = createLogger();
 
 // Ensure all log levels are properly bound
 const boundLogger = {

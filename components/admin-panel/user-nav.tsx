@@ -3,7 +3,7 @@
 import { useSession, signIn, signOut } from "next-auth/react"
 import Link from "next/link";
 import { LayoutGrid, LogOut, Settings } from "lucide-react";
-
+import { OG_AVATAR_URL } from "@/lib/utils/avatar";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -35,8 +35,6 @@ const MENU_ITEMS = [
   }
 ] as const;
 
-const DEFAULT_AVATAR = "/avt.png";
-
 export function UserNav() {
   const { data: session } = useSession();
 
@@ -44,7 +42,7 @@ export function UserNav() {
     name?.charAt(0).toUpperCase() || "U";
 
   const getUserAvatar = (image?: string | null) =>
-    image || DEFAULT_AVATAR;
+    image || OG_AVATAR_URL;
 
   if (!session) {
     return (

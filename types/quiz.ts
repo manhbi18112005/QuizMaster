@@ -27,4 +27,5 @@ export interface QuestionBank {
   questions: Question[];
   createdAt?: Date;
   updatedAt?: Date;
+  logo?: string;
 }

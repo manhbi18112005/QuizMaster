@@ -495,7 +495,7 @@
   ],
   "protocol_handlers": [
     {
-      "protocol": "quizmaster",
+      "protocol": "web+quizmaster",
       "url": "/dashboard/banks/%s"
     }
   ]

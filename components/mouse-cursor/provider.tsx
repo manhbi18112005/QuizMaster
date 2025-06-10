@@ -234,7 +234,7 @@ export const MouseCursorProvider = ({
   return (
     <>
       {/* Custom cursor */}
-      <div ref={cursorRef} className="fixed pointer-events-none z-10000">
+      <div ref={cursorRef} className="fixed pointer-events-none z-1000000000">
         <div className="relative" style={{ width: size, height: size }}>
           <div className="absolute inset-0 bg-gradient-to-r from-purple-400/30 to-blue-400/30 rounded-full blur-md animate-pulse"></div>
           <Image
@@ -242,7 +242,7 @@ export const MouseCursorProvider = ({
             alt={imageAlt}
             width={size}
             height={size}
-            className="relative z-10 drop-shadow-lg"
+            className="relative z-1000000000 drop-shadow-lg"
             priority
             unoptimized
           />
@@ -256,7 +256,7 @@ export const MouseCursorProvider = ({
           ref={(el) => {
             if (el) trailRefs.current[index] = el;
           }}
-          className="fixed pointer-events-none z-40 opacity-0"
+          className="fixed pointer-events-none z-1000000000 opacity-0"
         >
           <div className="w-2 h-2 text-yellow-400">
             ✨
@@ -268,7 +268,7 @@ export const MouseCursorProvider = ({
       {showMagnetic && (
         <div
           ref={magneticRef}
-          className="fixed w-32 h-32 pointer-events-none z-30 rounded-full border-2 border-purple-400/30 mix-blend-multiply dark:mix-blend-screen"
+          className="fixed w-32 h-32 pointer-events-none z-1000000000 rounded-full border-2 border-purple-400/30 mix-blend-multiply dark:mix-blend-screen"
         />
       )}
     </>

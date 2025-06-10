@@ -35,7 +35,7 @@ export const QuestionListPanelContent: FC<QuestionListPanelContentProps> = memo(
       items={questions.map(q => q.id)}
       strategy={verticalListSortingStrategy}
     >
-      <div className="flex h-100 w-full flex-col gap-2.5 p-3">
+      <div className="h-[80vh] max-h-[90vh] flex flex-col gap-2.5 p-3">
         {questions.length === 0 && <p className="text-muted-foreground">No questions yet. Click create to add one.</p>}
         {questions.map(q => (
           <div

@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 import LoadingScreen from "@/components/loading-screen";
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import { Analytics } from "@vercel/analytics/next"
+import { ModalProvider } from "@/components/modals/model-provider";
 
 const quicksand = Quicksand({
   variable: "--font-quicksand",
@@ -31,7 +32,7 @@ export default function RootLayout({
   children: ReactNode;
 }>) {
   return (
-    <html lang="en" className="cursor-none" suppressHydrationWarning>
+    <html lang="en" className="cursor-none norm-scrollbar" suppressHydrationWarning>
       <head />
       {IS_PRODUCTION && <SpeedInsights sampleRate={0.1} />}
       {IS_PRODUCTION && <Analytics />}
@@ -42,13 +43,15 @@ export default function RootLayout({
         <SessionProvider>
           <SentryProvider sentryDsn={SENTRY_DSN} isEnabled={IS_PRODUCTION}>
             <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-              <Suspense fallback={<LoadingScreen />}>
-                <MouseCursorProvider />
-                <Toaster />
-                <TooltipProvider>
-                  {children}
-                </TooltipProvider>
-              </Suspense>
+              <ModalProvider>
+                <Suspense fallback={<LoadingScreen />}>
+                  <MouseCursorProvider />
+                  <Toaster />
+                  <TooltipProvider>
+                    {children}
+                  </TooltipProvider>
+                </Suspense>
+              </ModalProvider>
             </ThemeProvider>
           </SentryProvider>
         </SessionProvider>
