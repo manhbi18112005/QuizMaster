@@ -21,7 +21,7 @@ import {
     ChevronDown,
 } from "lucide-react";
 import { TestResults } from "@/types/test-results";
-import { TestSettingsType } from "./revision-settings";
+import { TestSettingsType } from "@/types/test-settings";
 import { useMemo, useState } from "react";
 
 interface TestResultsCardProps {

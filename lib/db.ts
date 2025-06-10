@@ -1,8 +1,7 @@
 import Dexie, { Table } from 'dexie';
 import { Question } from '@/types/quiz';
 import { QuestionResult } from '@/types/test-results';
-import { TestSettingsType } from '@/components/revision/revision-settings';
-
+import { TestSettingsType } from '@/types/test-settings';
 /** Default tags to initialize the database with if none are present. */
 export const DEFAULT_TAGS_DB = ["general"];
 
