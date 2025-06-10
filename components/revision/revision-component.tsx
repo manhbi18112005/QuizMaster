@@ -11,7 +11,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { CheckCircle, XCircle, ArrowLeft, ArrowRight, Flag, Pause, Play, ChevronDown, ChevronUp, Send, ExternalLink } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Question } from "@/types/quiz";
-import { TestSettingsType } from "./revision-settings";
+import { TestSettingsType } from "@/types/test-settings";
 import { QuestionViewerPanelContent } from "../quiz/QuestionViewerPanelContent";
 import { TipTapViewer } from "../tiptap-viewer";
 import { TestResultsCard } from "./revision-results-card";
@@ -20,6 +20,7 @@ import { AnimatedCircularProgressBar } from "@/components/magicui/animated-circu
 import { useRouter } from 'next/navigation';
 import { BANKPREFIX_URL } from "@/lib/client-constants";
 import useWorkspace from "@/helpers/swr/use-workspace";
+import { BorderBeam } from "../magicui/border-beam";
 
 interface TestComponentProps {
     questions: Question[];
@@ -597,43 +598,43 @@ export function TestComponent({
                 </DialogContent>
             </Dialog>
 
-            {/* Question Navigator (if free navigation is allowed) */}
-
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <Card>
-                    <CardContent className="flex flex-col items-center justify-center p-6 space-y-4">
-                        <AnimatedCircularProgressBar
-                            max={countdownValues.max}
-                            min={0}
-                            value={countdownValues.value}
-                            gaugePrimaryColor="rgb(79 70 229)"
-                            gaugeSecondaryColor="rgba(0, 0, 0, 0.1)"
-                        />
-                        <div className="text-center">
-                            {flaggedQuestions.size > 0 && (
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <Badge variant="secondary" className="flex items-center gap-1">
-                                            <Flag className="h-3 w-3" />
-                                            {flaggedQuestions.size} flagged
-                                        </Badge>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                        <p>You have flagged {flaggedQuestions.size} question(s) for review</p>
-                                    </TooltipContent>
-                                </Tooltip>
-                            )}
-                            {settings.allowPause && (
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={handlePauseToggle}
-                                    className="flex items-center gap-2"
-                                >
-                                    <Pause className="h-3 w-3" />
-                                    Pause
-                                </Button>
-                            )}
+                    <CardContent>
+                        <div className="flex flex-col items-center justify-center p-6 space-y-4">
+                            <AnimatedCircularProgressBar
+                                max={countdownValues.max}
+                                min={0}
+                                value={countdownValues.value}
+                                gaugePrimaryColor="rgb(79 70 229)"
+                                gaugeSecondaryColor="rgba(0, 0, 0, 0.1)"
+                            />
+                            <div className="text-center">
+                                {flaggedQuestions.size > 0 && (
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Badge variant="secondary" className="flex items-center gap-1">
+                                                <Flag className="h-3 w-3" />
+                                                {flaggedQuestions.size} flagged
+                                            </Badge>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p>You have flagged {flaggedQuestions.size} question(s) for review</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                )}
+                                {settings.allowPause && (
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={handlePauseToggle}
+                                        className="flex items-center gap-2"
+                                    >
+                                        <Pause className="h-3 w-3" />
+                                        Pause
+                                    </Button>
+                                )}
+                            </div>
                         </div>
                     </CardContent>
                 </Card>
@@ -736,7 +737,7 @@ export function TestComponent({
             </div>
 
             {/* Question Card */}
-            <Card>
+            <Card className="relative overflow-hidden">
                 <CardHeader>
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
@@ -830,6 +831,8 @@ export function TestComponent({
                         ))}
                     </div>
                 </CardContent>
+
+                <BorderBeam duration={8} size={100} />
             </Card>
         </div>
     );
