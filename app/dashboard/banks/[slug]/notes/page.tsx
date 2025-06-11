@@ -16,7 +16,6 @@ import { useState, useEffect } from "react";
 import { Question } from "@/types/quiz";
 import { BANKPREFIX_URL } from "@/lib/client-constants";
 import { TracingBeam } from "@/components/ui/tracing-beam";
-import { SmoothScrollProvider } from "@/components/smooth-scroll/SmoothScrollProvider";
 
 export default function NotesPage() {
     const { workspace, loading } = useWorkspace();
@@ -67,7 +66,6 @@ export default function NotesPage() {
 
     return (
         <>
-            <SmoothScrollProvider />
             <ContentLayout titleBackButtonLink={`${BANKPREFIX_URL}/${workspace.id}`} title={`Question Notes (${questionsWithNotes.length}) - ${workspace.name}`} description="Review your annotated questions and important insights">
                 <MaxWidthWrapper>
                     <div className="space-y-8">
