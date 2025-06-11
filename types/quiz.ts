@@ -1,3 +1,5 @@
+import { QuestionType } from "@/lib/question-types";
+
 export enum QuestionDifficulty {
   Easy = 'easy',
   Medium = 'medium',
@@ -18,6 +20,7 @@ export interface Question {
   difficulty?: QuestionDifficulty;
   options?: string[];
   createdAt?: Date;
+  questionType?: QuestionType;
 }
 
 export interface QuestionBank {
