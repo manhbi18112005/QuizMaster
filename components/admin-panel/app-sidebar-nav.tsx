@@ -8,7 +8,7 @@ import { useParams, usePathname } from "next/navigation";
 import { ReactNode, useMemo } from "react";
 import { SidebarNav, SidebarNavAreas } from "./sidebar-nav";
 import { WorkspaceDropdown } from "./workspace-dropdown";
-import { LayoutDashboardIcon, HelpCircleIcon, Library, BookCheck, NotebookIcon, Lamp } from "lucide-react";
+import { LayoutDashboardIcon, HelpCircleIcon, Library, BookCheck, NotebookIcon, Lamp, Search } from "lucide-react";
 import { BANKPREFIX_URL } from "@/lib/client-constants";
 import { Usage } from "./usage";
 import { Receipt2 } from "../icons/receipt2";
@@ -83,6 +83,12 @@ const NAV_AREAS: SidebarNavAreas<{
             name: "Notes",
             icon: NotebookIcon,
             href: `${BANKPREFIX_URL}/${slug}/notes`,
+            exact: true,
+          },
+          {
+            name: "Search",
+            icon: Search,
+            href: `/dashboard/search`,
             exact: true,
           }
         ],

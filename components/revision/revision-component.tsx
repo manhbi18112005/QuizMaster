@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef, useContext } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -8,19 +8,18 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { CheckCircle, XCircle, ArrowLeft, ArrowRight, Flag, Pause, Play, ChevronDown, ChevronUp, Send, ExternalLink } from "lucide-react";
+import { CheckCircle, XCircle, ArrowLeft, ArrowRight, Flag, Pause, Play, ChevronDown, ChevronUp, Send } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Question } from "@/types/quiz";
 import { TestSettingsType } from "@/types/test-settings";
-import { QuestionViewerPanelContent } from "../quiz/QuestionViewerPanelContent";
 import { TipTapViewer } from "../tiptap-viewer";
 import { TestResultsCard } from "./revision-results-card";
 import { TestResults, QuestionResult } from "@/types/test-results";
 import { AnimatedCircularProgressBar } from "@/components/magicui/animated-circular-progress-bar";
-import { useRouter } from 'next/navigation';
-import { BANKPREFIX_URL } from "@/lib/client-constants";
-import useWorkspace from "@/helpers/swr/use-workspace";
 import { BorderBeam } from "../magicui/border-beam";
+import { getQuestionTypeConfig, validateQuestionAnswers, detectQuestionType } from "@/lib/question-types";
+import { ModalContext } from "../modals/model-provider";
 
 interface TestComponentProps {
     questions: Question[];
@@ -30,7 +29,6 @@ interface TestComponentProps {
     onRetakeTest?: () => void;
 }
 
-// Add new interfaces for optimization
 interface VirtualizedRange {
     start: number;
     end: number;
@@ -47,7 +45,8 @@ export function TestComponent({
     onRetakeTest
 }: TestComponentProps) {
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-    const [answers, setAnswers] = useState<Record<number, string>>({});
+    const [answers, setAnswers] = useState<Record<number, string[]>>({});
+    const [inputAnswers, setInputAnswers] = useState<Record<number, string>>({});
     const [flaggedQuestions, setFlaggedQuestions] = useState<Set<number>>(new Set());
     const [timeLeft, setTimeLeft] = useState(settings.hasTimeLimit ? settings.timeLimitMinutes * 60 : 0);
     const [questionTimeLeft, setQuestionTimeLeft] = useState(
@@ -59,22 +58,17 @@ export function TestComponent({
     const [showResults, setShowResults] = useState(false);
     const [testResults, setTestResults] = useState<TestResults | null>(null);
     const [isPaused, setIsPaused] = useState(false);
-    const [selectedQuestionDetail, setSelectedQuestionDetail] = useState<Question | null>(null);
-    const [showQuestionDialog, setShowQuestionDialog] = useState(false);
     const [isTestCompleted, setIsTestCompleted] = useState(false);
     const [isNavigatorCollapsed, setIsNavigatorCollapsed] = useState(false);
 
-    // New state for optimization
+    const { setShowQuestionDetailModal, setSelectedQuestionDetailModal } = useContext(ModalContext);
+
     const [navigatorPage, setNavigatorPage] = useState(0);
     const [resultsPage, setResultsPage] = useState(0);
     const [resultsFilter, setResultsFilter] = useState('');
     const [loadedQuestions, setLoadedQuestions] = useState<Set<number>>(new Set([0])); // Pre-load first question
     const navigatorRef = useRef<HTMLDivElement>(null);
-    const router = useRouter();
 
-    const { workspace } = useWorkspace();
-
-    // Memoized calculations with optimization
     const currentQuestion = useMemo(() => {
         // Lazy load current question if not already loaded
         if (!loadedQuestions.has(currentQuestionIndex)) {
@@ -84,6 +78,12 @@ export function TestComponent({
     }, [questions, currentQuestionIndex, loadedQuestions]);
 
     const progress = useMemo(() => ((currentQuestionIndex + 1) / questions.length) * 100, [currentQuestionIndex, questions.length]);
+
+    // Add question type detection
+    const currentQuestionTypeConfig = useMemo(() => {
+        const questionType = currentQuestion?.questionType || detectQuestionType(currentQuestion?.choices || []);
+        return getQuestionTypeConfig(questionType);
+    }, [currentQuestion]);
 
     // Virtualized navigator range
     const navigatorRange = useMemo((): VirtualizedRange => {
@@ -182,17 +182,21 @@ export function TestComponent({
             let correctAnswers = 0;
 
             const questionResults: QuestionResult[] = questions.map((question, index) => {
-                const selectedAnswer = answers[index] || '';
-                const correctAnswer = question.choices?.find(choice => choice.isCorrect)?.value || '';
-                const isCorrect = selectedAnswer === correctAnswer;
+                const selectedAnswers = answers[index] || [];
+                const correctChoices = question.choices?.filter(choice => choice.isCorrect) || [];
+                const correctAnswerValues = correctChoices.map(choice => choice.value);
+
+                // Detect question type for validation
+                const questionType = question.questionType || detectQuestionType(question.choices || []);
+                const isCorrect = validateQuestionAnswers(selectedAnswers, correctAnswerValues, questionType);
 
                 if (isCorrect) correctAnswers++;
 
                 return {
                     questionId: question.id,
                     question: question.question,
-                    selectedAnswer,
-                    correctAnswer,
+                    selectedAnswer: selectedAnswers.join(', ') || 'No answer',
+                    correctAnswer: correctAnswerValues.join(' | '),
                     isCorrect,
                     timeSpent: questionTimes[index] || 0
                 };
@@ -281,7 +285,38 @@ export function TestComponent({
     const handleAnswerSelect = useCallback((answer: string) => {
         const timeSpent = Date.now() - questionStartTime;
         setQuestionTimes(prev => ({ ...prev, [currentQuestionIndex]: timeSpent }));
-        setAnswers(prev => ({ ...prev, [currentQuestionIndex]: answer }));
+
+        if (currentQuestionTypeConfig.allowMultipleSelection) {
+            // Multiple selection logic
+            setAnswers(prev => {
+                const current = prev[currentQuestionIndex] || [];
+                const isSelected = current.includes(answer);
+
+                if (isSelected) {
+                    // Remove if already selected
+                    return {
+                        ...prev,
+                        [currentQuestionIndex]: current.filter(a => a !== answer)
+                    };
+                } else {
+                    // Add if not selected
+                    return {
+                        ...prev,
+                        [currentQuestionIndex]: [...current, answer]
+                    };
+                }
+            });
+        } else {
+            // Single selection logic
+            setAnswers(prev => ({ ...prev, [currentQuestionIndex]: [answer] }));
+        }
+    }, [questionStartTime, currentQuestionIndex, currentQuestionTypeConfig.allowMultipleSelection]);
+
+    const handleInputChange = useCallback((value: string) => {
+        const timeSpent = Date.now() - questionStartTime;
+        setQuestionTimes(prev => ({ ...prev, [currentQuestionIndex]: timeSpent }));
+        setInputAnswers(prev => ({ ...prev, [currentQuestionIndex]: value }));
+        setAnswers(prev => ({ ...prev, [currentQuestionIndex]: [value] }));
     }, [questionStartTime, currentQuestionIndex]);
 
     const handlePreviousQuestion = useCallback(() => {
@@ -301,10 +336,10 @@ export function TestComponent({
     const handleQuestionClick = useCallback((questionId: string) => {
         const question = questions.find(q => q.id === questionId);
         if (question) {
-            setSelectedQuestionDetail(question);
-            setShowQuestionDialog(true);
+            setSelectedQuestionDetailModal(question);
+            setShowQuestionDetailModal(true);
         }
-    }, [questions]);
+    }, [questions, setSelectedQuestionDetailModal, setShowQuestionDetailModal]);
 
     // Optimized navigation handlers
     const handleQuestionNavigation = useCallback((index: number) => {
@@ -382,11 +417,6 @@ export function TestComponent({
             label: "∞"
         };
     }, [settings.hasQuestionTimeLimit, settings.hasTimeLimit, settings.questionTimeLimitSeconds, settings.timeLimitMinutes, questionTimeLeft, timeLeft, formatTime]);
-
-    // Redirect to question bank editor
-    const handleRedirectToQuestion = useCallback((question: Question) => {
-        router.push(`${BANKPREFIX_URL}/${workspace?.id}?q=${question.id}&tab=edit`);
-    }, [router, workspace]);
 
     if (showResults && testResults) {
         return (
@@ -540,32 +570,6 @@ export function TestComponent({
                         </CardContent>
                     </Card>
                 )}
-
-                {/* Question Detail Dialog */}
-                <Dialog open={showQuestionDialog} onOpenChange={setShowQuestionDialog}>
-                    <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-                        <DialogHeader>
-                            <DialogTitle className="flex items-center justify-between">
-                                {selectedQuestionDetail && (
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => handleRedirectToQuestion(selectedQuestionDetail)}
-                                        className="flex items-center gap-2"
-                                    >
-                                        <ExternalLink className="h-4 w-4" />
-                                        Edit Question
-                                    </Button>
-                                )}
-                            </DialogTitle>
-                        </DialogHeader>
-                        {selectedQuestionDetail && (
-                            <QuestionViewerPanelContent
-                                selectedQuestion={selectedQuestionDetail}
-                            />
-                        )}
-                    </DialogContent>
-                </Dialog>
             </div>
         );
     }
@@ -704,7 +708,7 @@ export function TestComponent({
                                                         variant={
                                                             globalIndex === currentQuestionIndex
                                                                 ? "default"
-                                                                : answers[globalIndex]
+                                                                : (answers[globalIndex] && answers[globalIndex].length > 0)
                                                                     ? "secondary"
                                                                     : "outline"
                                                         }
@@ -722,7 +726,7 @@ export function TestComponent({
                                                 <TooltipContent>
                                                     <p>
                                                         Question {globalIndex + 1}
-                                                        {answers[globalIndex] && " (Answered)"}
+                                                        {(answers[globalIndex] && answers[globalIndex].length > 0) && " (Answered)"}
                                                         {flaggedQuestions.has(globalIndex) && " (Flagged)"}
                                                     </p>
                                                 </TooltipContent>
@@ -790,7 +794,7 @@ export function TestComponent({
 
                             <Button
                                 onClick={handleNextQuestion}
-                                disabled={!answers[currentQuestionIndex] && settings.hasQuestionTimeLimit}
+                                disabled={(!answers[currentQuestionIndex] || answers[currentQuestionIndex].length === 0) && settings.hasQuestionTimeLimit}
                                 className="flex items-center gap-2"
                             >
                                 {currentQuestionIndex === questions.length - 1 ? 'Finish' : 'Next'}
@@ -800,9 +804,22 @@ export function TestComponent({
                     </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    <CardTitle>
-                        <TipTapViewer content={currentQuestion?.question} />
-                    </CardTitle>
+                    <div className="space-y-1">
+                        <CardTitle>
+                            <TipTapViewer content={currentQuestion?.question} />
+                        </CardTitle>
+                        <div className="flex items-center gap-2">
+                            <Badge variant="outline" className="text-xs">
+                                {currentQuestionTypeConfig.label}
+                            </Badge>
+                            {currentQuestionTypeConfig.allowMultipleSelection && (
+                                <Badge variant="secondary" className="text-xs">
+                                    Select multiple answers
+                                </Badge>
+                            )}
+                        </div>
+                    </div>
+
                     {currentQuestion?.tags && currentQuestion.tags.length > 0 && (
                         <div className="flex flex-wrap gap-1">
                             {currentQuestion.tags.map((tag) => (
@@ -816,19 +833,51 @@ export function TestComponent({
                     <Separator />
 
                     <div className="space-y-2">
-                        {currentQuestion?.choices?.map((choice, index) => (
-                            <Button
-                                key={index}
-                                variant={answers[currentQuestionIndex] === choice.value ? "default" : "outline"}
-                                className="w-full justify-start text-left h-auto p-4 whitespace-normal break-words"
-                                onClick={() => handleAnswerSelect(choice.value)}
-                            >
-                                <div className="flex items-start gap-2 w-full">
-                                    <span className="font-medium shrink-0">{String.fromCharCode(65 + index)}.</span>
-                                    <span className="flex-1 break-words">{choice.value}</span>
-                                </div>
-                            </Button>
-                        ))}
+                        {currentQuestionTypeConfig.requiresInput ? (
+                            // Input question rendering
+                            <div className="space-y-4">
+                                {currentQuestionTypeConfig.type === 'essay' ? (
+                                    <Textarea
+                                        placeholder="Type your answer here..."
+                                        value={inputAnswers[currentQuestionIndex] || ''}
+                                        onChange={(e) => handleInputChange(e.target.value)}
+                                        rows={6}
+                                        className="w-full text-lg p-4 resize-none"
+                                    />
+                                ) : (
+                                    <Input
+                                        placeholder={currentQuestionTypeConfig.type === 'numerical' ? "Enter your numerical answer..." : "Type your answer here..."}
+                                        value={inputAnswers[currentQuestionIndex] || ''}
+                                        onChange={(e) => handleInputChange(e.target.value)}
+                                        type="text"
+                                        className="w-full text-lg p-4"
+                                    />
+                                )}
+                            </div>
+                        ) : (
+                            // Multiple choice question rendering
+                            currentQuestion?.choices?.map((choice, index) => {
+                                const currentAnswers = answers[currentQuestionIndex] || [];
+                                const isSelected = currentAnswers.includes(choice.value);
+
+                                return (
+                                    <Button
+                                        key={index}
+                                        variant={isSelected ? "default" : "outline"}
+                                        className="w-full justify-start text-left h-auto p-4 whitespace-normal break-words"
+                                        onClick={() => handleAnswerSelect(choice.value)}
+                                    >
+                                        <div className="flex items-start gap-2 w-full">
+                                            <span className="font-medium shrink-0">{String.fromCharCode(65 + index)}.</span>
+                                            <span className="flex-1 break-words">{choice.value}</span>
+                                            {isSelected && currentQuestionTypeConfig.allowMultipleSelection && (
+                                                <CheckCircle className="h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0" />
+                                            )}
+                                        </div>
+                                    </Button>
+                                );
+                            })
+                        )}
                     </div>
                 </CardContent>
 

@@ -1,21 +1,20 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo, useRef, memo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef, memo, useContext } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CheckCircle, XCircle, ArrowLeft, ArrowRight, Flag, ChevronDown, ChevronUp, ExternalLink, RotateCcw } from "lucide-react";
 import { Question } from "@/types/quiz";
-import { QuestionViewerPanelContent } from "../quiz/QuestionViewerPanelContent";
 import { TipTapViewer } from "../tiptap-viewer";
-import { useRouter } from 'next/navigation';
-import { BANKPREFIX_URL } from "@/lib/client-constants";
-import useWorkspace from "@/helpers/swr/use-workspace";
+import { ModalContext } from "../modals/model-provider";
+import { getQuestionTypeConfig, validateQuestionAnswers, detectQuestionType } from "@/lib/question-types";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
 interface PracticeComponentProps {
     questions: Question[];
@@ -31,7 +30,6 @@ interface AnswerFeedback {
 
 const NAVIGATOR_PAGE_SIZE = 50; // Show 50 questions per page in navigator
 
-// Memoized sub-components for better performance
 const QuestionNavigatorButton = memo(({
     index,
     isActive,
@@ -97,24 +95,21 @@ QuestionNavigatorButton.displayName = "QuestionNavigatorButton";
 export function PracticeComponent({
     questions,
 }: PracticeComponentProps) {
-    // Consolidated state for better performance
+    const { setShowQuestionDetailModal, setSelectedQuestionDetailModal } = useContext(ModalContext);
     const [practiceState, setPracticeState] = useState({
         currentQuestionIndex: 0,
         navigatorPage: 0,
         isNavigatorCollapsed: false,
     });
 
-    const [answers, setAnswers] = useState<Record<number, string>>({});
-    const [selectedAnswers, setSelectedAnswers] = useState<Record<number, string>>({});
+    const [answers, setAnswers] = useState<Record<number, string[]>>({});
+    const [selectedAnswers, setSelectedAnswers] = useState<Record<number, string[]>>({});
+    const [inputAnswers, setInputAnswers] = useState<Record<number, string>>({});
     const [answerFeedback, setAnswerFeedback] = useState<Record<number, AnswerFeedback>>({});
     const [flaggedQuestions, setFlaggedQuestions] = useState<Set<number>>(new Set());
-    const [selectedQuestionDetail] = useState<Question | null>(null);
-    const [showQuestionDialog, setShowQuestionDialog] = useState(false);
     const [loadedQuestions, setLoadedQuestions] = useState<Set<number>>(new Set([0]));
 
     const navigatorRef = useRef<HTMLDivElement>(null);
-    const router = useRouter();
-    const { workspace } = useWorkspace();
 
     // Destructure for cleaner code
     const { currentQuestionIndex, navigatorPage, isNavigatorCollapsed } = practiceState;
@@ -137,8 +132,12 @@ export function PracticeComponent({
         const accuracy = answeredCount > 0 ? Math.round((correctCount / answeredCount) * 100) : 0;
 
         const currentFeedback = answerFeedback[currentQuestionIndex];
-        const currentSelectedAnswer = selectedAnswers[currentQuestionIndex];
+        const currentSelectedAnswers = selectedAnswers[currentQuestionIndex] || [];
         const hasSubmittedAnswer = !!answers[currentQuestionIndex];
+
+        // Detect current question type
+        const currentQuestionType = currentQuestion?.questionType || detectQuestionType(currentQuestion?.choices || []);
+        const questionTypeConfig = getQuestionTypeConfig(currentQuestionType);
 
         // Navigator range
         const navigatorStart = navigatorPage * NAVIGATOR_PAGE_SIZE;
@@ -154,11 +153,13 @@ export function PracticeComponent({
                 accuracy
             },
             currentFeedback,
-            currentSelectedAnswer,
+            currentSelectedAnswers,
             hasSubmittedAnswer,
+            currentQuestionType,
+            questionTypeConfig,
             navigatorRange: { start: navigatorStart, end: navigatorEnd }
         };
-    }, [answers, answerFeedback, questions.length, currentQuestionIndex, selectedAnswers, navigatorPage]);
+    }, [answers, answerFeedback, questions.length, currentQuestionIndex, selectedAnswers, navigatorPage, currentQuestion]);
 
     // Memoized visible navigator questions
     const visibleNavigatorQuestions = useMemo(() => {
@@ -192,26 +193,54 @@ export function PracticeComponent({
     // Optimized event handlers
     const handleAnswerSelect = useCallback((answer: string) => {
         if (!derivedState.hasSubmittedAnswer) {
-            setSelectedAnswers(prev => ({ ...prev, [currentQuestionIndex]: answer }));
+            const { questionTypeConfig } = derivedState;
+
+            if (questionTypeConfig.allowMultipleSelection) {
+                // Multiple selection logic
+                setSelectedAnswers(prev => {
+                    const current = prev[currentQuestionIndex] || [];
+                    const isSelected = current.includes(answer);
+
+                    return {
+                        ...prev,
+                        [currentQuestionIndex]: isSelected
+                            ? current.filter(a => a !== answer)
+                            : [...current, answer]
+                    };
+                });
+            } else {
+                // Single selection logic
+                setSelectedAnswers(prev => ({
+                    ...prev,
+                    [currentQuestionIndex]: [answer]
+                }));
+            }
+        }
+    }, [currentQuestionIndex, derivedState]);
+
+    const handleInputChange = useCallback((value: string) => {
+        if (!derivedState.hasSubmittedAnswer) {
+            setInputAnswers(prev => ({ ...prev, [currentQuestionIndex]: value }));
+            setSelectedAnswers(prev => ({ ...prev, [currentQuestionIndex]: [value] }));
         }
     }, [currentQuestionIndex, derivedState.hasSubmittedAnswer]);
 
     const handleSubmitAnswer = useCallback(() => {
-        const { currentSelectedAnswer } = derivedState;
-        if (!currentSelectedAnswer) return;
+        const { currentSelectedAnswers, currentQuestionType } = derivedState;
+        if (!currentSelectedAnswers || currentSelectedAnswers.length === 0) return;
 
-        const correctChoice = currentQuestion.choices?.find(choice => choice.isCorrect);
-        const correctAnswer = correctChoice?.value || '';
-        const isCorrect = currentSelectedAnswer === correctAnswer;
+        const correctChoices = currentQuestion.choices?.filter(choice => choice.isCorrect) || [];
+        const correctAnswers = correctChoices.map(choice => choice.value);
+        const isCorrect = validateQuestionAnswers(currentSelectedAnswers, correctAnswers, currentQuestionType);
 
         // Batch state updates
-        setAnswers(prev => ({ ...prev, [currentQuestionIndex]: currentSelectedAnswer }));
+        setAnswers(prev => ({ ...prev, [currentQuestionIndex]: currentSelectedAnswers }));
         setAnswerFeedback(prev => ({
             ...prev,
             [currentQuestionIndex]: {
                 isCorrect,
-                selectedAnswer: currentSelectedAnswer,
-                correctAnswer,
+                selectedAnswer: currentSelectedAnswers.join(', '),
+                correctAnswer: correctAnswers.join(' | '),
                 notes: currentQuestion.notes
             }
         }));
@@ -276,14 +305,11 @@ export function PracticeComponent({
     const handleResetProgress = useCallback(() => {
         setAnswers({});
         setSelectedAnswers({});
+        setInputAnswers({});
         setAnswerFeedback({});
         setFlaggedQuestions(new Set());
         setPracticeState(prev => ({ ...prev, currentQuestionIndex: 0, navigatorPage: 0 }));
     }, []);
-
-    const handleRedirectToQuestion = useCallback((question: Question) => {
-        router.push(`${BANKPREFIX_URL}/${workspace?.id}?q=${question.id}&tab=edit`);
-    }, [router, workspace?.id]);
 
     // Memoized question navigation handler
     const questionNavigationHandler = useCallback((index: number) => {
@@ -457,14 +483,30 @@ export function PracticeComponent({
                         </div>
 
                         <div className="flex gap-2">
-                            {!derivedState.hasSubmittedAnswer && derivedState.currentSelectedAnswer && (
+                            {!derivedState.hasSubmittedAnswer && derivedState.currentSelectedAnswers.length > 0 && (
                                 <Button
                                     onClick={handleSubmitAnswer}
                                     className="flex items-center gap-2"
                                 >
-                                    Submit Answer
+                                    Submit Answer{derivedState.currentSelectedAnswers.length > 1 ? 's' : ''}
                                 </Button>
                             )}
+                            {
+                                derivedState.hasSubmittedAnswer && (
+                                    <Button
+                                        variant="outline"
+                                        onClick={() => {
+                                            setSelectedQuestionDetailModal(currentQuestion);
+                                            setShowQuestionDetailModal(true);
+                                        }}
+                                        className="flex items-center gap-2"
+                                    >
+                                        View Details
+                                        <ExternalLink className="h-4 w-4" />
+                                    </Button>
+                                )
+                            }
+
                             <Button
                                 onClick={() => handleNavigation('next')}
                                 disabled={currentQuestionIndex === questions.length - 1}
@@ -478,9 +520,21 @@ export function PracticeComponent({
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <div className="flex items-center justify-between">
-                        <CardTitle>
-                            <TipTapViewer content={currentQuestion?.question} />
-                        </CardTitle>
+                        <div className="space-y-1">
+                            <CardTitle>
+                                <TipTapViewer content={currentQuestion?.question} />
+                            </CardTitle>
+                            <div className="flex items-center gap-2">
+                                <Badge variant="outline" className="text-xs">
+                                    {derivedState.questionTypeConfig.label}
+                                </Badge>
+                                {derivedState.questionTypeConfig.allowMultipleSelection && (
+                                    <Badge variant="secondary" className="text-xs">
+                                        Select multiple answers
+                                    </Badge>
+                                )}
+                            </div>
+                        </div>
                         {derivedState.currentFeedback && (
                             <div className="flex items-center gap-2">
                                 {derivedState.currentFeedback.isCorrect ? (
@@ -505,48 +559,101 @@ export function PracticeComponent({
                     <Separator />
 
                     <div className="space-y-2">
-                        {currentQuestion?.choices?.map((choice, index) => {
-                            const isSelected = derivedState.hasSubmittedAnswer
-                                ? answers[currentQuestionIndex] === choice.value
-                                : derivedState.currentSelectedAnswer === choice.value;
-                            const isCorrect = choice.isCorrect;
-
-                            let variant: "default" | "outline" | "destructive" | "secondary" = "outline";
-                            let className = "w-full justify-start text-left h-auto p-4 whitespace-normal break-words";
-
-                            if (derivedState.hasSubmittedAnswer) {
-                                if (isCorrect) {
-                                    variant = "outline";
-                                    className += " border-green-500 bg-green-100 hover:bg-green-200 text-green-800 dark:border-green-400 dark:bg-green-900/50 dark:hover:bg-green-800/50 dark:text-green-200";
-                                } else if (isSelected && !isCorrect) {
-                                    variant = "outline";
-                                    className += " border-red-500 bg-red-100 hover:bg-red-200 text-red-800 dark:border-red-400 dark:bg-red-900/50 dark:hover:bg-red-800/50 dark:text-red-200";
-                                }
-                            } else if (isSelected) {
-                                variant = "default";
-                            }
-
-                            return (
-                                <Button
-                                    key={index}
-                                    variant={variant}
-                                    className={className}
-                                    onClick={() => handleAnswerSelect(choice.value)}
-                                    disabled={derivedState.hasSubmittedAnswer}
-                                >
-                                    <div className="flex items-start gap-2 w-full">
-                                        <span className="font-medium shrink-0">{String.fromCharCode(65 + index)}.</span>
-                                        <span className="flex-1 break-words">{choice.value}</span>
-                                        {derivedState.hasSubmittedAnswer && isCorrect && (
-                                            <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400 shrink-0" />
+                        {derivedState.questionTypeConfig.requiresInput ? (
+                            // Input question rendering
+                            <div className="space-y-4">
+                                {derivedState.currentQuestionType === 'essay' ? (
+                                    <Textarea
+                                        placeholder="Type your answer here..."
+                                        value={inputAnswers[currentQuestionIndex] || ''}
+                                        onChange={(e) => handleInputChange(e.target.value)}
+                                        disabled={derivedState.hasSubmittedAnswer}
+                                        rows={6}
+                                        className={`w-full text-lg p-4 resize-none ${
+                                            derivedState.hasSubmittedAnswer
+                                                ? derivedState.currentFeedback?.isCorrect
+                                                    ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
+                                                    : 'border-red-500 bg-red-50 dark:bg-red-900/20'
+                                                : ''
+                                        }`}
+                                    />
+                                ) : (
+                                    <Input
+                                        placeholder={derivedState.currentQuestionType === 'numerical' ? "Enter your numerical answer..." : "Type your answer here..."}
+                                        value={inputAnswers[currentQuestionIndex] || ''}
+                                        onChange={(e) => handleInputChange(e.target.value)}
+                                        disabled={derivedState.hasSubmittedAnswer}
+                                        type={derivedState.currentQuestionType === 'numerical' ? 'text' : 'text'}
+                                        className={`w-full text-lg p-4 ${
+                                            derivedState.hasSubmittedAnswer
+                                                ? derivedState.currentFeedback?.isCorrect
+                                                    ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
+                                                    : 'border-red-500 bg-red-50 dark:bg-red-900/20'
+                                                : ''
+                                        }`}
+                                    />
+                                )}
+                                {derivedState.hasSubmittedAnswer && (
+                                    <div className="flex items-center gap-2 text-sm">
+                                        {derivedState.currentFeedback?.isCorrect ? (
+                                            <CheckCircle className="h-4 w-4 text-green-600" />
+                                        ) : (
+                                            <XCircle className="h-4 w-4 text-red-600" />
                                         )}
-                                        {derivedState.hasSubmittedAnswer && isSelected && !isCorrect && (
-                                            <XCircle className="h-4 w-4 text-red-600 dark:text-red-400 shrink-0" />
-                                        )}
+                                        <span className={derivedState.currentFeedback?.isCorrect ? 'text-green-600' : 'text-red-600'}>
+                                            {derivedState.currentFeedback?.isCorrect 
+                                                ? 'Correct!' 
+                                                : `Correct answer: ${derivedState.currentFeedback?.correctAnswer}`
+                                            }
+                                        </span>
                                     </div>
-                                </Button>
-                            );
-                        })}
+                                )}
+                            </div>
+                        ) : (
+                            // Multiple choice question rendering
+                            currentQuestion?.choices?.map((choice, index) => {
+                                const isSelected = derivedState.hasSubmittedAnswer
+                                    ? (answers[currentQuestionIndex] || []).includes(choice.value)
+                                    : derivedState.currentSelectedAnswers.includes(choice.value);
+                                const isCorrect = choice.isCorrect;
+
+                                let variant: "default" | "outline" | "destructive" | "secondary" = "outline";
+                                let className = "w-full justify-start text-left h-auto p-4 whitespace-normal break-words";
+
+                                if (derivedState.hasSubmittedAnswer) {
+                                    if (isCorrect) {
+                                        variant = "outline";
+                                        className += " border-green-500 bg-green-100 hover:bg-green-200 text-green-800 dark:border-green-400 dark:bg-green-900/50 dark:hover:bg-green-800/50 dark:text-green-200";
+                                    } else if (isSelected && !isCorrect) {
+                                        variant = "outline";
+                                        className += " border-red-500 bg-red-100 hover:bg-red-200 text-red-800 dark:border-red-400 dark:bg-red-900/50 dark:hover:bg-red-800/50 dark:text-red-200";
+                                    }
+                                } else if (isSelected) {
+                                    variant = "default";
+                                }
+
+                                return (
+                                    <Button
+                                        key={index}
+                                        variant={variant}
+                                        className={className}
+                                        onClick={() => handleAnswerSelect(choice.value)}
+                                        disabled={derivedState.hasSubmittedAnswer}
+                                    >
+                                        <div className="flex items-start gap-2 w-full">
+                                            <span className="font-medium shrink-0">{String.fromCharCode(65 + index)}.</span>
+                                            <span className="flex-1 break-words">{choice.value}</span>
+                                            {derivedState.hasSubmittedAnswer && isCorrect && (
+                                                <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400 shrink-0" />
+                                            )}
+                                            {derivedState.hasSubmittedAnswer && isSelected && !isCorrect && (
+                                                <XCircle className="h-4 w-4 text-red-600 dark:text-red-400 shrink-0" />
+                                            )}
+                                        </div>
+                                    </Button>
+                                );
+                            })
+                        )}
                     </div>
 
                     {/* Feedback Section */}
@@ -562,33 +669,6 @@ export function PracticeComponent({
                     )}
                 </CardContent>
             </Card>
-
-            {/* Question Detail Dialog */}
-            <Dialog open={showQuestionDialog} onOpenChange={setShowQuestionDialog}>
-                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-                    <DialogHeader>
-                        <DialogTitle className="flex items-center justify-between">
-                            Question Details
-                            {selectedQuestionDetail && (
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => handleRedirectToQuestion(selectedQuestionDetail)}
-                                    className="flex items-center gap-2"
-                                >
-                                    <ExternalLink className="h-4 w-4" />
-                                    Edit Question
-                                </Button>
-                            )}
-                        </DialogTitle>
-                    </DialogHeader>
-                    {selectedQuestionDetail && (
-                        <QuestionViewerPanelContent
-                            selectedQuestion={selectedQuestionDetail}
-                        />
-                    )}
-                </DialogContent>
-            </Dialog>
         </div>
     );
 }

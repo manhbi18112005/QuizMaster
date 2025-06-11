@@ -26,7 +26,7 @@ import { useMemo, useState } from "react";
 
 interface TestResultsCardProps {
     testResults: TestResults;
-    answers: Record<number, string>;
+    answers: Record<number, string[]>;
     questionTimes: Record<number, number>;
     timeLeft: number;
     settings: TestSettingsType;
@@ -145,7 +145,8 @@ export function TestResultsCard({
     // Memoize expensive calculations
     const calculations = useMemo(() => {
         const accuracyRate = Math.round((testResults.correctAnswers / testResults.totalQuestions) * 100);
-        const unansweredCount = testResults.totalQuestions - Object.keys(answers).length;
+        const answeredQuestions = Object.values(answers).filter(answerArray => answerArray && answerArray.length > 0);
+        const unansweredCount = testResults.totalQuestions - answeredQuestions.length;
         const avgTimePerQuestion = Math.floor((testResults.timeSpent / 1000) / testResults.totalQuestions);
 
         const validTimes = Object.values(questionTimes).filter(t => t > 0);

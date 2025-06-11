@@ -7,9 +7,9 @@ import { Question } from "@/types/quiz";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from 'sonner';
-import { SmoothScrollProvider } from "@/components/smooth-scroll/SmoothScrollProvider";
 import { PracticeComponent } from "@/components/practice/practice-component";
 import { BANKPREFIX_URL } from "@/lib/client-constants";
+import { detectQuestionType } from "@/lib/question-types";
 
 export default function PracticePage() {
     const params = useParams();
@@ -48,16 +48,27 @@ export default function PracticePage() {
             .filter(q => q.choices && Array.isArray(q.choices) && q.choices.length > 0)
             // Normalize questions and ensure correct answer exists
             .map(question => {
+                const correctChoices = question.choices.filter(choice => choice.isCorrect);
+                const questionType = detectQuestionType(question.choices);
+
                 const normalizedQuestion = {
                     ...question,
+                    // Add question type
+                    questionType,
                     // Create options array from choices for backward compatibility
                     options: question.choices.map(choice => choice.value),
-                    // Find correct answer from choices
-                    correctAnswer: question.choices.find(choice => choice.isCorrect)?.value || question.choices[0]?.value
+                    // Collect all correct answers
+                    correctAnswer: correctChoices.length > 0
+                        ? correctChoices.map(choice => choice.value).join('|')
+                        : question.choices[0]?.value,
+                    // Add array of correct answers for easier processing
+                    correctAnswers: correctChoices.length > 0
+                        ? correctChoices.map(choice => choice.value)
+                        : [question.choices[0]?.value]
                 };
 
                 // If no correct answer found, mark first choice as correct
-                if (!question.choices.some(choice => choice.isCorrect)) {
+                if (correctChoices.length === 0) {
                     console.warn(`Question "${question.id}" has no correct answer, marking first choice as correct`);
                 }
 
@@ -95,7 +106,6 @@ export default function PracticePage() {
 
     return (
         <>
-            <SmoothScrollProvider />
             <ContentLayout titleBackButtonLink={`${BANKPREFIX_URL}/${currentBank.id}`} title="Practice" description={`Revise questions from ${currentBank.name}`}>
                 <MaxWidthWrapper>
                     <PracticeComponent

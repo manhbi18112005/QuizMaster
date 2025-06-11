@@ -13,8 +13,8 @@ import { TestSettingsType } from "@/types/test-settings";
 import { TestComponent } from "@/components/revision/revision-component";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
-import { SmoothScrollProvider } from "@/components/smooth-scroll/SmoothScrollProvider";
 import { BANKPREFIX_URL } from "@/lib/client-constants";
+import { detectQuestionType } from "@/lib/question-types";
 
 export default function RevisionPage() {
     const params = useParams();
@@ -124,16 +124,27 @@ export default function RevisionPage() {
             .filter(q => q.choices && Array.isArray(q.choices) && q.choices.length > 0)
             // Normalize questions and ensure correct answer exists
             .map(question => {
+                const correctChoices = question.choices.filter(choice => choice.isCorrect);
+                const questionType = detectQuestionType(question.choices);
+
                 const normalizedQuestion = {
                     ...question,
+                    // Add question type
+                    questionType,
                     // Create options array from choices for backward compatibility
                     options: question.choices.map(choice => choice.value),
-                    // Find correct answer from choices
-                    correctAnswer: question.choices.find(choice => choice.isCorrect)?.value || question.choices[0]?.value
+                    // Collect all correct answers
+                    correctAnswer: correctChoices.length > 0
+                        ? correctChoices.map(choice => choice.value).join('|')
+                        : question.choices[0]?.value,
+                    // Add array of correct answers for easier processing
+                    correctAnswers: correctChoices.length > 0
+                        ? correctChoices.map(choice => choice.value)
+                        : [question.choices[0]?.value]
                 };
 
                 // If no correct answer found, mark first choice as correct
-                if (!question.choices.some(choice => choice.isCorrect)) {
+                if (correctChoices.length === 0) {
                     console.warn(`Question "${question.id}" has no correct answer, marking first choice as correct`);
                 }
 
@@ -165,11 +176,18 @@ export default function RevisionPage() {
             filteredQuestions = filteredQuestions.map(question => {
                 // Shuffle choices while maintaining isCorrect flags
                 const shuffledChoices = [...question.choices].sort(() => Math.random() - 0.5);
+                const correctChoices = shuffledChoices.filter(choice => choice.isCorrect);
+
                 return {
                     ...question,
                     choices: shuffledChoices,
                     options: shuffledChoices.map(choice => choice.value),
-                    correctAnswer: shuffledChoices.find(choice => choice.isCorrect)?.value || shuffledChoices[0]?.value
+                    correctAnswer: correctChoices.length > 0
+                        ? correctChoices.map(choice => choice.value).join('|')
+                        : shuffledChoices[0]?.value,
+                    correctAnswers: correctChoices.length > 0
+                        ? correctChoices.map(choice => choice.value)
+                        : [shuffledChoices[0]?.value]
                 };
             });
         }
@@ -192,7 +210,6 @@ export default function RevisionPage() {
 
     return (
         <>
-            <SmoothScrollProvider />
             {showSettings ? (
                 <ContentLayout titleBackButtonLink={`${BANKPREFIX_URL}/${currentBank.id}`} title="Test Configurator" description="Configure your revision test settings before starting">
                     <MaxWidthWrapper>

@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useCallback } from 'react';
+import React, { ChangeEvent, useCallback, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,6 +15,8 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { DatetimePicker } from "@/components/ui/datetime-picker";
 import { MinimalTiptapEditor } from "@/components/minimal-tiptap";
 import { Content } from "@tiptap/react";
+import { Badge } from "@/components/ui/badge";
+import { detectQuestionType, getQuestionTypeConfig } from "@/lib/question-types";
 
 
 interface QuestionEditorPanelContentProps {
@@ -46,6 +48,22 @@ export const QuestionEditorPanelContent: React.FC<QuestionEditorPanelContentProp
   canGoPrevious,
   canGoNext,
 }) => {
+
+  // Memoized question type detection for performance
+  const questionTypeInfo = useMemo(() => {
+    if (!selectedQuestion || !selectedQuestion.choices) {
+      return null;
+    }
+
+    const detectedType = detectQuestionType(selectedQuestion.choices);
+    const config = getQuestionTypeConfig(detectedType);
+
+    return {
+      type: detectedType,
+      label: config.label,
+      description: config.description
+    };
+  }, [selectedQuestion]);
 
   const handleCreatedAtChange = useCallback((date: Date | undefined) => {
     const syntheticEvent = {
@@ -107,7 +125,21 @@ export const QuestionEditorPanelContent: React.FC<QuestionEditorPanelContentProp
       <CardHeader>
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
           <div className="flex-grow">
-            <CardTitle className='text-sm text-muted-foreground'>{selectedQuestion.id}</CardTitle>
+            <div className="flex items-center gap-2 mb-1">
+              <CardTitle className='text-sm text-muted-foreground'>{selectedQuestion.id}</CardTitle>
+              {questionTypeInfo && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Badge variant="outline" className="text-xs font-medium">
+                      {questionTypeInfo.label}
+                    </Badge>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{questionTypeInfo.description}</p>
+                  </TooltipContent>
+                </Tooltip>
+              )}
+            </div>
           </div>
           <div className="space-x-2 flex-shrink-0 self-end sm:self-center">
             {onPrevious && onNext && (
