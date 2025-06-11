@@ -15,6 +15,7 @@ import LoadingScreen from "@/components/loading-screen";
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import { Analytics } from "@vercel/analytics/next"
 import { ModalProvider } from "@/components/modals/model-provider";
+import PageTracker from '@/components/page-tracker';
 
 const quicksand = Quicksand({
   variable: "--font-quicksand",
@@ -47,6 +48,7 @@ export default function RootLayout({
                   <MouseCursorProvider />
                   <Toaster />
                   <TooltipProvider>
+                    <PageTracker />
                     {children}
                   </TooltipProvider>
                 </Suspense>

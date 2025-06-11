@@ -49,13 +49,13 @@ const FEATURES = [
     {
         icon: Wifi,
         title: "Offline Ready",
-        description: "Continue creating and taking quizzes even without internet connection",
+        description: "Continue learning even without internet connection",
         colorClass: "green"
     },
     {
         icon: Bell,
         title: "Smart Notifications",
-        description: "Get notified about quiz updates and new features",
+        description: "Get immediate notifications about new features and updates",
         colorClass: "purple"
     },
     {

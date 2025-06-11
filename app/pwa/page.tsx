@@ -1,41 +1,56 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
-import { useEffect } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import LoadingScreen from '@/components/loading-screen';
 import { useRouterStuff } from '@/hooks/use-router-stuff';
+import { getLastStoredPage } from '@/hooks/use-page-tracker';
 
 export default function PWAPage() {
     const { searchParams, router } = useRouterStuff();
+    const [isRedirecting, setIsRedirecting] = useState(false);
 
-    useEffect(() => {
+    const redirectTo = useMemo(() => {
         const route = searchParams.get('route');
 
-        const redirectTo = route ? validateAndDecodeRoute(route) : '/dashboard';
-
-        try {
-            router.replace(redirectTo);
-        } catch (error) {
-            console.error('Failed to redirect:', error);
-            router.replace('/dashboard');
+        if (route) {
+            return validateAndDecodeRoute(route);
         }
-    }, [searchParams, router]);
 
-    // Show loading screen while redirecting
-    return <LoadingScreen />;
+        const lastPage = getLastStoredPage();
+        return (lastPage && validateInternalRoute(lastPage)) ? lastPage : '/dashboard';
+    }, [searchParams]);
+
+    useEffect(() => {
+        if (isRedirecting) return;
+
+        setIsRedirecting(true);
+
+        const performRedirect = async () => {
+            try {
+                router.replace(redirectTo);
+            } catch (error) {
+                console.error('Failed to redirect to:', redirectTo, error);
+                router.replace('/dashboard');
+            }
+        };
+
+        performRedirect();
+    }, [redirectTo, router, isRedirecting]);
+
+    return <LoadingScreen message="Redirecting to your last page..." />;
 }
 
 function validateAndDecodeRoute(route: string): string {
     try {
         const decodedRoute = decodeURIComponent(route);
-
-        // Validate that the route is safe and internal
-        if (decodedRoute.startsWith('/') && !decodedRoute.startsWith('//')) {
-            return decodedRoute;
-        }
-    } catch (error) {
-        console.warn('Invalid route parameter:', route);
+        return validateInternalRoute(decodedRoute) ? decodedRoute : '/dashboard';
+    } catch {
+        return '/dashboard';
     }
+}
 
-    return '/dashboard';
+function validateInternalRoute(route: string): boolean {
+    return route.startsWith('/') &&
+        !route.startsWith('//') &&
+        !['/auth/', '/api/', '/pwa', '/~offline'].some(forbidden => route.startsWith(forbidden));
 }

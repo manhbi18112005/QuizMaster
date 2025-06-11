@@ -12,6 +12,7 @@ import { LayoutDashboardIcon, HelpCircleIcon, Library, BookCheck, NotebookIcon, 
 import { BANKPREFIX_URL } from "@/lib/client-constants";
 import { Usage } from "./usage";
 import { Receipt2 } from "../icons/receipt2";
+import InstallPrompter from "../install-prompter";
 
 const NAV_AREAS: SidebarNavAreas<{
   slug: string;
@@ -187,6 +188,7 @@ export function AppSidebarNav({
       switcher={<WorkspaceDropdown />}
       bottom={
         <>
+          <InstallPrompter />
           <Usage />
         </>
       }
