@@ -22,7 +22,6 @@ const quicksand = Quicksand({
   preload: true
 });
 
-
 export const metadata = constructMetadata();
 export const viewport = constructViewport();
 
