@@ -4,15 +4,6 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Button } from "@/components/ui/button";
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from "@/components/ui/dialog";
 import {
     Form,
     FormControl,
@@ -24,6 +15,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { saveQuestionBank } from "@/lib/db";
+import { Button } from "../ui/button";
 
 const formSchema = z.object({
     id: z.string().optional(),
@@ -32,12 +24,10 @@ const formSchema = z.object({
 });
 
 interface CreateBankDialogProps {
-    isOpen: boolean;
-    onOpenChange: (open: boolean) => void;
     onBankCreated: (slug: string) => void;
 }
 
-export function CreateWorkspaceForm({ isOpen, onOpenChange, onBankCreated }: CreateBankDialogProps) {
+export function CreateWorkspaceForm({ onBankCreated }: CreateBankDialogProps) {
     const [isCreating, setIsCreating] = useState(false);
 
     const form = useForm<z.infer<typeof formSchema>>({
@@ -55,17 +45,15 @@ export function CreateWorkspaceForm({ isOpen, onOpenChange, onBankCreated }: Cre
 
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
         setIsCreating(true);
-        const idToSave = values.id?.trim() !== "" ? values.id?.trim() : undefined;
 
         try {
             const savedId = await saveQuestionBank({
-                id: idToSave,
+                id: values.id?.trim(),
                 name: values.name,
                 description: values.description,
                 questions: [],
             });
             onBankCreated(savedId);
-            onOpenChange(false);
             resetForm();
             toast.success("Question bank created successfully.");
         } catch (error) {
@@ -77,81 +65,68 @@ export function CreateWorkspaceForm({ isOpen, onOpenChange, onBankCreated }: Cre
     };
 
     return (
-        <Dialog open={isOpen} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                    <DialogTitle>Create New Question Bank</DialogTitle>
-                    <DialogDescription>
-                        Fill in the details below to create a new question bank. Click create when you are done.
-                        You can optionally provide an ID, or one will be generated.
-                    </DialogDescription>
-                </DialogHeader>
-                <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                        <FormField
-                            control={form.control}
-                            name="id"
-                            render={({ field }) => (
-                                <FormItem className="grid grid-cols-4 items-center gap-4">
-                                    <FormLabel className="text-right">ID</FormLabel>
-                                    <div className="col-span-3">
-                                        <FormControl>
-                                            <Input
-                                                placeholder="e.g., custom-bank-id (or leave blank)"
-                                                {...field}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </div>
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="name"
-                            render={({ field }) => (
-                                <FormItem className="grid grid-cols-4 items-center gap-4">
-                                    <FormLabel className="text-right">
-                                        Name <span className="text-red-500">*</span>
-                                    </FormLabel>
-                                    <div className="col-span-3">
-                                        <FormControl>
-                                            <Input
-                                                placeholder="e.g., Algebra Basics"
-                                                {...field}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </div>
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="description"
-                            render={({ field }) => (
-                                <FormItem className="grid grid-cols-4 items-center gap-4">
-                                    <FormLabel className="text-right">Description</FormLabel>
-                                    <div className="col-span-3">
-                                        <FormControl>
-                                            <Input
-                                                placeholder="e.g., A collection of fundamental algebra questions."
-                                                {...field}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </div>
-                                </FormItem>
-                            )}
-                        />
-                        <DialogFooter>
-                            <Button className="w-full" type="submit" disabled={isCreating}>
-                                {isCreating ? "Creating..." : "Create Bank"}
-                            </Button>
-                        </DialogFooter>
-                    </form>
-                </Form>
-            </DialogContent>
-        </Dialog>
+        <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                        <FormItem className="grid grid-cols-4 items-center gap-4">
+                            <FormLabel className="text-right">
+                                Name <span className="text-red-500">*</span>
+                            </FormLabel>
+                            <div className="col-span-3">
+                                <FormControl>
+                                    <Input
+                                        placeholder="e.g., Algebra Basics"
+                                        {...field}
+                                    />
+                                </FormControl>
+                                <FormMessage />
+                            </div>
+                        </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                        <FormItem className="grid grid-cols-4 items-center gap-4">
+                            <FormLabel className="text-right">Description</FormLabel>
+                            <div className="col-span-3">
+                                <FormControl>
+                                    <Input
+                                        placeholder="e.g., A collection of fundamental algebra questions."
+                                        {...field}
+                                    />
+                                </FormControl>
+                                <FormMessage />
+                            </div>
+                        </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="id"
+                    render={({ field }) => (
+                        <FormItem className="grid grid-cols-4 items-center gap-4">
+                            <FormLabel className="text-right">ID</FormLabel>
+                            <div className="col-span-3">
+                                <FormControl>
+                                    <Input
+                                        placeholder="e.g., custom-bank-id (or leave blank)"
+                                        {...field}
+                                    />
+                                </FormControl>
+                                <FormMessage />
+                            </div>
+                        </FormItem>
+                    )}
+                />
+                <Button className="w-full" type="submit" disabled={isCreating}>
+                    {isCreating ? "Creating..." : "Create Bank"}
+                </Button>
+            </form>
+        </Form>
     );
 }
