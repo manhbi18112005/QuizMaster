@@ -29,7 +29,6 @@ export const QuestionCard: FC<QuestionCardProps> = memo(({ id, question, onItemC
         onItemClick(id);
     }, [onItemClick, id]);
 
-    // Memoized question type detection for performance
     const questionTypeInfo = useMemo(() => {
         if (!question.choices) {
             return null;
@@ -45,121 +44,114 @@ export const QuestionCard: FC<QuestionCardProps> = memo(({ id, question, onItemC
     }, [question.choices]);
 
     return (
-        <div
+        <Card
             ref={setNodeRef}
             style={style}
             {...attributes}
-            className="group mb-3"
-        >
-            <Card
-                className={`relative overflow-hidden border transition-all duration-200 cursor-pointer
+            className={`my-3 relative overflow-hidden border transition-all duration-200 cursor-pointer
                     ${isSelected
-                        ? 'border-primary shadow-md bg-primary/15 dark:bg-primary/20 text-foreground'
-                        : 'border-border hover:bg-primary/5 dark:hover:bg-primary/10 hover:border-primary/50 hover:shadow-sm bg-card'}
+                    ? 'border-primary shadow-md bg-primary/15 dark:bg-primary/20 text-foreground'
+                    : 'border-border hover:bg-primary/5 dark:hover:bg-primary/10 hover:border-primary/50 hover:shadow-sm bg-card'}
                     ${isDragging ? 'shadow-lg rotate-1' : ''}
                     focus-within:ring-2 focus-within:ring-primary/20 focus-within:outline-none`}
-                onClick={handleClick}
-            >
-                <CardHeader>
-                    <div className="flex items-start gap-3">
-                        <div
-                            {...listeners}
-                            className="mt-1 cursor-grab active:cursor-grabbing text-muted-foreground/60 hover:text-muted-foreground transition-colors p-1 -ml-1 rounded hover:bg-muted/50"
-                            tabIndex={-1}
-                        >
-                            <GripVertical size={16} />
-                        </div>
-
-                        <div className="flex-1 min-w-0 space-y-2">
-                            <CardTitle className="text-base font-medium leading-relaxed text-foreground">
-                                <SafeContent content={question.question} />
-                            </CardTitle>
-
-                            {/* Question metadata badges */}
-                            <div className="flex flex-wrap items-center gap-1.5">
-                                {questionTypeInfo && (
-                                    <Badge
-                                        variant="secondary"
-                                        className={`text-xs font-normal border-0 ${isSelected ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'}`}
-                                    >
-                                        {questionTypeInfo.label}
-                                    </Badge>
-                                )}
-                                {question.category && (
-                                    <Badge
-                                        variant="outline"
-                                        className={`text-xs font-normal ${isSelected ? 'border-primary/40 text-foreground' : 'border-muted-foreground/20 text-muted-foreground'}`}
-                                    >
-                                        <Hash size={10} className="mr-1" />
-                                        {question.category}
-                                    </Badge>
-                                )}
-                                {question.difficulty && (
-                                    <DifficultyBadge difficulty={question.difficulty} size="xs" />
-                                )}
-                            </div>
-                        </div>
+            onClick={handleClick}
+        >
+            <CardHeader>
+                <div className="flex items-start gap-3">
+                    <div
+                        {...listeners}
+                        className="mt-1 cursor-grab active:cursor-grabbing text-muted-foreground/60 hover:text-muted-foreground transition-colors p-1 -ml-1 rounded hover:bg-muted/50"
+                        tabIndex={-1}
+                    >
+                        <GripVertical size={16} />
                     </div>
-                </CardHeader>
 
-                {/* Correct answers section */}
-                {question.choices && question.choices.some(choice => choice.isCorrect) && (
-                    <CardContent>
-                        <div className="space-y-2">
-                            <ul className="space-y-1">
-                                {question.choices.filter(choice => choice.isCorrect).map((choice, index) => (
-                                    <li
-                                        key={index}
-                                        className="flex items-start gap-2 text-sm p-2 rounded-md bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/30"
-                                    >
-                                        <CheckCircle2 size={14} className="text-emerald-600 dark:text-emerald-400 mt-0.5 flex-shrink-0" />
-                                        <span className="text-emerald-800 dark:text-emerald-200 font-medium">
-                                            <SafeContent content={choice.value} />
-                                        </span>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                    </CardContent>
-                )}
+                    <div className="flex-1 min-w-0 space-y-2">
+                        <CardTitle className="text-base font-medium leading-relaxed text-foreground">
+                            <SafeContent content={question.question} />
+                        </CardTitle>
 
-                <CardFooter className="pt-0 pb-4">
-                    <div className="flex justify-between items-center w-full">
-                        {/* Tags section */}
-                        <div className="flex flex-wrap items-center gap-1">
-                            {question.tags?.slice(0, 3).map((tag, i) => (
+                        <div className="flex flex-wrap items-center gap-1.5">
+                            {questionTypeInfo && (
                                 <Badge
-                                    key={i}
-                                    variant="outline"
-                                    className={`text-xs font-normal hover:bg-muted ${isSelected ? 'bg-primary/20 border-primary/30 text-foreground' : 'bg-muted/50 border-muted-foreground/20 text-muted-foreground'}`}
+                                    variant="secondary"
+                                    className={`text-xs font-normal border-0 ${isSelected ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'}`}
                                 >
-                                    {tag}
-                                </Badge>
-                            ))}
-                            {question.tags && question.tags.length > 3 && (
-                                <Badge
-                                    key={3}
-                                    variant="outline"
-                                    className={`text-xs font-normal border-dashed ${isSelected ? 'text-foreground/70 border-primary/30' : 'text-muted-foreground/70'}`}
-                                >
-                                    +{question.tags.length - 3}
+                                    {questionTypeInfo.label}
                                 </Badge>
                             )}
+                            {question.category && (
+                                <Badge
+                                    variant="outline"
+                                    className={`text-xs font-normal ${isSelected ? 'border-primary/40 text-foreground' : 'border-muted-foreground/20 text-muted-foreground'}`}
+                                >
+                                    <Hash size={10} className="mr-1" />
+                                    {question.category}
+                                </Badge>
+                            )}
+                            {question.difficulty && (
+                                <DifficultyBadge difficulty={question.difficulty} size="xs" />
+                            )}
                         </div>
+                    </div>
+                </div>
+            </CardHeader>
 
-                        {/* Creation date */}
-                        {question.createdAt && (
-                            <div className={`flex items-center gap-1 text-xs ${isSelected ? 'text-foreground/70' : 'text-muted-foreground/70'}`}>
-                                <CalendarDays size={12} />
-                                <time dateTime={question.createdAt.toISOString()}>
-                                    {question.createdAt.toLocaleDateString()}
-                                </time>
-                            </div>
+            {/* Correct answers section */}
+            {question.choices && question.choices.some(choice => choice.isCorrect) && (
+                <CardContent>
+                    <div className="space-y-2">
+                        <ul className="space-y-1">
+                            {question.choices.filter(choice => choice.isCorrect).map((choice, index) => (
+                                <li
+                                    key={index}
+                                    className="flex items-start gap-2 text-sm p-2 rounded-md bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/30"
+                                >
+                                    <CheckCircle2 size={14} className="text-emerald-600 dark:text-emerald-400 mt-0.5 flex-shrink-0" />
+                                    <span className="text-emerald-800 dark:text-emerald-200 font-medium">
+                                        <SafeContent content={choice.value} />
+                                    </span>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                </CardContent>
+            )}
+
+            <CardFooter className="pt-0 pb-4">
+                <div className="flex justify-between items-center w-full">
+                    <div className="flex flex-wrap items-center gap-1">
+                        {question.tags?.slice(0, 3).map((tag, i) => (
+                            <Badge
+                                key={i}
+                                variant="outline"
+                                className={`text-xs font-normal hover:bg-muted ${isSelected ? 'bg-primary/20 border-primary/30 text-foreground' : 'bg-muted/50 border-muted-foreground/20 text-muted-foreground'}`}
+                            >
+                                {tag}
+                            </Badge>
+                        ))}
+                        {question.tags && question.tags.length > 3 && (
+                            <Badge
+                                key={3}
+                                variant="outline"
+                                className={`text-xs font-normal border-dashed ${isSelected ? 'text-foreground/70 border-primary/30' : 'text-muted-foreground/70'}`}
+                            >
+                                +{question.tags.length - 3}
+                            </Badge>
                         )}
                     </div>
-                </CardFooter>
-            </Card>
-        </div>
+
+                    {question.createdAt && (
+                        <div className={`flex items-center gap-1 text-xs ${isSelected ? 'text-foreground/70' : 'text-muted-foreground/70'}`}>
+                            <CalendarDays size={12} />
+                            <time dateTime={question.createdAt.toISOString()}>
+                                {question.createdAt.toLocaleDateString()}
+                            </time>
+                        </div>
+                    )}
+                </div>
+            </CardFooter>
+        </Card>
     );
 });
 
