@@ -47,7 +47,7 @@ export default function RootLayout({
                 <Suspense fallback={<LoadingScreen />}>
                   <MouseCursorProvider />
                   <Toaster />
-                  <TooltipProvider>
+                  <TooltipProvider disableHoverableContent>
                     <PageTracker />
                     {children}
                   </TooltipProvider>
