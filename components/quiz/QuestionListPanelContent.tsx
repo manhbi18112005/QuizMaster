@@ -35,29 +35,26 @@ export const QuestionListPanelContent: FC<QuestionListPanelContentProps> = memo(
       items={questions.map(q => q.id)}
       strategy={verticalListSortingStrategy}
     >
-      <div className="h-[80vh] max-h-[90vh] flex flex-col gap-2.5 p-3">
-        {questions.length === 0 && <p className="text-muted-foreground">No questions yet. Click create to add one.</p>}
-        {questions.map(q => (
-          <div
-            key={q.id}
-            ref={el => {
-              if (el) {
-                itemRefs.current.set(q.id, el);
-              } else {
-                itemRefs.current.delete(q.id);
-              }
-            }}
-          >
-            <QuestionCard
-              // key={q.id} // Key is now on the parent div
-              id={q.id}
-              question={q}
-              onItemClick={onCardClick}
-              isSelected={q.id === selectedQuestionId}
-            />
-          </div>
-        ))}
-      </div>
+      {questions.length === 0 && <p className="text-muted-foreground">No questions yet. Click create to add one.</p>}
+      {questions.map(q => (
+        <div
+          key={q.id}
+          ref={el => {
+            if (el) {
+              itemRefs.current.set(q.id, el);
+            } else {
+              itemRefs.current.delete(q.id);
+            }
+          }}
+        >
+          <QuestionCard
+            id={q.id}
+            question={q}
+            onItemClick={onCardClick}
+            isSelected={q.id === selectedQuestionId}
+          />
+        </div>
+      ))}
     </SortableContext>
   );
 });
