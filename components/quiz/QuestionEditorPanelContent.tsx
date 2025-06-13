@@ -122,37 +122,35 @@ export const QuestionEditorPanelContent: React.FC<QuestionEditorPanelContentProp
 
   return (
     <Card>
-      <CardHeader>
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-          <div className="flex-grow">
-            <div className="flex items-center gap-2 mb-1">
-              <CardTitle className='text-sm text-muted-foreground'>{selectedQuestion.id}</CardTitle>
-              {questionTypeInfo && (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Badge variant="outline" className="text-xs font-medium">
-                      {questionTypeInfo.label}
-                    </Badge>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{questionTypeInfo.description}</p>
-                  </TooltipContent>
-                </Tooltip>
-              )}
-            </div>
-          </div>
-          <div className="space-x-2 flex-shrink-0 self-end sm:self-center">
-            {onPrevious && onNext && (
-              <>
-                <Button onClick={onPrevious} disabled={!canGoPrevious} variant="outline">
-                  Previous
-                </Button>
-                <Button onClick={onNext} disabled={!canGoNext} variant="outline">
-                  Next
-                </Button>
-              </>
+      <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+        <div className="flex-grow">
+          <div className="flex items-center gap-2 mb-1">
+            <CardTitle className='text-sm text-muted-foreground'>{selectedQuestion.id}</CardTitle>
+            {questionTypeInfo && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Badge variant="outline" className="text-xs font-medium">
+                    {questionTypeInfo.label}
+                  </Badge>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{questionTypeInfo.description}</p>
+                </TooltipContent>
+              </Tooltip>
             )}
           </div>
+        </div>
+        <div className="space-x-2 flex-shrink-0 self-end sm:self-center">
+          {onPrevious && onNext && (
+            <>
+              <Button onClick={onPrevious} disabled={!canGoPrevious} variant="outline">
+                Previous
+              </Button>
+              <Button onClick={onNext} disabled={!canGoNext} variant="outline">
+                Next
+              </Button>
+            </>
+          )}
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
