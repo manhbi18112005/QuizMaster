@@ -4,20 +4,7 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import { Download, Check, Smartphone, Zap, Wifi, Bell, Shield, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from "@/components/ui/dialog";
-import {
-    Tooltip,
-    TooltipTrigger,
-    TooltipContent,
-    TooltipProvider
-} from "@/components/ui/tooltip";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useIsPWA } from "@/hooks/use-pwa";
 
 interface BeforeInstallPromptEvent extends Event {
@@ -123,40 +110,34 @@ export default function InstallPrompter({ isOpen }: InstallPrompterProps) {
 
     return (
         <>
-            <li className="w-full">
-                <TooltipProvider disableHoverableContent>
-                    <Tooltip delayDuration={100}>
-                        <TooltipTrigger asChild>
-                            <Button
-                                onClick={handleInstallClick}
-                                variant={isPWA ? "default" : "ghost"}
-                                className={cn(
-                                    "w-full justify-center h-10",
-                                    isDisabled && "opacity-75 cursor-not-allowed"
-                                )}
-                                disabled={isDisabled}
-                            >
-                                <span className={cn(isOpen === false ? "" : "mr-4")}>
-                                    {isPWA ? <Check size={18} /> : <Download size={18} />}
-                                </span>
-                                <p
-                                    className={cn(
-                                        "whitespace-nowrap",
-                                        isOpen === false ? "opacity-0 hidden" : "opacity-100"
-                                    )}
-                                >
-                                    {isPWA ? "Installed" : "Install App"}
-                                </p>
-                            </Button>
-                        </TooltipTrigger>
-                        {isOpen === false && (
-                            <TooltipContent side="right">
-                                {isPWA ? "Installed" : "Install App"}
-                            </TooltipContent>
+            <div>
+                <Button
+                    onClick={handleInstallClick}
+                    variant="ghost"
+                    className={cn(
+                        "h-9 text-sm",
+                        isDisabled && "opacity-75 cursor-not-allowed"
+                    )}
+                    disabled={isDisabled}
+                >
+                    <span className={cn(isOpen === false ? "" : "mr-4")}>
+                        {isPWA ? <Check size={18} /> : <Download size={18} />}
+                    </span>
+                    <p
+                        className={cn(
+                            "whitespace-nowrap",
+                            isOpen === false ? "opacity-0 hidden" : "opacity-100"
                         )}
-                    </Tooltip>
-                </TooltipProvider>
-            </li>
+                    >
+                        {isPWA ? `Installed` : "Install App"}
+                    </p>
+                    {isPWA && (
+                        <span className="ml-2 text-xs text-muted-foreground">
+                            {process.env.APP_VERSION || "Beta"}
+                        </span>
+                    )}
+                </Button>
+            </div>
 
             <Dialog open={installState.showIntroDialog} onOpenChange={handleDialogClose}>
                 <DialogContent className="sm:max-w-md">
