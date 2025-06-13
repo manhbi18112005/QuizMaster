@@ -2,6 +2,7 @@ import Dexie, { Table } from 'dexie';
 import { Question } from '@/types/quiz';
 import { QuestionResult } from '@/types/test-results';
 import { TestSettingsType } from '@/types/test-settings';
+import { processKey } from '@/packages/keys';
 /** Default tags to initialize the database with if none are present. */
 export const DEFAULT_TAGS_DB = ["general"];
 
@@ -172,12 +173,13 @@ interface SaveQuestionBankParams {
 export async function saveQuestionBank(
   bankData: SaveQuestionBankParams
 ): Promise<string> {
+  const id = processKey({ key: bankData.id }) || crypto.randomUUID();
   const now = new Date();
-  const id = bankData.id || crypto.randomUUID();
 
   let createdAt = now;
   let questions = bankData.questions || [];
 
+  // Only fetch existing bank if we have an original ID (updating existing bank)
   if (bankData.id) {
     const existingBank = await db.questionBanks.get(id);
     if (existingBank) {
@@ -188,15 +190,15 @@ export async function saveQuestionBank(
     }
   }
 
-  const newDbBank: DbQuestionBank = {
+  await db.questionBanks.put({
     id,
     name: bankData.name,
     description: bankData.description,
     questions,
     createdAt,
     updatedAt: now,
-  };
-  await db.questionBanks.put(newDbBank);
+  });
+
   return id;
 }
 
