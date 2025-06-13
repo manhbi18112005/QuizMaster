@@ -6,21 +6,8 @@ import { LayoutGrid, LogOut, Settings } from "lucide-react";
 import { OG_AVATAR_URL } from "@/lib/utils/avatar";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-  TooltipProvider
-} from "@/components/ui/tooltip";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger
-} from "@/components/ui/dropdown-menu";
+import { Tooltip, TooltipContent, TooltipTrigger, } from "@/components/ui/tooltip";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 const MENU_ITEMS = [
   {
@@ -57,26 +44,24 @@ export function UserNav() {
 
   return (
     <DropdownMenu>
-      <TooltipProvider disableHoverableContent>
-        <Tooltip delayDuration={100}>
-          <TooltipTrigger asChild>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                className="relative h-8 w-8 rounded-full"
-              >
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={getUserAvatar(user?.image)} alt="Avatar" />
-                  <AvatarFallback className="bg-transparent">
-                    {getUserInitials(user?.name)}
-                  </AvatarFallback>
-                </Avatar>
-              </Button>
-            </DropdownMenuTrigger>
-          </TooltipTrigger>
-          <TooltipContent side="bottom">Profile</TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+      <Tooltip delayDuration={100}>
+        <TooltipTrigger asChild>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="outline"
+              className="relative h-8 w-8 rounded-full"
+            >
+              <Avatar className="h-8 w-8">
+                <AvatarImage src={getUserAvatar(user?.image)} alt="Avatar" />
+                <AvatarFallback className="bg-transparent">
+                  {getUserInitials(user?.name)}
+                </AvatarFallback>
+              </Avatar>
+            </Button>
+          </DropdownMenuTrigger>
+        </TooltipTrigger>
+        <TooltipContent side="bottom">Profile</TooltipContent>
+      </Tooltip>
 
       <DropdownMenuContent className="w-60 p-1" align="end" forceMount>
         <DropdownMenuLabel className="font-normal p-3">
