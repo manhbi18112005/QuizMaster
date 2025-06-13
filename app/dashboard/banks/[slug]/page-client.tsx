@@ -1,47 +1,32 @@
 "use client";
 
 import { ContentLayout } from "@/components/admin-panel/content-layout";
-import {
-    ResizableHandle,
-    ResizablePanel,
-    ResizablePanelGroup,
-} from "@/components/ui/resizable";
-import { useState, ChangeEvent, useEffect, useCallback, useMemo } from 'react';
+import { useState, ChangeEvent, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-    DndContext,
-    KeyboardSensor,
-    PointerSensor,
-    useSensor,
-    useSensors,
-    DragEndEvent,
-} from '@dnd-kit/core';
-import {
-    sortableKeyboardCoordinates,
-} from '@dnd-kit/sortable';
-
+import { DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
+import { sortableKeyboardCoordinates, SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { Question, QuestionBank as CoreQuestionBank } from '@/types/quiz';
 import { QuizToolbar } from '@/components/quiz/QuizToolbar';
-import { QuestionListPanelContent } from '@/components/quiz/QuestionListPanelContent';
+import { QuestionCard } from '@/components/quiz/QuestionCard';
 import { QuestionEditorPanelContent } from '@/components/quiz/QuestionEditorPanelContent';
 import { QuestionViewerPanelContent } from '@/components/quiz/QuestionViewerPanelContent';
 import { QuestionSearchInput } from '@/components/quiz/QuestionSearchInput';
 import * as handlers from '@/helpers/questionHandlers';
-import * as importHandlers from '@/helpers/importHandlers';
+import { processMultipleFiles, createImportSummaryMessage, ImportCallbacks } from '@/helpers/importHandlers';
 import { exportQuestionBank } from '@/helpers/exportHandlers';
 import { toast } from 'sonner';
 import { getQuestionBankById, updateQuestionBank, getAvailableTags, saveAvailableTags, DEFAULT_TAGS_DB, DbQuestionBank } from '@/lib/db';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
-import { useResponsivePanelDirection } from "@/helpers/useResponsivePanelDirection";
 import { Button } from "@/components/ui/button";
 import { buttonVariants } from "@/components/ui/button";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { VariantProps } from "class-variance-authority";
-import { Maximize, Minimize } from 'lucide-react';
+import { Maximize, Minimize, ArrowLeft, Database } from 'lucide-react';
 import { PasswordInputDialog } from '@/components/quiz/PasswordInputDialog';
 import { MaxWidthWrapper } from "@/components/ui/max-width-wrapper";
 import LoadingScreen from "@/components/loading-screen";
 import { BANKPREFIX_URL } from "@/lib/client-constants";
+import { debounce } from 'lodash';
 
 export default function BankPageClient() {
     const params = useParams();
@@ -83,8 +68,6 @@ export default function BankPageClient() {
 
     const [availableTags, setAvailableTags] = useState<string[]>([...DEFAULT_TAGS_DB]);
 
-    const panelDirection = useResponsivePanelDirection();
-
     useEffect(() => {
         async function loadData() {
             if (!bankId) {
@@ -105,8 +88,6 @@ export default function BankPageClient() {
                     setCurrentBank(dbBank);
                     loadedQuestions = dbBank.questions || [];
                     setQuestions(loadedQuestions);
-                } else {
-                    toast.error(`Question bank with ID "${bankId}" not found.`);
                 }
                 setAvailableTags(dbTags);
 
@@ -165,7 +146,7 @@ export default function BankPageClient() {
         }
     }, [questions, currentBank, isLoading]);
 
-    // Effect to save availableTags to Dexie whenever they change (remains global)
+    // save availableTags to Dexie whenever they change (remains global)
     useEffect(() => {
         if (!isLoading) {
             saveAvailableTags(availableTags).catch(err => {
@@ -175,7 +156,7 @@ export default function BankPageClient() {
         }
     }, [availableTags, isLoading]);
 
-    // Effect to toggle body scrollbar based on fullscreen state
+    // Toggle body scrollbar based on fullscreen state
     useEffect(() => {
         if (isFullScreen) {
             document.body.classList.add('overflow-hidden');
@@ -276,102 +257,44 @@ export default function BankPageClient() {
     };
 
 
-    const handleFileImport = useCallback((event: ChangeEvent<HTMLInputElement>) => {
-        importHandlers.readFileAndParse(
-            event,
-            (parsedData) => {
-                let importedQuestions: Question[];
-                const importedFileBankMetadata: Partial<Pick<CoreQuestionBank, 'name' | 'description'>> = {};
+    const handleFileImport = useCallback((files: File[]) => {
+        if (files.length === 0) return;
+
+        const processFiles = async () => {
+            const callbacks: ImportCallbacks = {
+                requestPassword: requestPasswordForImport,
+                updateQuestions: setQuestions,
+                updateBank: setCurrentBank,
+                updateTags: setAvailableTags,
+                clearSelection: () => setSelectedQuestionId(null)
+            };
+
+            try {
+                const result = await processMultipleFiles(files, callbacks);
+
+                // Show summary toast
                 const currentBankName = currentBank?.name || "current bank";
-                let dialogDescription: string;
-                let importType: 'fullBankImport' | 'questionsArrayImport';
+                const message = createImportSummaryMessage(result, currentBankName);
 
-                if (Array.isArray(parsedData)) {
-                    importedQuestions = parsedData;
-                    importType = 'questionsArrayImport';
-                    dialogDescription = `Append ${importedQuestions.length} questions to "${currentBankName}"? This will add the imported questions to the existing ones.`;
-                } else if (parsedData && typeof parsedData === 'object' && 'questions' in parsedData && Array.isArray(parsedData.questions)) {
-                    const fileBank = parsedData as CoreQuestionBank;
-                    importedQuestions = fileBank.questions;
-                    importType = 'fullBankImport';
-
-                    if (fileBank.name !== undefined) importedFileBankMetadata.name = fileBank.name;
-                    if (fileBank.description !== undefined) importedFileBankMetadata.description = fileBank.description;
-
-                    const importedFileNameDisplay = fileBank.name || "Unnamed Imported Bank";
-                    dialogDescription = `Append ${importedQuestions.length} questions from file "${importedFileNameDisplay}" to current bank "${currentBankName}"? This will add the imported questions to the existing ones.`;
-
-                    const metadataChangeMessages: string[] = [];
-                    if (importedFileBankMetadata.name !== undefined && importedFileBankMetadata.name !== currentBank?.name) {
-                        metadataChangeMessages.push(`Bank name will be updated to "${importedFileBankMetadata.name}".`);
-                    }
-                    const currentDesc = currentBank?.description ?? "";
-                    const importedDesc = importedFileBankMetadata.description ?? "";
-                    if (importedFileBankMetadata.description !== undefined && importedDesc !== currentDesc) {
-                        metadataChangeMessages.push(`Bank description will also be updated.`);
-                    }
-
-                    if (metadataChangeMessages.length > 0) {
-                        dialogDescription += ` ${metadataChangeMessages.join(" ")}`;
-                    }
-                } else {
-                    toast.error("Invalid file format. Expected an array of questions or a question bank object with a 'questions' array.");
-                    return;
+                if (result.successfulImports > 0) {
+                    toast.success(message);
+                } else if (result.failedImports > 0) {
+                    toast.error(message);
                 }
+            } catch (error) {
+                console.error('Import process failed:', error);
+                toast.error('Import process failed unexpectedly.');
+            }
+        };
 
-                showConfirmationDialog(
-                    "Confirm Import",
-                    dialogDescription,
-                    () => {
-                        if (importType === 'fullBankImport') {
-                            setCurrentBank(prevBank => {
-                                if (!prevBank) return null;
-                                const updates: Partial<DbQuestionBank> = {};
-                                if (importedFileBankMetadata.name !== undefined) {
-                                    updates.name = importedFileBankMetadata.name;
-                                }
-                                if (importedFileBankMetadata.description !== undefined) {
-                                    updates.description = importedFileBankMetadata.description;
-                                }
-                                return { ...prevBank, ...updates };
-                            });
-                        }
+        const currentBankName = currentBank?.name || "current bank";
+        const dialogDescription = `Import questions from ${files.length} file${files.length > 1 ? 's' : ''} to "${currentBankName}"? This will add the imported questions to the existing ones.`;
 
-                        // Append questions instead of replacing
-                        setQuestions(prevQuestions => [...prevQuestions, ...importedQuestions]);
-                        setSelectedQuestionId(null); // Deselect any selected question
-
-                        // Update available tags based on newly imported questions
-                        const allTagsFromImport = new Set<string>();
-                        importedQuestions.forEach(q => {
-                            if (q.tags) {
-                                q.tags.forEach(tag => allTagsFromImport.add(tag));
-                            }
-                        });
-                        setAvailableTags(prevTags => {
-                            const newTags = new Set([...prevTags, ...allTagsFromImport]);
-                            return Array.from(newTags);
-                        });
-
-
-                        const finalBankName = (importType === 'fullBankImport' && importedFileBankMetadata.name)
-                            ? importedFileBankMetadata.name
-                            : currentBankName;
-                        let successMessage = `Appended ${importedQuestions.length} questions to "${finalBankName}".`;
-                        if (importType === 'fullBankImport' && (importedFileBankMetadata.name !== undefined || importedFileBankMetadata.description !== undefined)) {
-                            successMessage = `Appended ${importedQuestions.length} questions. Bank details for "${finalBankName}" updated from file.`;
-                        }
-                        toast.success(successMessage);
-                    },
-                    () => { // onCancel
-
-                    }
-                );
-            },
-            () => { // onFinally
-
-            },
-            requestPasswordForImport // Pass the callback here
+        showConfirmationDialog(
+            "Confirm Multiple File Import",
+            dialogDescription,
+            processFiles,
+            () => { /* onCancel */ }
         );
     }, [showConfirmationDialog, currentBank, requestPasswordForImport]);
 
@@ -381,11 +304,9 @@ export default function BankPageClient() {
             `Confirm delete all data in "${currentBank.name}"`,
             "Are you sure you want to delete ALL questions in this bank? This action cannot be undone.",
             () => {
-                // This updates the local 'questions' state. useEffect will save the bank.
                 setQuestions([]);
                 setSelectedQuestionId(null);
                 toast.success(`All questions deleted from bank: ${currentBank.name}`);
-                // Note: Global tags are not cleared here, only bank-specific questions.
             }
         );
     }, [showConfirmationDialog, currentBank]);
@@ -451,7 +372,6 @@ export default function BankPageClient() {
         const term = searchTerm.toLowerCase();
         return questions.filter(question => {
             for (const value of Object.values(question)) {
-                // Check if the value is a string and includes the term
                 if (typeof value === 'string' && value.toLowerCase().includes(term)) {
                     return true;
                 }
@@ -513,21 +433,13 @@ export default function BankPageClient() {
         />
     );
 
-    // Effect to update URL params when selectedQuestionId or activeTab changes
+    // update URL params when selectedQuestionId or activeTab changes
     useEffect(() => {
         const urlParams = new URLSearchParams();
 
-        // Update question parameter
-        if (selectedQuestionId) {
-            urlParams.set('q', selectedQuestionId);
-        }
+        if (selectedQuestionId) urlParams.set('q', selectedQuestionId);
+        if (selectedQuestionId) urlParams.set('tab', activeTab);
 
-        // Update tab parameter
-        if (selectedQuestionId) {
-            urlParams.set('tab', activeTab);
-        }
-
-        // Construct new URL
         const newUrl = `${BANKPREFIX_URL}/${bankId}${urlParams.toString() ? `?${urlParams.toString()}` : ''}`;
 
         // Only update URL if it's actually different from current URL
@@ -536,97 +448,166 @@ export default function BankPageClient() {
         }
     }, [selectedQuestionId, activeTab, bankId, router]);
 
+    const itemRefs = useRef(new Map<string, HTMLDivElement | null>());
+
+    // Create a stable debounced function
+    const debouncedScrollToQuestion = useRef(
+        debounce((questionId: string) => {
+            const node = itemRefs.current.get(questionId);
+            if (node) {
+                node.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'nearest',
+                });
+            }
+        }, 150)
+    );
+
+    useEffect(() => {
+        // Capture the current debounced function
+        const currentDebouncedFn = debouncedScrollToQuestion.current;
+        if (selectedQuestionId) currentDebouncedFn(selectedQuestionId);
+        // Cleanup function uses the captured variable
+        return () => {
+            currentDebouncedFn.cancel();
+        };
+    }, [selectedQuestionId]);
+
     return (
         <ContentLayout title={pageTitle} description={currentBank?.description || "Manage your question bank."}>
             <MaxWidthWrapper>
-                <div className={`flex flex-col flex-1 ${isFullScreen ? 'fixed inset-0 bg-background z-50 p-2 sm:p-4' : ''}`}>
-                    <div className="flex justify-between items-center mb-4 gap-2 flex-wrap">
-                        {searchInputElement}
-                        <div className="flex items-center gap-2">
-                            <QuizToolbar
-                                onCreateQuestion={handleCreateQuestion}
-                                onDeleteQuestion={handleDeleteQuestion}
-                                selectedQuestionId={selectedQuestionId}
-                                onExportData={handleExportData}
-                                onClearAllData={handleClearAllData}
-                                onFileImport={handleFileImport}
-                                disabled={isLoading}
-                            />
-                            {fullScreenButtonElement}
+                <div className={`flex flex-col h-screen ${isFullScreen ? 'fixed inset-0 bg-background z-50 p-2 sm:p-4' : 'h-[calc(100vh-4rem)]'}`}>
+                    {!currentBank ? (
+                        <></>
+                    ) : (
+                        <div className="flex justify-between items-center mb-4 gap-2 flex-wrap shrink-0">
+                            {searchInputElement}
+                            <div className="flex items-center gap-2">
+                                <QuizToolbar
+                                    onCreateQuestion={handleCreateQuestion}
+                                    onDeleteQuestion={handleDeleteQuestion}
+                                    selectedQuestionId={selectedQuestionId}
+                                    onExportData={handleExportData}
+                                    onClearAllData={handleClearAllData}
+                                    onFileImport={handleFileImport}
+                                    disabled={isLoading}
+                                />
+                                {fullScreenButtonElement}
+                            </div>
                         </div>
-                    </div>
+                    )}
 
                     {isLoading ? (
                         <LoadingScreen className="flex-1 flex items-center justify-center" />
                     ) : !currentBank ? (
                         <div className="flex-1 flex items-center justify-center">
-                            <p className="text-center text-muted-foreground">The requested question bank could not be found.</p>
+                            <div className="text-center space-y-6 max-w-md mx-auto p-8">
+                                <div className="flex justify-center">
+                                    <div className="rounded-full bg-muted p-4">
+                                        <Database className="h-8 w-8 text-muted-foreground" />
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <h3 className="text-xl font-semibold">Question Bank Not Found</h3>
+                                    <p className="text-muted-foreground">
+                                        The question bank you are looking for does not exist or may have been deleted.
+                                    </p>
+                                </div>
+                                <Button
+                                    onClick={() => router.push('/dashboard')}
+                                    className="w-full sm:w-auto"
+                                >
+                                    <ArrowLeft className="h-4 w-4 mr-2" />
+                                    Back to Dashboard
+                                </Button>
+                            </div>
                         </div>
                     ) : (
-                        <div className={`flex-1 ${isFullScreen ? '' : 'max-w-7xl mx-auto w-full'}`}>
+                        <div className="flex-1 min-h-0">
                             <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
-                                <ResizablePanelGroup
-                                    direction={panelDirection}
-                                    className="flex-1 rounded-lg border"
-                                >
-                                    <ResizablePanel defaultSize={33} minSize={10} collapsedSize={5} collapsible={true}>
-                                        <div className="h-full min-h-0 overflow-y-auto p-6">
-                                            <QuestionListPanelContent
-                                                questions={filteredQuestions}
-                                                selectedQuestionId={selectedQuestionId}
-                                                onCardClick={handleCardClick}
-                                            />
+                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-full">
+                                    <div className="lg:col-span-1 border rounded-lg overflow-hidden">
+                                        <div className="h-full overflow-y-auto p-6">
+                                            <SortableContext
+                                                items={filteredQuestions.map(q => q.id)}
+                                                strategy={verticalListSortingStrategy}
+                                            >
+                                                {filteredQuestions.length === 0 && <p className="text-muted-foreground">No questions yet. Click create to add one.</p>}
+                                                {filteredQuestions.map(q => (
+                                                    <div
+                                                        key={q.id}
+                                                        ref={el => {
+                                                            if (el) {
+                                                                itemRefs.current.set(q.id, el);
+                                                            } else {
+                                                                itemRefs.current.delete(q.id);
+                                                            }
+                                                        }}
+                                                    >
+                                                        <QuestionCard
+                                                            id={q.id}
+                                                            question={q}
+                                                            onItemClick={handleCardClick}
+                                                            isSelected={q.id === selectedQuestionId}
+                                                        />
+                                                    </div>
+                                                ))}
+                                            </SortableContext>
                                         </div>
-                                    </ResizablePanel>
+                                    </div>
 
-                                    <ResizableHandle withHandle />
-
-                                    <ResizablePanel className={`h-full min-h-0 overflow-y-auto p-6`} defaultSize={67} minSize={10}>
-                                        <div className={`h-full min-h-0 overflow-y-auto p-6`}>
-                                            <Tabs value={activeTab} onValueChange={v => setActiveTab(v as "edit" | "view")} className="w-full">
-                                                <TabsList className="grid w-full grid-cols-2 mb-4">
+                                    <div className="lg:col-span-2 border rounded-lg overflow-hidden">
+                                        <div className="h-full overflow-y-auto p-6">
+                                            <Tabs value={activeTab} onValueChange={v => setActiveTab(v as "edit" | "view")} className="w-full h-full flex flex-col">
+                                                <TabsList className="grid w-full grid-cols-2 mb-4 shrink-0">
                                                     <TabsTrigger value="edit">Edit Mode</TabsTrigger>
                                                     <TabsTrigger value="view">View Mode</TabsTrigger>
                                                 </TabsList>
 
-                                                <TabsContent value="edit">
-                                                    {selectedQuestion ? (
-                                                        <QuestionEditorPanelContent
-                                                            selectedQuestion={selectedQuestion}
-                                                            availableTags={availableTags}
-                                                            onQuestionDetailChange={handleQuestionDetailChange}
-                                                            onAddChoice={handleAddChoice}
-                                                            onRemoveChoice={handleRemoveChoice}
-                                                            onChoiceChange={handleChoiceChange}
-                                                            onChoiceIsCorrectChange={handleChoiceIsCorrectChange}
-                                                            onTagsChange={handleTagsChange}
-                                                            onPrevious={handlePreviousQuestion}
-                                                            onNext={handleNextQuestion}
-                                                            canGoPrevious={canGoPrevious}
-                                                            canGoNext={canGoNext}
-                                                        />
-                                                    ) : (
-                                                        <p className="text-center text-muted-foreground">Select a question to edit or create a new one.</p>
-                                                    )}
-                                                </TabsContent>
+                                                <div className="flex-1 min-h-0">
+                                                    <TabsContent value="edit" className="h-full m-0">
+                                                        {selectedQuestion ? (
+                                                            <QuestionEditorPanelContent
+                                                                selectedQuestion={selectedQuestion}
+                                                                availableTags={availableTags}
+                                                                onQuestionDetailChange={handleQuestionDetailChange}
+                                                                onAddChoice={handleAddChoice}
+                                                                onRemoveChoice={handleRemoveChoice}
+                                                                onChoiceChange={handleChoiceChange}
+                                                                onChoiceIsCorrectChange={handleChoiceIsCorrectChange}
+                                                                onTagsChange={handleTagsChange}
+                                                                onPrevious={handlePreviousQuestion}
+                                                                onNext={handleNextQuestion}
+                                                                canGoPrevious={canGoPrevious}
+                                                                canGoNext={canGoNext}
+                                                            />
+                                                        ) : (
+                                                            <div className="h-full flex items-center justify-center">
+                                                                <p className="text-center text-muted-foreground">Select a question to edit or create a new one.</p>
+                                                            </div>
+                                                        )}
+                                                    </TabsContent>
 
-                                                <TabsContent value="view">
-                                                    {selectedQuestion ? (
-                                                        <QuestionViewerPanelContent
-                                                            selectedQuestion={selectedQuestion}
-                                                            onPrevious={handlePreviousQuestion}
-                                                            onNext={handleNextQuestion}
-                                                            canGoPrevious={canGoPrevious}
-                                                            canGoNext={canGoNext}
-                                                        />
-                                                    ) : (
-                                                        <p className="text-center text-muted-foreground">Select a question to edit or create a new one.</p>
-                                                    )}
-                                                </TabsContent>
+                                                    <TabsContent value="view" className="h-full m-0">
+                                                        {selectedQuestion ? (
+                                                            <QuestionViewerPanelContent
+                                                                selectedQuestion={selectedQuestion}
+                                                                onPrevious={handlePreviousQuestion}
+                                                                onNext={handleNextQuestion}
+                                                                canGoPrevious={canGoPrevious}
+                                                                canGoNext={canGoNext}
+                                                            />
+                                                        ) : (
+                                                            <div className="h-full flex items-center justify-center">
+                                                                <p className="text-center text-muted-foreground">Select a question to edit or create a new one.</p>
+                                                            </div>
+                                                        )}
+                                                    </TabsContent>
+                                                </div>
                                             </Tabs>
                                         </div>
-                                    </ResizablePanel>
-                                </ResizablePanelGroup>
+                                    </div>
+                                </div>
                             </DndContext>
                         </div>
                     )}

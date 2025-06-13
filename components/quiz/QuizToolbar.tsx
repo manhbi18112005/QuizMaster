@@ -1,4 +1,4 @@
-import { FC, ChangeEvent, useState, memo } from 'react';
+import { FC, useState, memo } from 'react';
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -16,7 +16,7 @@ interface QuizToolbarProps {
   selectedQuestionId: string | null;
   onExportData: (filename?: string, formatted?: boolean, password?: string) => void;
   onClearAllData: () => void;
-  onFileImport: (event: ChangeEvent<HTMLInputElement>) => void;
+  onFileImport: (files: File[]) => void; // Changed from ChangeEvent<HTMLInputElement> to File[]
   disabled?: boolean;
 }
 
