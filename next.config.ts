@@ -2,6 +2,7 @@ import { withSentryConfig } from "@sentry/nextjs";
 import type { NextConfig } from "next";
 import withSerwistInit from "@serwist/next";
 import { IS_PRODUCTION } from "./lib/constants";
+import { version } from "./package.json";
 
 // Constants for reusable values
 const CACHE_IMMUTABLE = "public, max-age=31536000, s-maxage=31536000, immutable";
@@ -156,6 +157,7 @@ const nextConfig: NextConfig = {
   },
   env: {
     NEXTAUTH_URL: process.env.WEBAPP_URL,
+    APP_VERSION: version
   },
 };
 
