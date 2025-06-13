@@ -1,6 +1,6 @@
 "use client";
 
-import { FC, ChangeEvent, useState, useCallback } from 'react';
+import { FC, useState, useCallback } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -26,7 +26,7 @@ import { toast } from "sonner";
 interface ImportDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onFileImport: (event: ChangeEvent<HTMLInputElement>) => void;
+  onFileImport: (files: File[]) => void; // Changed to accept File[] instead of ChangeEvent
 }
 
 export const ImportDialog: FC<ImportDialogProps> = ({
@@ -38,9 +38,9 @@ export const ImportDialog: FC<ImportDialogProps> = ({
 
   const onFileValidate = useCallback(
     (file: File): string | null => {
-      // Validate max files
-      if (files.length >= 1) {
-        return "You can only upload 1 file";
+      // Validate max files (increased to 10)
+      if (files.length >= 10) {
+        return "You can only upload up to 10 files";
       }
 
       // Validate file type (only JSON)
@@ -67,26 +67,7 @@ export const ImportDialog: FC<ImportDialogProps> = ({
 
   const handleImport = () => {
     if (files.length > 0) {
-      const syntheticEvent = {
-        target: {
-          files: files
-        },
-        nativeEvent: new Event('change'),
-        currentTarget: null,
-        bubbles: false,
-        cancelable: false,
-        defaultPrevented: false,
-        eventPhase: 0,
-        isTrusted: false,
-        preventDefault: () => { },
-        isDefaultPrevented: () => false,
-        stopPropagation: () => { },
-        isPropagationStopped: () => false,
-        persist: () => { },
-        timeStamp: Date.now(),
-        type: 'change'
-      } as unknown as ChangeEvent<HTMLInputElement>;
-      onFileImport(syntheticEvent);
+      onFileImport(files); // Pass files directly instead of synthetic event
       setFiles([]);
       onClose();
     }
@@ -116,7 +97,7 @@ export const ImportDialog: FC<ImportDialogProps> = ({
             onFileValidate={onFileValidate}
             onFileReject={onFileReject}
             accept=".json,application/json"
-            maxFiles={1}
+            maxFiles={10} // Increased from 1 to 10
             className="w-full"
           >
             <FileUploadDropzone>
@@ -124,9 +105,9 @@ export const ImportDialog: FC<ImportDialogProps> = ({
                 <div className="flex items-center justify-center rounded-full border p-2.5">
                   <Upload className="size-6 text-muted-foreground" />
                 </div>
-                <p className="font-medium text-sm">Drag & drop JSON file here</p>
+                <p className="font-medium text-sm">Drag & drop JSON files here</p>
                 <p className="text-muted-foreground text-xs">
-                  Or click to browse (JSON files only)
+                  Or click to browse (JSON files only, max 10 files)
                 </p>
               </div>
               <FileUploadTrigger asChild>
@@ -155,7 +136,7 @@ export const ImportDialog: FC<ImportDialogProps> = ({
             Cancel
           </Button>
           <Button onClick={handleImport} disabled={files.length === 0}>
-            Import
+            Import {files.length > 1 ? `${files.length} Files` : files.length === 1 ? '1 File' : ''}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -1,6 +1,5 @@
 import { QuestionBank as CoreQuestionBank } from '@/types/quiz';
 import { toast } from 'sonner';
-import { logger } from "@/packages/logger";
 
 export const exportQuestionBank = async (
     currentBank: CoreQuestionBank,
@@ -89,7 +88,7 @@ export const exportQuestionBank = async (
             mimeType = 'application/json';
         } catch (error) {
             toast.error("Failed to encrypt data. Exporting without encryption.");
-            logger.error(error, "Encryption error");
+            console.error(error, "Encryption error");
         }
     }
 

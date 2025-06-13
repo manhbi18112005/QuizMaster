@@ -1,8 +1,10 @@
 import Dexie, { Table } from 'dexie';
 import { Question } from '@/types/quiz';
-
+import { QuestionResult } from '@/types/test-results';
+import { TestSettingsType } from '@/types/test-settings';
+import { processKey } from '@/packages/keys';
 /** Default tags to initialize the database with if none are present. */
-export const DEFAULT_TAGS_DB = ["easy", "medium", "hard"];
+export const DEFAULT_TAGS_DB = ["general"];
 
 /**
  * Represents an entry in the `appState` table, a generic key-value store.
@@ -33,6 +35,32 @@ export interface DbQuestionBank {
 }
 
 /**
+ * Represents a test result as stored in the database.
+ */
+export interface DbTestResult {
+  /** Unique identifier for the test result. */
+  id: string;
+  /** ID of the question bank used for this test. */
+  questionBankId: string;
+  /** Name of the question bank at the time of the test. */
+  questionBankName: string;
+  /** Total number of questions in the test. */
+  totalQuestions: number;
+  /** Number of correct answers. */
+  correctAnswers: number;
+  /** Score as a percentage (0-100). */
+  score: number;
+  /** Time taken to complete the test in seconds. */
+  timeSpent: number;
+  /** Test settings used for this test. */
+  testSettings: TestSettingsType; // Store the TestSettingsType object
+  /** Detailed results for each question. */
+  questionResults: QuestionResult[];
+  /** Timestamp when the test was completed. */
+  completedAt: Date;
+}
+
+/**
  * Defines the Quiz application's database structure and versioning using Dexie.js.
  * This class manages tables for application state and question banks.
  */
@@ -41,6 +69,8 @@ export class QuizAppDatabase extends Dexie {
   appState!: Table<AppStateEntry, string>;
   /** Table for storing question banks. Questions are embedded within each bank record. Keyed by string ID. */
   questionBanks!: Table<DbQuestionBank, string>;
+  /** Table for storing test results. Keyed by string ID. */
+  testResults!: Table<DbTestResult, string>;
 
   constructor() {
     super('quizAppDatabase'); // Specifies the database name.
@@ -57,10 +87,17 @@ export class QuizAppDatabase extends Dexie {
       // Properties of the embedded Question objects within the 'questions' array
       // are not directly indexed here.
       questionBanks: 'id, name, createdAt, updatedAt',
+      // 'testResults' table: Stores test results.
+      // - 'id': Primary key.
+      // - 'questionBankId': Indexed for retrieving results by question bank.
+      // - 'completedAt': Indexed for sorting results by date.
+      // - 'score': Indexed for sorting results by score.
+      testResults: 'id, questionBankId, completedAt, score',
     });
     // Initialize table properties
     this.appState = this.table('appState');
     this.questionBanks = this.table('questionBanks');
+    this.testResults = this.table('testResults');
   }
 }
 
@@ -96,7 +133,7 @@ export async function saveAvailableTags(tagsToSave: string[]): Promise<void> {
 // --- QuestionBank Operations ---
 
 // Helper function (coreToDbQuestionBank) might not be needed if types align well or handled in calling code.
-// For simplicity, we'll ensure save/update functions take what's needed.
+// For simplicity, we'll ensure save/update functions take what's needed;
 
 /**
  * Retrieves all question banks, ordered by creation date.
@@ -136,12 +173,13 @@ interface SaveQuestionBankParams {
 export async function saveQuestionBank(
   bankData: SaveQuestionBankParams
 ): Promise<string> {
+  const id = processKey({ key: bankData.id }) || crypto.randomUUID();
   const now = new Date();
-  const id = bankData.id || crypto.randomUUID();
 
   let createdAt = now;
   let questions = bankData.questions || [];
 
+  // Only fetch existing bank if we have an original ID (updating existing bank)
   if (bankData.id) {
     const existingBank = await db.questionBanks.get(id);
     if (existingBank) {
@@ -152,15 +190,15 @@ export async function saveQuestionBank(
     }
   }
 
-  const newDbBank: DbQuestionBank = {
+  await db.questionBanks.put({
     id,
     name: bankData.name,
     description: bankData.description,
     questions,
     createdAt,
     updatedAt: now,
-  };
-  await db.questionBanks.put(newDbBank);
+  });
+
   return id;
 }
 
@@ -201,4 +239,52 @@ export async function updateQuestionBank(
 
 export async function deleteQuestionBank(id: string): Promise<void> {
   await db.questionBanks.delete(id);
+}
+
+// --- TestResult Operations ---
+
+/**
+ * Saves a test result to the database.
+ * @param testResult - The test result data to save.
+ * @returns A promise that resolves to the ID of the saved test result.
+ */
+export async function saveTestResult(testResult: Omit<DbTestResult, 'id' | 'completedAt'>): Promise<string> {
+  const id = crypto.randomUUID();
+  const dbTestResult: DbTestResult = {
+    ...testResult,
+    id,
+    completedAt: new Date(),
+  };
+  await db.testResults.put(dbTestResult);
+  return id;
+}
+
+/**
+ * Retrieves all test results for a specific question bank, ordered by completion date (newest first).
+ * @param questionBankId - The ID of the question bank.
+ * @returns A promise that resolves to an array of test results.
+ */
+export async function getTestResultsByQuestionBank(questionBankId: string): Promise<DbTestResult[]> {
+  return db.testResults
+    .where('questionBankId')
+    .equals(questionBankId)
+    .reverse()
+    .toArray();
+}
+
+/**
+ * Retrieves all test results, ordered by completion date (newest first).
+ * @returns A promise that resolves to an array of all test results.
+ */
+export async function getAllTestResults(): Promise<DbTestResult[]> {
+  return db.testResults.orderBy('completedAt').reverse().toArray();
+}
+
+/**
+ * Deletes a test result by its ID.
+ * @param id - The ID of the test result to delete.
+ * @returns A promise that resolves when the test result is deleted.
+ */
+export async function deleteTestResult(id: string): Promise<void> {
+  await db.testResults.delete(id);
 }

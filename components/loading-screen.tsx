@@ -1,12 +1,17 @@
-interface LoadingScreenProps {
+interface LoadingScreenProps extends React.HTMLAttributes<HTMLDivElement> {
     message?: string;
 }
 
 export default function LoadingScreen({ message = "Loading...", ...props }: LoadingScreenProps) {
     return (
-        <div className="flex min-h-screen flex-col items-center justify-center" {...props}>
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mb-4"></div>
-            <div className="text-center text-sm text-muted-foreground">{message}</div>
+        <div 
+            className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white dark:bg-gray-900" 
+            {...props}
+        >
+            <div className="animate-spin rounded-full h-8 w-8 border-2 border-transparent border-b-primary mb-4" />
+            <div className="text-center text-base text-foreground px-4">
+                {message}
+            </div>
         </div>
     )
 }

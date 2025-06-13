@@ -19,8 +19,9 @@ const errorMessages = {
   Default: "An error occurred during authentication.",
 };
 
-function AuthErrorContent({ searchParams }: { searchParams: { error?: string } }) {
-  const error = searchParams.error as keyof typeof errorMessages;
+async function AuthErrorContent({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
+  const params = await searchParams;
+  const error = params.error as keyof typeof errorMessages;
 
   return (
     <Card className="w-full max-w-md">
@@ -49,7 +50,7 @@ function AuthErrorContent({ searchParams }: { searchParams: { error?: string } }
   );
 }
 
-export default function AuthErrorPage({ searchParams }: { searchParams: { error?: string } }) {
+export default async function AuthErrorPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
   return (
     <Suspense fallback={<div>Loading...</div>}>
       <AuthErrorContent searchParams={searchParams} />

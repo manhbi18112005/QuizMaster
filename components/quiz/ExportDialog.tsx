@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Download, Eye, EyeOff } from "lucide-react";
+import useWorkspace from '@/helpers/swr/use-workspace';
 
 interface ExportDialogProps {
   isOpen: boolean;
@@ -24,7 +25,11 @@ export const ExportDialog: FC<ExportDialogProps> = ({
   onClose,
   onExportData,
 }) => {
-  const [filename, setFilename] = useState('quiz-data');
+
+  const { workspace } = useWorkspace();
+  const defaultFilename = workspace?.name ? `${workspace.name}-quiz-data` : 'quiz-data';
+
+  const [filename, setFilename] = useState(defaultFilename);
   const [formatJson, setFormatJson] = useState(true);
   const [enablePassword, setEnablePassword] = useState(false);
   const [password, setPassword] = useState('');
@@ -36,7 +41,7 @@ export const ExportDialog: FC<ExportDialogProps> = ({
   const canExport = !enablePassword || (password.length > 0 && passwordsMatch);
 
   const handleExport = () => {
-    const finalFilename = filename.trim() || 'quiz-data';
+    const finalFilename = filename.trim() || defaultFilename;
     const exportPassword = enablePassword ? password : undefined;
     onExportData(finalFilename, formatJson, exportPassword);
     onClose();

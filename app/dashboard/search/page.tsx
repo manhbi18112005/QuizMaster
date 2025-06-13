@@ -6,7 +6,6 @@ import { ContentLayout } from "@/components/admin-panel/content-layout";
 import { QuestionViewerPanelContent } from '@/components/quiz/QuestionViewerPanelContent';
 import { getAllQuestionBanks, DbQuestionBank } from "@/lib/db";
 import { toast } from "sonner";
-import { logger } from "@/packages/logger";
 import { EmptyStateCard } from '@/components/dashboard/EmptyStateCard';
 import { useRouter } from 'next/navigation';
 
@@ -41,7 +40,7 @@ export default function SearchPage() {
                 setAllQuestions(allQuestions);
                 setQuestionBankMap(questionBankMap);
             } catch (error) {
-                logger.error(error, "Failed to load questions for global search");
+                console.error(error, "Failed to load questions for global search");
                 toast.error("Failed to load questions for search.");
             } finally {
                 setIsLoading(false);
