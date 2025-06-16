@@ -96,7 +96,7 @@ export function SidebarNav<T extends Record<any, any>>({
               </Link>
             );
           })}
-          <div className="hidden items-center gap-3 md:flex">
+          <div className="hidden items-center gap-2 md:flex">
             <Suspense fallback={null}>{toolContent}</Suspense>
             <UserNav />
           </div>
@@ -115,7 +115,7 @@ export function SidebarNav<T extends Record<any, any>>({
                   <div className="pt-2">{switcher}</div>
                 )}
 
-                <div className="flex flex-col gap-4 pt-4">
+                <div className="flex flex-col gap-2 pt-4">
                   {content.map(({ name, items }, idx) => (
                     <div key={idx} className="flex flex-col gap-0.5">
                       {name && (

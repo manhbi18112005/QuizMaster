@@ -1,7 +1,9 @@
 import { ReactNode } from "react";
 import { AppSidebarNav } from "@/components/admin-panel/app-sidebar-nav";
 import { MainNav } from "@/components/admin-panel/main-nav";
-import { ModeToggle } from "@/components/mode-toggle";
+import ThemeSwitcher from "@/components/theme-switcher";
+import LanguageSwitcher from "@/components/language-switcher";
+
 export default function DashboardLayout({
   children,
 }: Readonly<{
@@ -14,7 +16,8 @@ export default function DashboardLayout({
           sidebar={AppSidebarNav}
           toolContent={
             <>
-              <ModeToggle />
+              <LanguageSwitcher />
+              <ThemeSwitcher />
             </>
           }
         >

@@ -6,7 +6,7 @@ import { MoonIcon, SunIcon } from "@radix-ui/react-icons";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
-export function ModeToggle() {
+export default function ThemeSwitcher() {
   const { setTheme, theme } = useTheme();
 
   return (

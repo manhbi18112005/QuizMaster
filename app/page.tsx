@@ -23,9 +23,12 @@ import ColourfulText from "@/components/ui/colourful-text"
 import { Footer } from '@/components/admin-panel/footer';
 import { motion } from 'framer-motion'
 import { useState, useCallback, useMemo } from 'react'
+import LanguageSwitcher from "@/components/language-switcher";
+import { useTranslation } from '@/hooks/use-translation';
 
 export default function Home() {
   const [activeFeature, setActiveFeature] = useState(0)
+  const { t } = useTranslation();
 
   const features = useMemo(() => [
     {
@@ -144,10 +147,11 @@ export default function Home() {
                   <BookOpen className="h-6 w-6" />
                 </div>
                 <span className="text-2xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
-                  QuizMaster
+                  {t('app.name')}
                 </span>
               </div>
               <div className="flex items-center gap-3">
+                <LanguageSwitcher />
                 <Link href="https://github.com/manhbi18112005/QuizMaster" target="_blank">
                   <Button variant="ghost" size="sm" className="gap-2 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-200">
                     <Github className="h-4 w-4" />
@@ -155,7 +159,7 @@ export default function Home() {
                 </Link>
                 <Link href="/dashboard">
                   <Button className="gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
-                    Get Started
+                    {t('common.get_started')}
                     <ArrowRight className="h-4 w-4" />
                   </Button>
                 </Link>

@@ -5,7 +5,8 @@ import Link from "next/link";
 import { PropsWithChildren, ReactNode } from "react";
 import { UserNav } from "./user-nav";
 import { NavButton } from "./nav-button";
-import { ModeToggle } from "../mode-toggle";
+import ThemeSwitcher from "../theme-switcher";
+import LanguageSwitcher from "../language-switcher";
 
 export function ContentLayout({
   title,
@@ -67,8 +68,9 @@ export function ContentLayout({
           {titleControls && (
             <div className="hidden md:block">{titleControls}</div>
           )}
-          <div className="flex items-center gap-4 md:hidden">
-            <ModeToggle />
+          <div className="flex items-center gap-2 md:hidden">
+            <LanguageSwitcher />
+            <ThemeSwitcher />
             <UserNav />
           </div>
         </div>

@@ -8,6 +8,7 @@ import { MouseCursorProvider } from '@/components/mouse-cursor/provider';
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/providers/theme-provider";
+import I18nProvider from "@/components/providers/i18n-provider";
 import { constructMetadata, constructViewport } from "@/lib/metadata";
 import { SessionProvider } from "next-auth/react"
 import { cn } from "@/lib/utils";
@@ -42,18 +43,20 @@ export default function RootLayout({
       )} >
         <SessionProvider>
           <SentryProvider sentryDsn={SENTRY_DSN} isEnabled={IS_PRODUCTION}>
-            <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-              <ModalProvider>
-                <Suspense fallback={<LoadingScreen />}>
-                  <MouseCursorProvider />
-                  <Toaster />
-                  <TooltipProvider disableHoverableContent>
+            <I18nProvider>
+              <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+                <ModalProvider>
+                  <Suspense fallback={<LoadingScreen />}>
+                    <MouseCursorProvider />
+                    <Toaster />
+                    <TooltipProvider disableHoverableContent>
                     <PageTracker />
                     {children}
                   </TooltipProvider>
                 </Suspense>
               </ModalProvider>
             </ThemeProvider>
+            </I18nProvider>
           </SentryProvider>
         </SessionProvider>
       </body>
