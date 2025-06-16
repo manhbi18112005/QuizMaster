@@ -20,7 +20,6 @@ interface PracticeComponentProps {
     questions: Question[];
 }
 
-
 interface AnswerFeedback {
     isCorrect: boolean;
     selectedAnswer: string;
