@@ -2,6 +2,7 @@ import { useState, useEffect, ChangeEvent } from 'react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { X } from 'lucide-react';
+import { useTranslation } from "@/hooks/use-translation";
 
 interface QuestionSearchInputProps {
   searchTerm: string;
@@ -16,6 +17,7 @@ export function QuestionSearchInput({
   debounceDelay = 150,
   disabled = false,
 }: QuestionSearchInputProps) {
+  const { t } = useTranslation();
   const [inputValue, setInputValue] = useState(searchTerm);
   useEffect(() => {
     setInputValue(searchTerm);
@@ -53,7 +55,7 @@ export function QuestionSearchInput({
     <div className="relative">
       <Input
         type="search"
-        placeholder="Search questions, tags, notes..."
+        placeholder={t("search.searchInputPlaceholder", { questions: t("quiz.questions"), tags: t("quiz.tags"), notes: t("quiz.notes") })}
         value={inputValue}
         onChange={handleInputChange}
         className="h-9 md:w-[250px] lg:w-[300px] pr-10"
@@ -65,7 +67,7 @@ export function QuestionSearchInput({
           size="sm"
           className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
           onClick={handleClearSearch}
-          aria-label="Clear search"
+          aria-label={t("search.clearSearch")}
         >
           <X className="h-4 w-4" />
         </Button>

@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { BANKPREFIX_URL } from "@/lib/client-constants"
 import LoadingScreen from "@/components/loading-screen"
 import { WelcomeTour } from "@/components/welcome-tour";
+import { useTranslation } from "@/hooks/use-translation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { motion } from "framer-motion"
@@ -16,6 +17,7 @@ import { ContentLayout } from "@/components/admin-panel/content-layout";
 export default function DashboardPage() {
   const router = useRouter();
   const { setShowAddWorkspaceModal } = useContext(ModalContext);
+  const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(true);
   const [, setShowOnboarding] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
@@ -47,21 +49,21 @@ export default function DashboardPage() {
 
   const onboardingSteps = [
     {
-      title: "Welcome to QuizMaster! 👋",
-      description: "Let's get you set up in just a few simple steps.",
-      action: "Get Started",
+      title: t("dashboard.onboarding.step_1.title"),
+      description: t("dashboard.onboarding.step_1.description"),
+      action: t("dashboard.onboarding.step_1.action"),
       icon: Sparkles
     },
     {
-      title: "Create Your First Workspace",
-      description: "Workspaces help you organize your question banks and collaborate with your team.",
-      action: "Create Workspace",
+      title: t("dashboard.onboarding.step_2.title"),
+      description: t("dashboard.onboarding.step_2.description"),
+      action: t("dashboard.onboarding.step_2.action"),
       icon: BookOpen
     },
     {
-      title: "You're All Set! 🎉",
-      description: "Your workspace is ready. You can now start creating questions and building quizzes.",
-      action: "Go to Workspace",
+      title: t("dashboard.onboarding.step_3.title"),
+      description: t("dashboard.onboarding.step_3.description"),
+      action: t("dashboard.onboarding.step_3.action"),
       icon: Zap
     }
   ];
@@ -97,8 +99,8 @@ export default function DashboardPage() {
                   }}
                   transition={{ duration: 0.3 }}
                   className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold ${index <= currentStep
-                      ? "bg-blue-600 dark:bg-blue-500"
-                      : "bg-gray-300 dark:bg-gray-600"
+                    ? "bg-blue-600 dark:bg-blue-500"
+                    : "bg-gray-300 dark:bg-gray-600"
                     }`}
                 >
                   {index + 1}
@@ -112,8 +114,8 @@ export default function DashboardPage() {
                     }}
                     transition={{ duration: 0.5, delay: 0.2 }}
                     className={`h-1 mx-4 ${index < currentStep
-                        ? "bg-blue-600 dark:bg-blue-500"
-                        : "bg-gray-300 dark:bg-gray-600"
+                      ? "bg-blue-600 dark:bg-blue-500"
+                      : "bg-gray-300 dark:bg-gray-600"
                       }`}
                   />
                 )}
@@ -126,7 +128,7 @@ export default function DashboardPage() {
             transition={{ delay: 0.3 }}
             className="text-center text-sm text-gray-500 dark:text-gray-400 mt-4"
           >
-            Step {currentStep + 1} of {onboardingSteps.length}
+            {t("dashboard.onboarding.step_progress", { current: currentStep + 1, total: onboardingSteps.length })}
           </motion.p>
         </motion.div>
 
@@ -175,19 +177,19 @@ export default function DashboardPage() {
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div className="flex items-center space-x-3 p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
                       <BookOpen className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                      <span className="text-gray-700 dark:text-gray-300">Question Banks</span>
+                      <span className="text-gray-700 dark:text-gray-300">{t("dashboard.onboarding.features.question_banks")}</span>
                     </div>
                     <div className="flex items-center space-x-3 p-3 bg-green-50 dark:bg-green-900/30 rounded-lg">
                       <Users className="w-5 h-5 text-green-600 dark:text-green-400" />
-                      <span className="text-gray-700 dark:text-gray-300">Team Collaboration</span>
+                      <span className="text-gray-700 dark:text-gray-300">{t("dashboard.onboarding.features.team_collaboration")}</span>
                     </div>
                     <div className="flex items-center space-x-3 p-3 bg-purple-50 dark:bg-purple-900/30 rounded-lg">
                       <BarChart3 className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                      <span className="text-gray-700 dark:text-gray-300">Analytics</span>
+                      <span className="text-gray-700 dark:text-gray-300">{t("dashboard.onboarding.features.analytics")}</span>
                     </div>
                     <div className="flex items-center space-x-3 p-3 bg-orange-50 dark:bg-orange-900/30 rounded-lg">
                       <Zap className="w-5 h-5 text-orange-600 dark:text-orange-400" />
-                      <span className="text-gray-700 dark:text-gray-300">Quick Setup</span>
+                      <span className="text-gray-700 dark:text-gray-300">{t("dashboard.onboarding.features.quick_setup")}</span>
                     </div>
                   </div>
                 </motion.div>
@@ -201,10 +203,9 @@ export default function DashboardPage() {
                   className="space-y-6"
                 >
                   <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-lg p-6">
-                    <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">What is a workspace?</h4>
+                    <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">{t("dashboard.onboarding.workspace_info.title")}</h4>
                     <p className="text-gray-600 dark:text-gray-300 text-sm">
-                      A workspace is like a question bank that helps you manage and organize questions by topic or subject.
-                      Each workspace contains your questions, quiz templates, and analytics all in one organized space.
+                      {t("dashboard.onboarding.workspace_info.description")}
                     </p>
                   </div>
                 </motion.div>
@@ -218,19 +219,19 @@ export default function DashboardPage() {
                   className="space-y-6"
                 >
                   <div className="bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700 rounded-lg p-6">
-                    <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">What is next?</h4>
+                    <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">{t("dashboard.onboarding.next_steps.title")}</h4>
                     <ul className="text-gray-600 dark:text-gray-300 text-sm space-y-2">
                       <li className="flex items-center">
                         <div className="w-2 h-2 bg-green-500 dark:bg-green-400 rounded-full mr-3"></div>
-                        Create your first question bank
+                        {t("dashboard.onboarding.next_steps.create_bank")}
                       </li>
                       <li className="flex items-center">
                         <div className="w-2 h-2 bg-green-500 dark:bg-green-400 rounded-full mr-3"></div>
-                        Add questions to your bank
+                        {t("dashboard.onboarding.next_steps.add_questions")}
                       </li>
                       <li className="flex items-center">
                         <div className="w-2 h-2 bg-green-500 dark:bg-green-400 rounded-full mr-3"></div>
-                        Generate and share quizzes
+                        {t("dashboard.onboarding.next_steps.generate_quizzes")}
                       </li>
                     </ul>
                   </div>

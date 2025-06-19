@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { BANKPREFIX_URL } from "@/lib/client-constants";
 import { detectQuestionType } from "@/lib/question-types";
+import BankNotFound from "@/components/quiz/BankNotFound";
 
 export default function RevisionPage() {
     const params = useParams();
@@ -38,9 +39,6 @@ export default function RevisionPage() {
                 if (dbBank) {
                     setCurrentBank(dbBank);
                     setQuestions(dbBank.questions || []);
-                } else {
-                    toast.error(`Question bank with ID "${slug}" not found.`);
-                    // Potentially redirect or show a "not found" message
                 }
                 setAvailableTags(dbTags);
             } catch (error) {
@@ -200,9 +198,7 @@ export default function RevisionPage() {
         return (
             <ContentLayout>
                 <MaxWidthWrapper>
-                    <div className="flex flex-col items-center justify-center h-full">
-                        <p className="text-gray-600">Loading question bank...</p>
-                    </div>
+                    <BankNotFound />
                 </MaxWidthWrapper>
             </ContentLayout>
         );

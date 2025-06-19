@@ -1,13 +1,13 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import LoadingScreen from '@/components/loading-screen';
 import { getAllQuestionBanks } from '@/lib/db';
 import { BANKPREFIX_URL } from "@/lib/client-constants";
+import { useRouterStuff } from '@/hooks/use-router-stuff';
 
 export default function GlobalBankPage() {
-    const router = useRouter();
+    const { router } = useRouterStuff();
 
     useEffect(() => {
         const fetchBanks = async () => {
@@ -22,8 +22,7 @@ export default function GlobalBankPage() {
                 }
             } catch (error) {
                 console.error('Error fetching banks:', error);
-                // Handle error, maybe redirect to an error page or show a message
-                router.push(`${BANKPREFIX_URL}/create`);
+                router.push('/dashboard?create=true');
             }
         };
         fetchBanks();

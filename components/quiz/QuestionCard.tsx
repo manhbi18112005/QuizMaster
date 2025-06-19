@@ -8,6 +8,7 @@ import { Question } from '@/types/quiz';
 import { DifficultyBadge } from '@/components/ui/DifficultyBadge';
 import { SafeContent } from '@/components/safecontent';
 import { detectQuestionType, getQuestionTypeConfig } from "@/lib/question-types";
+import { useTranslation } from '@/hooks/use-translation';
 
 interface QuestionCardProps {
     id: string;
@@ -17,6 +18,7 @@ interface QuestionCardProps {
 }
 
 export const QuestionCard: FC<QuestionCardProps> = memo(({ id, question, onItemClick, isSelected }) => {
+    const { t } = useTranslation();
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
     const style = {
         transform: CSS.Transform.toString(transform),
@@ -39,9 +41,10 @@ export const QuestionCard: FC<QuestionCardProps> = memo(({ id, question, onItemC
 
         return {
             type: detectedType,
-            label: config.label
+            label: t(config.label),
+            description: t(config.description),
         };
-    }, [question.choices]);
+    }, [question.choices, t]);
 
     return (
         <Card

@@ -8,8 +8,8 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from 'sonner';
 import { PracticeComponent } from "@/components/practice/practice-component";
-import { BANKPREFIX_URL } from "@/lib/client-constants";
 import { detectQuestionType } from "@/lib/question-types";
+import BankNotFound from "@/components/quiz/BankNotFound";
 
 export default function PracticePage() {
     const params = useParams();
@@ -26,8 +26,6 @@ export default function PracticePage() {
                 if (dbBank) {
                     setCurrentBank(dbBank);
                     setQuestions(dbBank.questions || []);
-                } else {
-                    toast.error(`Question bank with ID "${slug}" not found.`);
                 }
             } catch (error) {
                 console.error(error, "Failed to load bank data from DB");
@@ -82,9 +80,7 @@ export default function PracticePage() {
         return (
             <ContentLayout>
                 <MaxWidthWrapper>
-                    <div className="flex flex-col items-center justify-center h-full">
-                        <p className="text-gray-600">Loading question bank...</p>
-                    </div>
+                    <BankNotFound />
                 </MaxWidthWrapper>
             </ContentLayout>
         );
@@ -106,7 +102,7 @@ export default function PracticePage() {
 
     return (
         <>
-            <ContentLayout titleBackButtonLink={`${BANKPREFIX_URL}/${currentBank.id}`} title="Practice" description={`Revise questions from ${currentBank.name}`}>
+            <ContentLayout>
                 <MaxWidthWrapper>
                     <PracticeComponent
                         questions={revisionQuestions}

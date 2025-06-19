@@ -1,0 +1,577 @@
+{
+  "app": {
+    "name": "QuizMaster",
+    "description": "Chinh phục kiến thức với các bài trắc nghiệm tương tác"
+  },
+  "common": {
+    "loading": "Đang tải...",
+    "error": "Lỗi",
+    "success": "Thành công",
+    "cancel": "Hủy",
+    "confirm": "Xác nhận",
+    "save": "Lưu",
+    "edit": "Chỉnh sửa",
+    "delete": "Xóa",
+    "create": "Tạo",
+    "update": "Cập nhật",
+    "search": "Tìm kiếm",
+    "next": "Tiếp theo",
+    "previous": "Trước",
+    "download": "Tải xuống",
+    "upload": "Tải lên",
+    "privacy": "Chính sách bảo mật",
+    "terms": "Điều khoản dịch vụ",
+    "get_started": "Bắt đầu ngay",
+    "of": "của"
+  },
+  "auth": {
+    "welcome": "Chào mừng đến với QuizMaster",
+    "sign_in": "Đăng nhập",
+    "sign_up": "Đăng ký",
+    "sign_out": "Đăng xuất",
+    "already_have_account": "Đã có tài khoản?",
+    "dont_have_account": "Chưa có tài khoản?"
+  },
+  "questionDetailModal": {
+    "title": "Chi tiết câu hỏi",
+    "editQuestion": "Chỉnh sửa câu hỏi"
+  },
+  "quiz": {
+    "question": "Câu hỏi",
+    "answer": "Câu trả lời",
+    "correct_answer": "Đáp án đúng",
+    "your_answer": "Câu trả lời của bạn",
+    "score": "Điểm số",
+    "time_left": "Thời gian còn lại",
+    "time_up": "Hết giờ!",
+    "quiz_completed": "Hoàn thành bài kiểm tra!",
+    "questions_answered": "Số câu đã trả lời",
+    "correct_answers": "Câu trả lời đúng",
+    "wrong_answers": "Câu trả lời sai",
+    "percentage": "Tỷ lệ",
+    "questions": "câu hỏi",
+    "tags": "Thẻ",
+    "notes": "Ghi chú",
+    "difficulty": {
+      "title": "Độ khó",
+      "easy": "Dễ",
+      "medium": "Trung bình",
+      "hard": "Khó"
+    },
+    "category": "Danh mục",
+    "total_questions": "Tổng số câu hỏi",
+    "duration": "Thời lượng",
+    "minutes": "phút",
+    "seconds": "giây",
+    "fullscreen": {
+      "enter": "Chế độ toàn màn hình",
+      "exit": "Thoát toàn màn hình"
+    },
+    "bank": {
+      "notFound": "Không Tìm Thấy Ngân Hàng Câu Hỏi",
+      "notFoundDescription": "Ngân hàng câu hỏi bạn tìm kiếm không tồn tại hoặc đã bị xóa.",
+      "backToDashboard": "Quay Lại Bảng Điều Khiển"
+    },
+    "createBank": {
+      "title": "Tạo Ngân hàng Câu hỏi Mới",
+      "description": "Điền thông tin bên dưới để tạo ngân hàng câu hỏi mới. Nhấn Tạo khi hoàn tất. Bạn có thể cung cấp ID tùy chọn hoặc hệ thống sẽ tự động tạo.",
+      "fields": {
+        "id": "ID",
+        "idPlaceholder": "ví dụ: custom-workspace-id (hoặc để trống)",
+        "name": "Tên",
+        "namePlaceholder": "ví dụ: Đại số Cơ bản",
+        "description": "Mô tả",
+        "descriptionPlaceholder": "ví dụ: Bộ sưu tập các câu hỏi cơ bản về đại số"
+      },
+      "creating": "Đang tạo...",
+      "createButton": "Tạo Ngân hàng",
+      "successMessage": "Tạo ngân hàng câu hỏi thành công.",
+      "errorMessage": "Tạo ngân hàng câu hỏi thất bại. Vui lòng thử lại.",
+      "validation": {
+        "nameRequired": "Tên ngân hàng là bắt buộc"
+      }
+    },
+    "export": {
+      "title": "Xuất Dữ liệu Trắc nghiệm",
+      "description": "Cấu hình cài đặt xuất dữ liệu kiểm tra của bạn.",
+      "filename": "Tên tệp",
+      "formatJson": "Định dạng JSON (định dạng đẹp)",
+      "encryptPassword": "Mã hóa bằng mật khẩu",
+      "password": "Mật khẩu",
+      "confirmPassword": "Xác nhận mật khẩu",
+      "passwordPlaceholder": "Nhập mật khẩu",
+      "confirmPasswordPlaceholder": "Xác nhận mật khẩu",
+      "passwordMismatch": "Mật khẩu không khớp",
+      "exportButton": "Xuất"
+    },
+    "import": {
+      "title": "Nhập Dữ liệu Trắc nghiệm",
+      "description": "Chọn tệp JSON chứa câu hỏi để nhập vào.",
+      "dragDrop": "Kéo & thả tệp JSON vào đây",
+      "browseFiles": "Duyệt tệp",
+      "browseDescription": "Hoặc nhấn để duyệt (Chỉ tệp JSON, tối đa 10 tệp)",
+      "importButton": "Nhập",
+      "importFiles": "{{count}} tệp",
+      "importFile": "1 tệp",
+      "validation": {
+        "maxFiles": "Bạn chỉ có thể tải lên tối đa 10 tệp",
+        "jsonOnly": "Chỉ cho phép tệp JSON",
+        "maxSize": "Kích thước tệp phải nhỏ hơn {{size}}MB",
+        "rejectedFile": "\"{{fileName}}\" đã bị từ chối"
+      },
+      "confirmMultipleFileImport": "Xác nhận Nhập Nhiều Tệp",
+      "importQuestionsFromFiles": "Nhập câu hỏi từ {{count}} tệp{{plural}} vào \"{{bankName}}\"? Việc này sẽ thêm các câu hỏi được nhập vào những câu hỏi hiện có.",
+      "importProcessFailed": "Quá trình nhập thất bại bất ngờ.",
+      "allQuestionsDeleted": "Đã xóa tất cả câu hỏi khỏi ngân hàng: {{bankName}}"
+    },
+    "passwordDialog": {
+      "title": "Nhập Mật khẩu",
+      "description": "Vui lòng nhập mật khẩu cho tệp đã được mã hóa.",
+      "password": "Mật khẩu",
+      "submitButton": "Gửi",
+      "titleForImport": "Nhập Mật khẩu để Nhập",
+      "descriptionForImport": "Tệp này đã được mã hóa. Vui lòng nhập mật khẩu để giải mã."
+    },
+    "questionList": {
+      "noQuestions": "Chưa có câu hỏi. Nhấn tạo để thêm.",
+      "selectQuestionToEdit": "Chọn câu hỏi để chỉnh sửa hoặc tạo câu hỏi mới."
+    },
+    "toolbar": {
+      "deleteConfirm": "Bạn có chắc muốn xóa {{count}} câu hỏi?",
+      "newQuestion": "Câu hỏi mới",
+      "addNewQuestion": "Thêm câu hỏi mới",
+      "deleteSelectedQuestion": "Xóa câu hỏi đã chọn",
+      "importQuizData": "Nhập dữ liệu câu hỏi",
+      "exportQuizData": "Xuất dữ liệu câu hỏi",
+      "clearAll": "Xóa tất cả",
+      "clearAllQuizData": "Xóa tất cả dữ liệu câu hỏi",
+      "confirmDeleteAllData": "Xác nhận xóa tất cả dữ liệu trong \"{{bankName}}\""
+    },
+    "questionEditor": {
+      "selectQuestion": "Chọn câu hỏi để xem chi tiết hoặc tạo câu hỏi mới.",
+      "enterQuestionText": "Nhập nội dung câu hỏi...",
+      "choices": "Lựa chọn",
+      "choicePlaceholder": "Lựa chọn {{number}}",
+      "markAsCorrect": "Đánh dấu là đúng",
+      "unmarkAsCorrect": "Bỏ đánh dấu đúng",
+      "removeChoice": "Xóa phương án",
+      "noChoicesYet": "Chưa có phương án. Nhấn Thêm phương án bên dưới.",
+      "addChoice": "Thêm phương án",
+      "assignTags": "Gán thẻ:",
+      "selectOrCreateTags": "Chọn hoặc tạo thẻ...",
+      "selectDifficulty": "Chọn độ khó",
+      "createdAt": "Tạo lúc:",
+      "enterNotesForQuestion": "Nhập ghi chú cho câu hỏi này..."
+    },
+    "questionViewer": {
+      "selectQuestionToSeeDetails": "Chọn câu hỏi để xem chi tiết.",
+      "copiedToClipboard": "Đã sao chép vào clipboard!",
+      "failedToCopy": "Sao chép thất bại",
+      "couldNotCopyText": "Không thể sao chép văn bản vào clipboard.",
+      "clickToCopyQuestion": "Nhấp để sao chép nội dung câu hỏi",
+      "clickToCopyChoice": "Nhấp để sao chép nội dung phương án",
+      "noChoicesForQuestion": "Không có phương án cho câu hỏi này."
+    },
+    "testPresets": {
+      "casual": {
+        "name": "Học tập thư giãn",
+        "description": "Nhịp độ nhẹ nhàng với hỗ trợ tối đa - lý tưởng cho việc học và thực hành"
+      },
+      "normal": {
+        "name": "Thử thách cân bằng",
+        "description": "Hành trình cân bằng với độ khó vừa phải - thử thách nhưng công bằng"
+      },
+      "strict": {
+        "name": "Thi đấu nghiêm túc",
+        "description": "Cạnh tranh căng thẳng với áp lực thời gian - chứng tỏ khả năng của bạn"
+      },
+      "hardcore": {
+        "name": "Thử thách tối cao",
+        "description": "Thử thách tối thượng - không khoan nhượng, không cơ hội thứ hai, chỉ có thành công hoặc thất bại"
+      }
+    },
+    "testResults": {
+      "explanation": "Giải thích",
+      "testComplete": "Hoàn thành bài kiểm tra!",
+      "hereAreResults": "Đây là kết quả của bạn",
+      "clickToViewDetailed": "Nhấp để xem kết quả chi tiết",
+      "correct": "Đúng",
+      "total": "Tổng",
+      "totalTime": "Tổng thời gian",
+      "timeAnalysis": "Phân tích thời gian",
+      "fastestQuestion": "Câu hỏi nhanh nhất",
+      "slowestQuestion": "Câu hỏi chậm nhất",
+      "averageTime": "Thời gian trung bình",
+      "accuracyRate": "Tỷ lệ chính xác",
+      "questionsFlagged": "Câu hỏi đánh dấu",
+      "unanswered": "Chưa trả lời",
+      "performanceInsights": "Nhận xét hiệu suất",
+      "considerReviewing": "Hãy xem lại tài liệu và thử lại.",
+      "reviewFlaggedQuestions": "Xem lại câu hỏi đã đánh dấu",
+      "flaggedQuestionsDesc": "Bạn đã đánh dấu {{count}} câu hỏi để xem lại.",
+      "incompleteTest": "Bài kiểm tra chưa hoàn thành",
+      "unansweredQuestionsDesc": "Bạn đã bỏ qua {{count}} câu hỏi chưa trả lời.",
+      "quickResponder": "Phản hồi nhanh",
+      "answeredQuickly": "Bạn trả lời nhanh! Hãy chắc chắn đọc kỹ mỗi câu hỏi.",
+      "thoughtfulApproach": "Tiếp cận suy nghĩ",
+      "tookYourTime": "Bạn đã dành thời gian cho mỗi câu hỏi - sự suy nghĩ rất đáng giá!",
+      "backToSettings": "Quay lại Cài đặt",
+      "retakeTest": "Làm lại bài kiểm tra",
+      "outstandingPerformance": "Hiệu suất xuất sắc!",
+      "youveMasteredMaterial": "Bạn đã hoàn toàn nắm vững tài liệu này.",
+      "goodWork": "Làm tốt lắm!",
+      "moreStudyNeeded": "Cần học thêm",
+      "thoroughnessValuable": "Bạn đã dành thời gian cho mỗi câu hỏi - sự tỉ mỉ rất đáng giá!",
+      "avgQuestion": "Trung bình/Câu hỏi",
+      "grade": "Xếp hạng",
+      "gradeLabels": {
+        "excellent": "Xuất sắc!",
+        "goodJob": "Làm tốt lắm!",
+        "wellDone": "Làm tốt!",
+        "keepTrying": "Hãy tiếp tục cố gắng!",
+        "needImprovement": "Cần cải thiện"
+      },
+      "overallProgress": "Tiến độ chung",
+      "performanceBreakdown": "Phân tích hiệu suất",
+      "focusOnStruggleAreas": "Tập trung vào những lĩnh vực bạn gặp khó khăn."
+    },
+    "editmode": "Chế độ chỉnh sửa",
+    "viewmode": "Chế độ xem"
+  },
+  "settings": {
+    "general": "Chung",
+    "account": "Tài khoản",
+    "language": "Ngôn ngữ",
+    "theme": {
+      "light": "Sáng",
+      "dark": "Tối",
+      "system": "Hệ thống"
+    },
+    "save_changes": "Lưu thay đổi",
+    "saving": "Đang lưu...",
+    "changes_saved": "Lưu thay đổi thành công",
+    "failed_to_save": "Lưu thay đổi thất bại",
+    "workspace": {
+      "loading_message": "Đang tải cài đặt $t(workspace)...",
+      "no_bank_id": "Không có ID $t(workspace) được chỉ định.",
+      "bank_not_found": "Ngân hàng câu hỏi với ID \"{{bankId}}\" không tìm thấy.",
+      "failed_to_load": "Không thể tải dữ liệu $t(workspace).",
+      "bank_name_empty": "Tên $t(workspace) không được để trống.",
+      "bank_deleted_success": "Xóa $t(workspace) thành công!",
+      "failed_to_delete": "Không thể xóa $t(workspace).",
+      "id": {
+        "title": "ID $t(workspace)",
+        "description": "ID duy nhất của không gian làm việc của bạn.",
+        "usage_note": "Dùng để xác định không gian làm việc khi tương tác."
+      },
+      "name": {
+        "title": "Tên $t(workspace)",
+        "description": "Tên hiển thị cho $t(workspace) câu hỏi của bạn.",
+        "placeholder": "ví dụ: Cơ bản Đại số"
+      },
+      "description": {
+        "title": "Mô tả $t(workspace)",
+        "description": "Mô tả ngắn gọn về nội dung của $t(workspace) câu hỏi này.",
+        "placeholder": "ví dụ: Bộ sưu tập các câu hỏi cơ bản về đại số."
+      },
+      "delete": {
+        "title": "Xóa $t(workspace)",
+        "description": "Xóa vĩnh viễn không gian làm việc của bạn và tất cả nội dung kèm theo + thống kê. Hành động này không thể hoàn tác - vui lòng thận trọng.",
+        "button": "Xóa $t(workspace)",
+        "confirm_title": "Bạn có hoàn toàn chắc chắn?",
+        "confirm_description": "Hành động này không thể hoàn tác. Điều này sẽ xóa vĩnh viễn $t(workspace) câu hỏi {{bankName}} và tất cả các câu hỏi liên quan.",
+        "deleting": "Đang xóa...",
+        "delete_bank": "Xóa $t(workspace)"
+      }
+    }
+  },
+  "revision": {
+    "reset_progress": "Đặt lại tiến trình",
+    "navigator": "Điều hướng câu hỏi",
+    "flagged": "{{count}} đã đánh dấu",
+    "question": "Câu hỏi {{current}} / {{total}}",
+    "timeRemaining": "Thời gian còn lại",
+    "answered": "(Đã trả lời)",
+    "flaggedStatus": "(Đã đánh dấu)",
+    "resultsPage": "Trang {{current}} / {{total}}",
+    "testPaused": "Bài kiểm tra tạm dừng",
+    "resumeTest": "Tiếp tục làm bài",
+    "exitTest": "Thoát bài kiểm tra",
+    "yourTestIsPaused": "Đã tạm dừng bài kiểm tra. Nhấn tiếp tục để quay lại làm bài.",
+    "flaggedQuestions": "Câu hỏi đã đánh dấu",
+    "submit": "Gửi",
+    "finish": "Hoàn thành",
+    "pause": "Tạm dừng",
+    "show": "Hiện",
+    "hide": "Ẩn",
+    "page": "Trang",
+    "of": "của",
+    "previousPage": "Trang trước",
+    "nextPage": "Trang tiếp",
+    "questions": "Câu hỏi",
+    "questionNumberStatus": "Câu hỏi {{number}} ({{status}})",
+    "clickToReviewFlagged": "Nhấp để xem lại câu hỏi đã đánh dấu",
+    "reviewAnswers": "Xem lại câu trả lời",
+    "searchQuestions": "Tìm kiếm câu hỏi...",
+    "noQuestionsMatchSearch": "Không có câu hỏi phù hợp với tìm kiếm.",
+    "noResultsToDisplay": "Không có kết quả để hiển thị.",
+    "yourAnswer": "Câu trả lời của bạn:",
+    "correctAnswer": "Câu trả lời đúng:",
+    "noAnswer": "Không có câu trả lời",
+    "showingResults": "Hiển thị {{start}} đến {{end}} trong tổng {{total}} kết quả",
+    "removeFlagFromQuestion": "Bỏ đánh dấu câu hỏi này",
+    "flagQuestionForReview": "Đánh dấu câu hỏi này để xem lại",
+    "youHaveFlaggedQuestions": "Bạn đã đánh dấu {{count}} câu hỏi để xem lại",
+    "settings": {
+      "startTest": "Bắt đầu bài kiểm tra",
+      "questionsCount": "{{count}} câu hỏi",
+      "choosePreset": "Chọn cấu hình trước hoặc tùy chỉnh cài đặt bên dưới",
+      "timeSettings": "Cài đặt thời gian",
+      "configureTimeLimit": "Cấu hình giới hạn thời gian cho bài kiểm tra",
+      "overallTimeLimit": "Giới hạn thời gian tổng thể",
+      "testTimeLimit": "Giới hạn thời gian bài kiểm tra",
+      "questionTimeLimit": "Giới hạn thời gian mỗi câu hỏi",
+      "eachQuestionLimit": "Giới hạn mỗi câu hỏi",
+      "minutes": "phút",
+      "seconds": "giây",
+      "questionSettings": "Cài đặt câu hỏi",
+      "chooseQuestionsAndFilters": "Chọn số lượng câu hỏi và áp dụng bộ lọc",
+      "numberOfQuestions": "Số câu hỏi",
+      "all": "Tất cả",
+      "available": "có sẵn",
+      "difficulty": "Độ khó",
+      "difficultyAll": "Tất cả độ khó",
+      "difficultyEasy": "Chỉ dễ",
+      "difficultyMedium": "Chỉ trung bình",
+      "difficultyHard": "Chỉ khó",
+      "behaviorSettings": "Cài đặt hành vi",
+      "controlTestBehavior": "Kiểm soát cách bài kiểm tra hoạt động trong quá trình làm bài",
+      "freeNavigation": "Điều hướng tự do",
+      "allowMoveBetweenQuestions": "Cho phép di chuyển giữa các câu hỏi tự do",
+      "pauseTest": "Tạm dừng bài kiểm tra",
+      "allowPausingTest": "Cho phép tạm dừng bài kiểm tra",
+      "shuffleQuestions": "Xáo trộn câu hỏi",
+      "randomizeQuestionOrder": "Ngẫu nhiên thứ tự câu hỏi",
+      "shuffleAnswers": "Xáo trộn câu trả lời",
+      "randomizeAnswerOrder": "Ngẫu nhiên thứ tự câu trả lời",
+      "resultSettings": "Cài đặt hiển thị kết quả",
+      "configureResultDisplay": "Cấu hình những gì hiển thị sau khi hoàn thành bài kiểm tra",
+      "showScore": "Hiển thị điểm số cuối",
+      "displayFinalScore": "Hiển thị điểm số cuối khi hoàn thành bài kiểm tra",
+      "showCorrectAnswers": "Hiển thị câu trả lời đúng",
+      "revealCorrectAnswers": "Tiết lộ câu trả lời đúng trong kết quả",
+      "allowRetake": "Cho phép làm lại",
+      "enableRetakingTest": "Cho phép làm lại bài kiểm tra sau khi hoàn thành",
+      "ready_to_start_your_test": "Sẵn sàng bắt đầu bài kiểm tra?",
+      "no_time_limit": "Không giới hạn thời gian",
+      "min_limit": "giới hạn phút",
+      "active": "Hoạt động",
+      "timed": "Có thời gian",
+      "linear": "Tuyến tính",
+      "set_a_maximum_duration_for_the_entire_test": "Đặt thời lượng tối đa cho toàn bộ bài kiểm tra",
+      "limit_time_spent_on_each_question": "Giới hạn thời gian cho từng câu hỏi",
+      "maximum_test_time": "Thời gian tối đa cho bài kiểm tra",
+      "free_navigation_is_disabled_when_per_question_time_limits_are_active": "Điều hướng tự do bị vô hiệu khi giới hạn thời gian cho từng câu hỏi được kích hoạt",
+      "max_available": "Tối đa có sẵn",
+      "content_filtering": "Lọc nội dung",
+      "filter_questions_by_specific_topics_or_tags": "Lọc câu hỏi theo chủ đề hoặc thẻ cụ thể",
+      "enable_tag_filtering": "Bật lọc thẻ",
+      "only_include_questions_with_selected_tags": "Chỉ bao gồm câu hỏi có thẻ đã chọn",
+      "select_tags": "Chọn thẻ",
+      "select_tags_to_filter_questions": "Chọn thẻ để lọc câu hỏi",
+      "no_tags_selected_all_questions_will_be_included": "Chưa chọn thẻ. Tất cả câu hỏi sẽ được bao gồm.",
+      "navigation_control": "Điều khiển điều hướng",
+      "randomization_scoring": "Ngẫu nhiên & Chấm điểm"
+    }
+  },
+  "questionTypes": {
+    "singleChoice": {
+      "label": "Một phương án",
+      "description": "Chọn một câu trả lời đúng"
+    },
+    "multipleChoice": {
+      "label": "Nhiều phương án",
+      "description": "Chọn một hoặc nhiều câu trả lời đúng"
+    },
+    "trueFalse": {
+      "label": "Đúng/Sai",
+      "description": "Chọn đúng hoặc sai"
+    },
+    "numerical": {
+      "label": "Số",
+      "description": "Nhập một câu trả lời số"
+    },
+    "essay": {
+      "label": "Tự luận",
+      "description": "Viết một câu trả lời chi tiết"
+    },
+    "default": {
+      "description": "Nhập câu trả lời của bạn ở đây ..."
+    }
+  },
+  "installPrompter": {
+    "installApp": "Cài đặt ứng dụng",
+    "installed": "Đã cài đặt",
+    "dialog": {
+      "title": "Cài đặt QuizMaster",
+      "description": "Chuyển đổi trải nghiệm trình duyệt thành ứng dụng gốc",
+      "notNow": "Để sau",
+      "installApp": "Cài đặt ứng dụng",
+      "storageNote": "Việc cài đặt chỉ mất vài giây và sử dụng rất ít không gian lưu trữ"
+    },
+    "features": {
+      "instantAccess": {
+        "title": "Truy cập ngay lập tức",
+        "description": "Khởi chạy trực tiếp từ màn hình chính mà không cần mở trình duyệt"
+      },
+      "offlineReady": {
+        "title": "Sẵn sàng ngoại tuyến",
+        "description": "Tiếp tục học ngay cả khi không có kết nối internet"
+      },
+      "smartNotifications": {
+        "title": "Thông báo thông minh",
+        "description": "Nhận thông báo ngay lập tức về các tính năng và cập nhật mới"
+      },
+      "securePrivate": {
+        "title": "An toàn & Riêng tư",
+        "description": "Dữ liệu của bạn được bảo mật với các tính năng bảo mật nâng cao"
+      }
+    }
+  },
+  "search": {
+    "globalSearch": "Tìm kiếm toàn cục",
+    "searchPlaceholder": "Tìm kiếm câu hỏi, thẻ, ghi chú...",
+    "loadingQuestions": "Đang tải câu hỏi...",
+    "noQuestionsAvailable": "Không có câu hỏi nào.",
+    "noResultsFound": "Không tìm thấy kết quả cho",
+    "suggestions": "Gợi ý",
+    "matchingQuestions": "Câu hỏi phù hợp",
+    "inBank": "Trong:",
+    "moreItems": "thêm",
+    "clearSearch": "Xóa tìm kiếm",
+    "failedToLoad": "Không thể tải câu hỏi để tìm kiếm.",
+    "searchInputPlaceholder": "Tìm kiếm {{questions}}, {{tags}}, {{notes}}..."
+  },
+  "landing": {
+    "modernQuizPlatform": "Nền tảng kiểm tra hiện đại",
+    "heroTitle": "Nắm vững kiến thức với",
+    "heroDescription": "Một nền tảng kiểm tra hiện đại, tương tác được thiết kế để giúp sinh viên ôn tập và nắm vững các môn học thông qua ngân hàng câu hỏi tùy chỉnh, phản hồi tức thì và giao diện đẹp mắt.",
+    "startCreatingQuizzes": "Bắt đầu tạo kiểm tra",
+    "viewOnGithub": "Xem trên GitHub",
+    "stats": {
+      "offlineCapable": "100% Ngoại tuyến",
+      "openSource": "Mã nguồn mở",
+      "zeroSetup": "Không cần cài đặt"
+    },
+    "features": {
+      "title": "Mọi thứ bạn cần cho",
+      "subtitle": "việc học hiệu quả",
+      "description": "QuizMaster cung cấp tất cả các công cụ bạn cần để tạo, tổ chức và luyện tập với ngân hàng câu hỏi tùy chỉnh.",
+      "tryThisFeature": "Thử tính năng này",
+      "questionBanks": {
+        "title": "Ngân hàng câu hỏi",
+        "description": "Tổ chức câu hỏi thành các ngân hàng có tên cho các môn học hoặc chủ đề khác nhau với phân loại phong phú.",
+        "detailedDescription": "Tạo ngân hàng câu hỏi không giới hạn cho các môn học, chủ đề hoặc độ khó khác nhau. Mỗi ngân hàng có thể được tùy chỉnh với tên, mô tả và danh mục. Hoàn hảo để tổ chức tài liệu học tập theo môn học, chương hoặc loại kỳ thi."
+      },
+      "richEditor": {
+        "title": "Trình soạn thảo câu hỏi phong phú",
+        "description": "Tạo câu hỏi với văn bản được định dạng, nhiều phương án, thẻ, danh mục và mức độ khó.",
+        "detailedDescription": "Trình soạn thảo câu hỏi nâng cao với định dạng văn bản phong phú, tùy chọn kiểm tra, sắp xếp câu trả lời bằng kéo thả, mức độ khó, thẻ và danh mục. Hỗ trợ hình ảnh, đoạn mã và biểu thức toán học."
+      },
+      "importExport": {
+        "title": "Nhập/Xuất",
+        "description": "Nhập câu hỏi từ tệp JSON và xuất dữ liệu của bạn để sao lưu hoặc chia sẻ.",
+        "detailedDescription": "Nhập câu hỏi một cách liền mạch từ tệp JSON hoặc xuất toàn bộ ngân hàng câu hỏi để sao lưu hoặc chia sẻ với bạn cùng lớp. Hỗ trợ các thao tác hàng loạt và duy trì tất cả siêu dữ liệu câu hỏi."
+      },
+      "practiceSupport": {
+        "title": "Chế độ luyện tập",
+        "description": "Làm bài trắc nghiệm tương tác với cài đặt tùy chỉnh, phản hồi tức thì và phân tích hiệu suất chi tiết.",
+        "detailedDescription": "Chế độ luyện tập toàn diện với cài đặt kiểm tra tùy chỉnh, giới hạn thời gian, xáo trộn câu hỏi, phản hồi tức thì và phân tích hiệu suất chi tiết. Theo dõi tiến trình của bạn và xác định các lĩnh vực cần cải thiện."
+      }
+    }
+  },
+  "sidebar": {
+    "workspaces": "$t(Workspace)",
+    "dashboard": "Bảng điều khiển",
+    "search": "Tìm kiếm",
+    "help": "Trợ giúp",
+    "questions": "Câu hỏi",
+    "general": "Chung",
+    "revision": "Ôn tập",
+    "practice": "Luyện tập",
+    "notes": "Ghi chú",
+    "settings": "Cài đặt",
+    "workspace": "$t(Workspace)",
+    "billing": "Thanh toán",
+    "userSettings": "Cài đặt người dùng",
+    "account": "Tài khoản",
+    "profile": "Hồ sơ",
+    "security": "Bảo mật"
+  },
+  "welcome_tour": {
+    "step_1": {
+      "title": "Chào mừng đến với QuizMaster",
+      "short_description": "Nền tảng tạo quiz cá nhân của bạn",
+      "full_description": "Chào mừng đến với QuizMaster! Một nền tảng quiz hiện đại, hoạt động offline được thiết kế để giúp học sinh tạo, tổ chức và luyện tập với các ngân hàng câu hỏi tùy chỉnh. Hãy cùng khám phá những điều đặc biệt.",
+      "media_alt": "Tổng quan bảng điều khiển QuizMaster"
+    },
+    "step_2": {
+      "title": "Tạo Ngân hàng Câu hỏi",
+      "short_description": "Tổ chức tài liệu học tập",
+      "full_description": "Bắt đầu bằng cách tạo ngân hàng câu hỏi cho các môn học hoặc chủ đề khác nhau. Mỗi ngân hàng có thể chứa nhiều câu hỏi với định dạng phong phú, câu trả lời trắc nghiệm, thẻ và mức độ khó.",
+      "media_alt": "Giao diện tạo ngân hàng câu hỏi",
+      "action_label": "Tạo Ngân hàng Đầu tiên"
+    },
+    "step_3": {
+      "title": "Trình soạn thảo Câu hỏi Phong phú",
+      "short_description": "Tạo câu hỏi chi tiết",
+      "full_description": "Sử dụng trình soạn thảo mạnh mẽ để tạo câu hỏi với văn bản định dạng, lựa chọn trắc nghiệm, câu trả lời đúng, thẻ, danh mục và ghi chú. Kéo thả để sắp xếp lại câu hỏi theo ý muốn.",
+      "media_alt": "Giao diện trình soạn thảo câu hỏi",
+      "action_label": "Khám phá Tính năng Soạn thảo"
+    },
+    "step_4": {
+      "title": "Nhập & Xuất",
+      "short_description": "Chia sẻ và sao lưu công việc",
+      "full_description": "Nhập câu hỏi từ tệp JSON hoặc xuất ngân hàng câu hỏi để chia sẻ với bạn cùng lớp hoặc sao lưu công việc. Mọi thứ hoạt động offline sử dụng bộ nhớ cục bộ của trình duyệt.",
+      "action_label": "Bắt đầu Tạo Câu hỏi"
+    }
+  },
+  "dashboard": {
+    "onboarding": {
+      "step_progress": "Bước {{current}} / {{total}}",
+      "step_1": {
+        "title": "Chào mừng đến với QuizMaster! 👋",
+        "description": "Hãy thiết lập trong vài bước đơn giản.",
+        "action": "Bắt đầu"
+      },
+      "step_2": {
+        "title": "Tạo $t(workspace) đầu tiên",
+        "description": "$t(Workspace) giúp bạn tổ chức ngân hàng câu hỏi và cộng tác với nhóm.",
+        "action": "Tạo $t(workspace)"
+      },
+      "step_3": {
+        "title": "Hoàn thành thiết lập! 🎉",
+        "description": "$t(Workspace) đã sẵn sàng. Bây giờ bạn có thể bắt đầu tạo câu hỏi và xây dựng quiz.",
+        "action": "Đến $t(workspace)"
+      },
+      "features": {
+        "question_banks": "Ngân hàng Câu hỏi",
+        "team_collaboration": "Cộng tác Nhóm",
+        "analytics": "Phân tích",
+        "quick_setup": "Thiết lập Nhanh"
+      },
+      "workspace_info": {
+        "title": "$t(Workspace) là gì?",
+        "description": "$t(Workspace) giống như ngân hàng câu hỏi giúp bạn quản lý và tổ chức câu hỏi theo chủ đề hoặc môn học. Mỗi không gian làm việc chứa câu hỏi, mẫu quiz và phân tích trong một không gian có tổ chức."
+      },
+      "next_steps": {
+        "title": "Bước tiếp theo là gì?",
+        "create_bank": "Tạo ngân hàng câu hỏi đầu tiên",
+        "add_questions": "Thêm câu hỏi vào ngân hàng",
+        "generate_quizzes": "Tạo và chia sẻ quiz"
+      }
+    }
+  },
+  "Workspace": "Thư viện",
+  "workspace": "thư viện"
+}

@@ -15,6 +15,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { CSSProperties, forwardRef, useMemo, useState } from "react";
 import { BANKPREFIX_URL } from "@/lib/client-constants";
+
 const INFINITY_NUMBER = 1000000000;
 
 export function Usage() {

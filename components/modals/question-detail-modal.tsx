@@ -13,6 +13,7 @@ import { Question } from "@/types/quiz";
 import { QuestionViewerPanelContent } from "../quiz/QuestionViewerPanelContent";
 import { BANKPREFIX_URL } from "@/lib/client-constants";
 import useWorkspace from "@/helpers/swr/use-workspace";
+import { useTranslation } from "@/hooks/use-translation";
 
 function QuestionDetailModalHelper({
     showQuestionDetailModal,
@@ -23,6 +24,7 @@ function QuestionDetailModalHelper({
     setShowQuestionDetailModal: Dispatch<SetStateAction<boolean>>;
     selectedQuestion: Question | null;
 }) {
+    const { t } = useTranslation();
     const router = useRouter();
     const { workspace } = useWorkspace();
 
@@ -46,7 +48,7 @@ function QuestionDetailModalHelper({
                                 className="flex items-center gap-2"
                             >
                                 <ExternalLink className="h-4 w-4" />
-                                Edit Question
+                                {t("questionDetailModal.editQuestion")}
                             </Button>
                         )}
                     </DialogTitle>

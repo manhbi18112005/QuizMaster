@@ -1,9 +1,19 @@
 'use client';
 
-import { useTranslation as useI18nTranslation } from 'react-i18next';
+import type {
+    FlatNamespace,
+    KeyPrefix,
+} from 'i18next';
+import { FallbackNs, useTranslation as useI18nTranslation, UseTranslationOptions } from 'react-i18next';
 
-export function useTranslation(namespace: string = 'common') {
-    const { t, i18n } = useI18nTranslation(namespace);
+export function useTranslation<
+    const Ns extends FlatNamespace | readonly FlatNamespace[] | undefined = undefined,
+    const KPrefix extends KeyPrefix<FallbackNs<Ns>> = undefined,
+>(
+    ns?: Ns,
+    options?: UseTranslationOptions<KPrefix>,
+) {
+    const { t, i18n } = useI18nTranslation(ns, options);
 
     return {
         t,
@@ -11,12 +21,5 @@ export function useTranslation(namespace: string = 'common') {
         language: i18n.language,
         changeLanguage: i18n.changeLanguage,
         isLoading: false, // Since we're not using SSR for i18n in this setup
-    };
-}
-
-// Helper function for type-safe translations
-export function createTranslation(namespace: string = 'common') {
-    return function useNamespacedTranslation() {
-        return useTranslation(namespace);
     };
 }

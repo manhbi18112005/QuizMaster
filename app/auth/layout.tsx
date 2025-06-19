@@ -11,6 +11,7 @@ import LoadingScreen from "@/components/loading-screen";
 import { ClientOnly } from "@/components/ui/client-only";
 import { Grid } from "@/components/ui/grid";
 import { useTheme } from "next-themes";
+import { useTranslation } from "@/hooks/use-translation";
 //I'm gay
 
 const GRID_CONFIG = {
@@ -27,6 +28,7 @@ const GRADIENT_CLASSES = [
 ] as const;
 
 function AuthLayoutContent({ children }: { children: React.ReactNode }) {
+    const { t } = useTranslation();
     const { setTheme, theme } = useTheme();
     const { data: session, status } = useSession();
     const router = useRouter();
@@ -90,7 +92,7 @@ function AuthLayoutContent({ children }: { children: React.ReactNode }) {
                         target="_blank"
                         className="font-semibold text-neutral-600 hover:text-neutral-800"
                     >
-                        Terms of Service
+                        {t("common.terms")}
                     </a>{" "}
                     and{" "}
                     <a
@@ -98,7 +100,7 @@ function AuthLayoutContent({ children }: { children: React.ReactNode }) {
                         target="_blank"
                         className="font-semibold text-neutral-600 hover:text-neutral-800"
                     >
-                        Privacy Policy
+                        {t("common.privacy")}
                     </a>
                 </p>
             </div>

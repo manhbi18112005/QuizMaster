@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { CheckCircle, XCircle, ArrowLeft, ArrowRight, Flag, Pause, Play, ChevronDown, ChevronUp, Send } from "lucide-react";
+import { CheckCircle, XCircle, ArrowLeft, ArrowRight, Flag, Pause, Play, Send } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Question } from "@/types/quiz";
@@ -17,9 +17,10 @@ import { TipTapViewer } from "../tiptap-viewer";
 import { TestResultsCard } from "./revision-results-card";
 import { TestResults, QuestionResult } from "@/types/test-results";
 import { AnimatedCircularProgressBar } from "@/components/magicui/animated-circular-progress-bar";
-import { BorderBeam } from "../magicui/border-beam";
+import { BorderBeam } from "@/components/magicui/border-beam";
 import { getQuestionTypeConfig, validateQuestionAnswers, detectQuestionType } from "@/lib/question-types";
-import { ModalContext } from "../modals/model-provider";
+import { ModalContext } from "@/components/modals/model-provider";
+import { useTranslation } from "@/hooks/use-translation";
 
 interface TestComponentProps {
     questions: Question[];
@@ -44,6 +45,7 @@ export function TestComponent({
     onBackToSettings,
     onRetakeTest
 }: TestComponentProps) {
+    const { t } = useTranslation();
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [answers, setAnswers] = useState<Record<number, string[]>>({});
     const [inputAnswers, setInputAnswers] = useState<Record<number, string>>({});
@@ -59,14 +61,13 @@ export function TestComponent({
     const [testResults, setTestResults] = useState<TestResults | null>(null);
     const [isPaused, setIsPaused] = useState(false);
     const [isTestCompleted, setIsTestCompleted] = useState(false);
-    const [isNavigatorCollapsed, setIsNavigatorCollapsed] = useState(false);
 
     const { setShowQuestionDetailModal, setSelectedQuestionDetailModal } = useContext(ModalContext);
 
     const [navigatorPage, setNavigatorPage] = useState(0);
     const [resultsPage, setResultsPage] = useState(0);
     const [resultsFilter, setResultsFilter] = useState('');
-    const [loadedQuestions, setLoadedQuestions] = useState<Set<number>>(new Set([0])); // Pre-load first question
+    const [loadedQuestions, setLoadedQuestions] = useState<Set<number>>(new Set([0]));
     const navigatorRef = useRef<HTMLDivElement>(null);
 
     const currentQuestion = useMemo(() => {
@@ -127,7 +128,6 @@ export function TestComponent({
         };
     }, [testResults, resultsFilter, resultsPage]);
 
-    // Optimized format time with memoization
     const formatTime = useCallback((seconds: number) => {
         const mins = Math.floor(seconds / 60);
         const secs = seconds % 60;
@@ -185,8 +185,6 @@ export function TestComponent({
                 const selectedAnswers = answers[index] || [];
                 const correctChoices = question.choices?.filter(choice => choice.isCorrect) || [];
                 const correctAnswerValues = correctChoices.map(choice => choice.value);
-
-                // Detect question type for validation
                 const questionType = question.questionType || detectQuestionType(question.choices || []);
                 const isCorrect = validateQuestionAnswers(selectedAnswers, correctAnswerValues, questionType);
 
@@ -195,7 +193,7 @@ export function TestComponent({
                 return {
                     questionId: question.id,
                     question: question.question,
-                    selectedAnswer: selectedAnswers.join(', ') || 'No answer',
+                    selectedAnswer: selectedAnswers.join(', ') || t('revision.noAnswer'),
                     correctAnswer: correctAnswerValues.join(' | '),
                     isCorrect,
                     timeSpent: questionTimes[index] || 0
@@ -221,7 +219,7 @@ export function TestComponent({
         } else {
             setTimeout(computeResults, 0);
         }
-    }, [answers, questions, questionTimes, testStartTime, flaggedQuestions, onTestComplete, isTestCompleted]);
+    }, [answers, questions, questionTimes, testStartTime, flaggedQuestions, onTestComplete, isTestCompleted, t]);
 
     const handleNextQuestion = useCallback(() => {
         if (currentQuestionIndex < questions.length - 1) {
@@ -235,7 +233,6 @@ export function TestComponent({
         }
     }, [currentQuestionIndex, questions.length, settings.hasQuestionTimeLimit, settings.questionTimeLimitSeconds, handleTestComplete]);
 
-    // Optimized timer effects - combine both timers
     useEffect(() => {
         if (isPaused || isTestCompleted) return;
 
@@ -354,14 +351,12 @@ export function TestComponent({
             setQuestionTimeLeft(settings.questionTimeLimitSeconds);
         }
 
-        // Update navigator page if needed
         const targetPage = Math.floor(index / NAVIGATOR_PAGE_SIZE);
         if (targetPage !== navigatorPage) {
             setNavigatorPage(targetPage);
         }
     }, [loadedQuestions, settings.hasQuestionTimeLimit, settings.questionTimeLimitSeconds, navigatorPage]);
 
-    // Navigator pagination handlers
     const handleNavigatorPageChange = useCallback((direction: 'prev' | 'next') => {
         const maxPage = Math.ceil(questions.length / NAVIGATOR_PAGE_SIZE) - 1;
         setNavigatorPage(prev => {
@@ -370,7 +365,6 @@ export function TestComponent({
         });
     }, [questions.length]);
 
-    // Results pagination handlers
     const handleResultsPageChange = useCallback((direction: 'prev' | 'next') => {
         setResultsPage(prev => {
             if (direction === 'prev') return Math.max(0, prev - 1);
@@ -389,10 +383,6 @@ export function TestComponent({
             return newSet;
         });
     }, [currentQuestionIndex]);
-
-    const handleNavigatorToggle = useCallback(() => {
-        setIsNavigatorCollapsed(prev => !prev);
-    }, []);
 
     // Calculate countdown values for the circular progress bar
     const countdownValues = useMemo(() => {
@@ -440,7 +430,7 @@ export function TestComponent({
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
                                 <Flag className="h-5 w-5 text-amber-500" />
-                                Flagged Questions ({testResults.flaggedQuestions.length})
+                                {t('revision.flaggedQuestions')} ({testResults.flaggedQuestions.length})
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-2">
@@ -458,7 +448,7 @@ export function TestComponent({
                                             </Button>
                                         </TooltipTrigger>
                                         <TooltipContent>
-                                            <p>Click to review flagged question</p>
+                                            <p>{t('revision.clickToReviewFlagged')}</p>
                                         </TooltipContent>
                                     </Tooltip>
                                 ))}
@@ -467,19 +457,18 @@ export function TestComponent({
                     </Card>
                 )}
 
-                {/* Optimized results section with search and pagination */}
                 {settings.showCorrectAnswers && (
                     <Card>
                         <CardHeader>
                             <CardTitle className="flex items-center justify-between">
-                                <span>Review Answers</span>
+                                <span>{t('revision.reviewAnswers')}</span>
                                 <div className="flex items-center gap-2">
                                     <Input
-                                        placeholder="Search questions..."
+                                        placeholder={t('revision.searchQuestions')}
                                         value={resultsFilter}
                                         onChange={(e) => {
                                             setResultsFilter(e.target.value);
-                                            setResultsPage(0); // Reset to first page
+                                            setResultsPage(0);
                                         }}
                                         className="w-64"
                                     />
@@ -489,7 +478,7 @@ export function TestComponent({
                         <CardContent className="space-y-4">
                             {filteredResults.results.length === 0 ? (
                                 <p className="text-center text-muted-foreground py-8">
-                                    {resultsFilter ? 'No questions match your search.' : 'No results to display.'}
+                                    {resultsFilter ? t('revision.noQuestionsMatchSearch') : t('revision.noResultsToDisplay')}
                                 </p>
                             ) : (
                                 <>
@@ -520,14 +509,14 @@ export function TestComponent({
                                                             </div>
                                                             <div className="space-y-1 text-sm">
                                                                 <p>
-                                                                    <span className="font-medium">Your answer:</span>{' '}
+                                                                    <span className="font-medium">{t('revision.yourAnswer')}</span>{' '}
                                                                     <span className={result.isCorrect ? 'text-green-600' : 'text-red-600'}>
-                                                                        {result.selectedAnswer || 'No answer'}
+                                                                        {result.selectedAnswer || t('revision.noAnswer')}
                                                                     </span>
                                                                 </p>
                                                                 {!result.isCorrect && (
                                                                     <p>
-                                                                        <span className="font-medium">Correct answer:</span>{' '}
+                                                                        <span className="font-medium">{t('revision.correctAnswer')}</span>{' '}
                                                                         <span className="text-green-600">{result.correctAnswer}</span>
                                                                     </p>
                                                                 )}
@@ -542,9 +531,11 @@ export function TestComponent({
                                     {/* Results pagination */}
                                     <div className="flex items-center justify-between pt-4 border-t">
                                         <p className="text-sm text-muted-foreground">
-                                            Showing {resultsPage * RESULTS_PAGE_SIZE + 1} to{' '}
-                                            {Math.min((resultsPage + 1) * RESULTS_PAGE_SIZE, filteredResults.total)} of{' '}
-                                            {filteredResults.total} results
+                                            {t('revision.showingResults', {
+                                                start: resultsPage * RESULTS_PAGE_SIZE + 1,
+                                                end: Math.min((resultsPage + 1) * RESULTS_PAGE_SIZE, filteredResults.total),
+                                                total: filteredResults.total
+                                            })}
                                         </p>
                                         <div className="flex gap-2">
                                             <Button
@@ -553,7 +544,7 @@ export function TestComponent({
                                                 onClick={() => handleResultsPageChange('prev')}
                                                 disabled={resultsPage === 0}
                                             >
-                                                Previous
+                                                {t('common.previous')}
                                             </Button>
                                             <Button
                                                 variant="outline"
@@ -561,7 +552,7 @@ export function TestComponent({
                                                 onClick={() => handleResultsPageChange('next')}
                                                 disabled={!filteredResults.hasMore}
                                             >
-                                                Next
+                                                {t('common.next')}
                                             </Button>
                                         </div>
                                     </div>
@@ -582,20 +573,20 @@ export function TestComponent({
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-2">
                             <Pause className="h-5 w-5" />
-                            Test Paused
+                            {t('revision.testPaused')}
                         </DialogTitle>
                     </DialogHeader>
                     <div className="space-y-4">
                         <p className="text-center text-muted-foreground">
-                            Your test is paused. Click resume to continue.
+                            {t('revision.yourTestIsPaused')}
                         </p>
                         <div className="flex justify-center gap-2">
                             <Button onClick={handlePauseToggle} className="flex items-center gap-2">
                                 <Play className="h-4 w-4" />
-                                Resume Test
+                                {t('revision.resumeTest')}
                             </Button>
                             <Button variant="outline" onClick={onBackToSettings}>
-                                Exit Test
+                                {t('revision.exitTest')}
                             </Button>
                         </div>
                     </div>
@@ -619,11 +610,11 @@ export function TestComponent({
                                         <TooltipTrigger asChild>
                                             <Badge variant="secondary" className="flex items-center gap-1">
                                                 <Flag className="h-3 w-3" />
-                                                {flaggedQuestions.size} flagged
+                                                {t('revision.flagged', { count: flaggedQuestions.size })}
                                             </Badge>
                                         </TooltipTrigger>
                                         <TooltipContent>
-                                            <p>You have flagged {flaggedQuestions.size} question(s) for review</p>
+                                            <p>{t('revision.youHaveFlaggedQuestions', { count: flaggedQuestions.size })}</p>
                                         </TooltipContent>
                                     </Tooltip>
                                 )}
@@ -635,7 +626,7 @@ export function TestComponent({
                                         className="flex items-center gap-2"
                                     >
                                         <Pause className="h-3 w-3" />
-                                        Pause
+                                        {t('revision.pause')}
                                     </Button>
                                 )}
                             </div>
@@ -643,100 +634,78 @@ export function TestComponent({
                     </CardContent>
                 </Card>
                 <Card className="md:col-span-3">
-                    <CardHeader className="pb-2">
+                    <CardHeader>
                         <div className="flex items-center justify-between">
                             <Progress value={progress} className="flex-1" />
-                            <div className="flex items-center gap-2 ml-4">
-                                <span className="text-sm text-muted-foreground">
-                                    Page {navigatorPage + 1} of {Math.ceil(questions.length / NAVIGATOR_PAGE_SIZE)}
-                                </span>
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={handleNavigatorToggle}
-                                    className="flex items-center gap-1"
-                                >
-                                    {isNavigatorCollapsed ? (
-                                        <>
-                                            <ChevronDown className="h-4 w-4" />
-                                            <span className="text-sm">Show</span>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <ChevronUp className="h-4 w-4" />
-                                            <span className="text-sm">Hide</span>
-                                        </>
-                                    )}
-                                </Button>
-                            </div>
+                            <span className="text-sm text-muted-foreground ml-4">
+                                {t('revision.page')} {navigatorPage + 1} {t('revision.of')} {Math.ceil(questions.length / NAVIGATOR_PAGE_SIZE)}
+                            </span>
                         </div>
                     </CardHeader>
-                    {!isNavigatorCollapsed && (
-                        <CardContent className="pt-0">
-                            <div className="space-y-4">
-                                {/* Navigator pagination controls */}
-                                <div className="flex items-center justify-between">
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => handleNavigatorPageChange('prev')}
-                                        disabled={navigatorPage === 0}
-                                    >
-                                        Previous Page
-                                    </Button>
-                                    <span className="text-sm text-muted-foreground">
-                                        Questions {navigatorRange.start + 1} - {navigatorRange.end}
-                                    </span>
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => handleNavigatorPageChange('next')}
-                                        disabled={navigatorRange.end >= questions.length}
-                                    >
-                                        Next Page
-                                    </Button>
-                                </div>
-
-                                {/* Virtualized question grid */}
-                                <div ref={navigatorRef} className="grid grid-cols-10 gap-2">
-                                    {visibleNavigatorQuestions.map((_, localIndex) => {
-                                        const globalIndex = navigatorRange.start + localIndex;
-                                        return (
-                                            <Tooltip key={globalIndex}>
-                                                <TooltipTrigger asChild>
-                                                    <Button
-                                                        variant={
-                                                            globalIndex === currentQuestionIndex
-                                                                ? "default"
-                                                                : (answers[globalIndex] && answers[globalIndex].length > 0)
-                                                                    ? "secondary"
-                                                                    : "outline"
-                                                        }
-                                                        size="sm"
-                                                        className="w-8 h-8 p-0 relative"
-                                                        onClick={() => handleQuestionNavigation(globalIndex)}
-                                                        disabled={!settings.allowFreeNavigation}
-                                                    >
-                                                        {globalIndex + 1}
-                                                        {flaggedQuestions.has(globalIndex) && (
-                                                            <Flag className="h-2 w-2 absolute -top-1 -right-1 text-amber-500" />
-                                                        )}
-                                                    </Button>
-                                                </TooltipTrigger>
-                                                <TooltipContent>
-                                                    <p>
-                                                        Question {globalIndex + 1}
-                                                        {(answers[globalIndex] && answers[globalIndex].length > 0) && " (Answered)"}
-                                                        {flaggedQuestions.has(globalIndex) && " (Flagged)"}
-                                                    </p>
-                                                </TooltipContent>
-                                            </Tooltip>
-                                        );
-                                    })}
-                                </div>
+                    <CardContent>
+                        <div className="space-y-4">
+                            {/* Navigator pagination controls */}
+                            <div className="flex items-center justify-between">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleNavigatorPageChange('prev')}
+                                    disabled={navigatorPage === 0}
+                                >
+                                    {t('revision.previousPage')}
+                                </Button>
+                                <span className="text-sm text-muted-foreground">
+                                    {t('revision.questions')} {navigatorRange.start + 1} - {navigatorRange.end}
+                                </span>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleNavigatorPageChange('next')}
+                                    disabled={navigatorRange.end >= questions.length}
+                                >
+                                    {t('revision.nextPage')}
+                                </Button>
                             </div>
-                        </CardContent>
-                    )}
+
+                            {/* Virtualized question grid */}
+                            <div ref={navigatorRef} className="grid grid-cols-10 gap-2">
+                                {visibleNavigatorQuestions.map((_, localIndex) => {
+                                    const globalIndex = navigatorRange.start + localIndex;
+                                    return (
+                                        <Tooltip key={globalIndex}>
+                                            <TooltipTrigger asChild>
+                                                <Button
+                                                    variant={
+                                                        globalIndex === currentQuestionIndex
+                                                            ? "default"
+                                                            : (answers[globalIndex] && answers[globalIndex].length > 0)
+                                                                ? "secondary"
+                                                                : "outline"
+                                                    }
+                                                    size="sm"
+                                                    className="w-8 h-8 p-0 relative"
+                                                    onClick={() => handleQuestionNavigation(globalIndex)}
+                                                    disabled={!settings.allowFreeNavigation}
+                                                >
+                                                    {globalIndex + 1}
+                                                    {flaggedQuestions.has(globalIndex) && (
+                                                        <Flag className="h-2 w-2 absolute -top-1 -right-1 text-amber-500" />
+                                                    )}
+                                                </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                                <p>
+                                                    {t('revision.questions')} {globalIndex + 1}
+                                                    {(answers[globalIndex] && answers[globalIndex].length > 0) && t('revision.answered')}
+                                                    {flaggedQuestions.has(globalIndex) && t('revision.flagged')}
+                                                </p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </CardContent>
                 </Card>
             </div>
 
@@ -752,7 +721,7 @@ export function TestComponent({
                                 className="flex items-center gap-2"
                             >
                                 <ArrowLeft className="h-4 w-4" />
-                                Previous
+                                {t('common.previous')}
                             </Button>
 
                             <Tooltip>
@@ -772,8 +741,8 @@ export function TestComponent({
                                 <TooltipContent>
                                     <p>
                                         {flaggedQuestions.has(currentQuestionIndex)
-                                            ? 'Remove flag from this question'
-                                            : 'Flag this question for review'
+                                            ? t('revision.removeFlagFromQuestion')
+                                            : t('revision.flagQuestionForReview')
                                         }
                                     </p>
                                 </TooltipContent>
@@ -783,21 +752,21 @@ export function TestComponent({
                         <div className="flex gap-2">
                             {settings.allowFreeNavigation && (
                                 <Button
-                                    variant="outline"
                                     onClick={handleTestComplete}
                                     className="flex items-center gap-2"
                                 >
                                     <Send />
-                                    Submit
+                                    {t('revision.submit')}
                                 </Button>
                             )}
 
                             <Button
+                                variant="outline"
                                 onClick={handleNextQuestion}
                                 disabled={(!answers[currentQuestionIndex] || answers[currentQuestionIndex].length === 0) && settings.hasQuestionTimeLimit}
                                 className="flex items-center gap-2"
                             >
-                                {currentQuestionIndex === questions.length - 1 ? 'Finish' : 'Next'}
+                                {currentQuestionIndex === questions.length - 1 ? t('revision.finish') : t('common.next')}
                                 <ArrowRight />
                             </Button>
                         </div>
@@ -810,13 +779,11 @@ export function TestComponent({
                         </CardTitle>
                         <div className="flex items-center gap-2">
                             <Badge variant="outline" className="text-xs">
-                                {currentQuestionTypeConfig.label}
+                                {t(currentQuestionTypeConfig.label)}
                             </Badge>
-                            {currentQuestionTypeConfig.allowMultipleSelection && (
-                                <Badge variant="secondary" className="text-xs">
-                                    Select multiple answers
-                                </Badge>
-                            )}
+                            <Badge variant="secondary" className="text-xs">
+                                {t(currentQuestionTypeConfig.description)}
+                            </Badge>
                         </div>
                     </div>
 
@@ -838,7 +805,7 @@ export function TestComponent({
                             <div className="space-y-4">
                                 {currentQuestionTypeConfig.type === 'essay' ? (
                                     <Textarea
-                                        placeholder="Type your answer here..."
+                                        placeholder={t('questionTypes.essay.description')}
                                         value={inputAnswers[currentQuestionIndex] || ''}
                                         onChange={(e) => handleInputChange(e.target.value)}
                                         rows={6}
@@ -846,7 +813,7 @@ export function TestComponent({
                                     />
                                 ) : (
                                     <Input
-                                        placeholder={currentQuestionTypeConfig.type === 'numerical' ? "Enter your numerical answer..." : "Type your answer here..."}
+                                        placeholder={currentQuestionTypeConfig.type === 'numerical' ? t('questionTypes.numerical.description') : t('questionTypes.default.description')}
                                         value={inputAnswers[currentQuestionIndex] || ''}
                                         onChange={(e) => handleInputChange(e.target.value)}
                                         type="text"

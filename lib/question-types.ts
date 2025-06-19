@@ -25,13 +25,39 @@ export interface QuestionTypeConfig {
 }
 
 /**
+ * Translation keys for question types.
+ */
+export const QUESTION_TYPE_TRANSLATION_KEYS = {
+    [QuestionType.SINGLE_CHOICE]: {
+        label: 'questionTypes.singleChoice.label',
+        description: 'questionTypes.singleChoice.description',
+    },
+    [QuestionType.MULTIPLE_CHOICE]: {
+        label: 'questionTypes.multipleChoice.label',
+        description: 'questionTypes.multipleChoice.description',
+    },
+    [QuestionType.TRUE_FALSE]: {
+        label: 'questionTypes.trueFalse.label',
+        description: 'questionTypes.trueFalse.description',
+    },
+    [QuestionType.NUMERICAL]: {
+        label: 'questionTypes.numerical.label',
+        description: 'questionTypes.numerical.description',
+    },
+    [QuestionType.ESSAY]: {
+        label: 'questionTypes.essay.label',
+        description: 'questionTypes.essay.description',
+    },
+} as const;
+
+/**
  * Configuration mapping for all question types.
  */
 export const QUESTION_TYPE_CONFIGS: Readonly<Record<QuestionType, QuestionTypeConfig>> = {
     [QuestionType.SINGLE_CHOICE]: {
         type: QuestionType.SINGLE_CHOICE,
-        label: 'Single Choice',
-        description: 'Select one correct answer',
+        label: QUESTION_TYPE_TRANSLATION_KEYS[QuestionType.SINGLE_CHOICE].label,
+        description: QUESTION_TYPE_TRANSLATION_KEYS[QuestionType.SINGLE_CHOICE].description,
         allowMultipleSelection: false,
         requiresInput: false,
         minChoices: 2,
@@ -39,8 +65,8 @@ export const QUESTION_TYPE_CONFIGS: Readonly<Record<QuestionType, QuestionTypeCo
     },
     [QuestionType.MULTIPLE_CHOICE]: {
         type: QuestionType.MULTIPLE_CHOICE,
-        label: 'Multiple Choice',
-        description: 'Select one or more correct answers',
+        label: QUESTION_TYPE_TRANSLATION_KEYS[QuestionType.MULTIPLE_CHOICE].label,
+        description: QUESTION_TYPE_TRANSLATION_KEYS[QuestionType.MULTIPLE_CHOICE].description,
         allowMultipleSelection: true,
         requiresInput: false,
         minChoices: 2,
@@ -48,8 +74,8 @@ export const QUESTION_TYPE_CONFIGS: Readonly<Record<QuestionType, QuestionTypeCo
     },
     [QuestionType.TRUE_FALSE]: {
         type: QuestionType.TRUE_FALSE,
-        label: 'True/False',
-        description: 'Select true or false',
+        label: QUESTION_TYPE_TRANSLATION_KEYS[QuestionType.TRUE_FALSE].label,
+        description: QUESTION_TYPE_TRANSLATION_KEYS[QuestionType.TRUE_FALSE].description,
         allowMultipleSelection: false,
         requiresInput: false,
         minChoices: 2,
@@ -57,8 +83,8 @@ export const QUESTION_TYPE_CONFIGS: Readonly<Record<QuestionType, QuestionTypeCo
     },
     [QuestionType.NUMERICAL]: {
         type: QuestionType.NUMERICAL,
-        label: 'Numerical',
-        description: 'Enter a numerical answer',
+        label: QUESTION_TYPE_TRANSLATION_KEYS[QuestionType.NUMERICAL].label,
+        description: QUESTION_TYPE_TRANSLATION_KEYS[QuestionType.NUMERICAL].description,
         allowMultipleSelection: false,
         requiresInput: true,
         minChoices: 1,
@@ -66,8 +92,8 @@ export const QUESTION_TYPE_CONFIGS: Readonly<Record<QuestionType, QuestionTypeCo
     },
     [QuestionType.ESSAY]: {
         type: QuestionType.ESSAY,
-        label: 'Essay',
-        description: 'Write a detailed answer',
+        label: QUESTION_TYPE_TRANSLATION_KEYS[QuestionType.ESSAY].label,
+        description: QUESTION_TYPE_TRANSLATION_KEYS[QuestionType.ESSAY].description,
         allowMultipleSelection: false,
         requiresInput: true,
         minChoices: 0,

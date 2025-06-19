@@ -4,24 +4,21 @@ import { ContentLayout } from "@/components/admin-panel/content-layout";
 import { SafeContent } from "@/components/safecontent";
 import { MaxWidthWrapper } from "@/components/ui/max-width-wrapper";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { QuestionViewerPanelContent } from "@/components/quiz/QuestionViewerPanelContent";
-import { FileText, ExternalLink } from "lucide-react";
+import { FileText } from "lucide-react";
 import useWorkspace from "@/helpers/swr/use-workspace";
 import { useRouter } from "next/navigation";
 import { isEmpty } from "lodash";
-import { useState, useEffect } from "react";
+import { useEffect, useContext } from "react";
 import { Question } from "@/types/quiz";
 import { BANKPREFIX_URL } from "@/lib/client-constants";
 import { TracingBeam } from "@/components/ui/tracing-beam";
+import { ModalContext } from "@/components/modals/model-provider";
 
 export default function NotesPage() {
     const { workspace, loading } = useWorkspace();
     const router = useRouter();
-    const [showQuestionDialog, setShowQuestionDialog] = useState(false);
-    const [selectedQuestionDetail, setSelectedQuestionDetail] = useState(null as Question | null);
+    const { setShowQuestionDetailModal, setSelectedQuestionDetailModal } = useContext(ModalContext);
 
     useEffect(() => {
         if (!loading && !workspace) {
@@ -36,12 +33,8 @@ export default function NotesPage() {
     const questionsWithNotes = workspace.questions.filter(question => !isEmpty(question.notes));
 
     const handleViewQuestion = (question: Question) => {
-        setSelectedQuestionDetail(question);
-        setShowQuestionDialog(true);
-    };
-
-    const handleRedirectToQuestion = (question: Question) => {
-        router.push(`${BANKPREFIX_URL}/${workspace.id}?q=${question.id}&tab=edit`);
+        setSelectedQuestionDetailModal(question);
+        setShowQuestionDetailModal(true);
     };
 
     if (questionsWithNotes.length === 0) {
@@ -87,32 +80,6 @@ export default function NotesPage() {
                             </div>
                         </TracingBeam>
                     </div>
-
-                    {/* Dialog remains unchanged */}
-                    <Dialog open={showQuestionDialog} onOpenChange={setShowQuestionDialog}>
-                        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-                            <DialogHeader>
-                                <DialogTitle className="flex items-center justify-between">
-                                    {selectedQuestionDetail && (
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => handleRedirectToQuestion(selectedQuestionDetail)}
-                                            className="flex items-center gap-2"
-                                        >
-                                            <ExternalLink className="h-4 w-4" />
-                                            Edit Question
-                                        </Button>
-                                    )}
-                                </DialogTitle>
-                            </DialogHeader>
-                            {selectedQuestionDetail && (
-                                <QuestionViewerPanelContent
-                                    selectedQuestion={selectedQuestionDetail}
-                                />
-                            )}
-                        </DialogContent>
-                    </Dialog>
                 </MaxWidthWrapper>
             </ContentLayout>
         </>

@@ -17,7 +17,7 @@ import { MinimalTiptapEditor } from "@/components/minimal-tiptap";
 import { Content } from "@tiptap/react";
 import { Badge } from "@/components/ui/badge";
 import { detectQuestionType, getQuestionTypeConfig } from "@/lib/question-types";
-
+import { useTranslation } from "@/hooks/use-translation";
 
 interface QuestionEditorPanelContentProps {
   selectedQuestion: Question | undefined;
@@ -48,8 +48,8 @@ export const QuestionEditorPanelContent: React.FC<QuestionEditorPanelContentProp
   canGoPrevious,
   canGoNext,
 }) => {
+  const { t } = useTranslation();
 
-  // Memoized question type detection for performance
   const questionTypeInfo = useMemo(() => {
     if (!selectedQuestion || !selectedQuestion.choices) {
       return null;
@@ -60,10 +60,10 @@ export const QuestionEditorPanelContent: React.FC<QuestionEditorPanelContentProp
 
     return {
       type: detectedType,
-      label: config.label,
-      description: config.description
+      label: t(config.label),
+      description: t(config.description)
     };
-  }, [selectedQuestion]);
+  }, [selectedQuestion, t]);
 
   const handleCreatedAtChange = useCallback((date: Date | undefined) => {
     const syntheticEvent = {
@@ -106,12 +106,11 @@ export const QuestionEditorPanelContent: React.FC<QuestionEditorPanelContentProp
   if (!selectedQuestion) {
     return (
       <div className="flex items-center justify-center h-full">
-        <p className="text-muted-foreground">Select a question to see its details or create a new one.</p>
+        <p className="text-muted-foreground">{t("quiz.questionEditor.selectQuestion")}</p>
       </div>
     );
   }
 
-  // Convert string from selectedQuestion.createdAt to Date object for the picker
   let createdAtDate: Date | undefined = undefined;
   if (selectedQuestion.createdAt) {
     const parsedDate = new Date(selectedQuestion.createdAt);
@@ -144,10 +143,10 @@ export const QuestionEditorPanelContent: React.FC<QuestionEditorPanelContentProp
           {onPrevious && onNext && (
             <>
               <Button onClick={onPrevious} disabled={!canGoPrevious} variant="outline">
-                Previous
+                {t("common.previous")}
               </Button>
               <Button onClick={onNext} disabled={!canGoNext} variant="outline">
-                Next
+                {t("common.next")}
               </Button>
             </>
           )}
@@ -160,7 +159,7 @@ export const QuestionEditorPanelContent: React.FC<QuestionEditorPanelContentProp
             value={selectedQuestion.question}
             onChange={handleQuestionTextChange}
             output="html"
-            placeholder="Enter the question text..."
+            placeholder={t("quiz.questionEditor.enterQuestionText")}
             editorContentClassName="min-h-[80px] p-2 rounded-md"
             immediatelyRender={false}
           />
@@ -171,14 +170,14 @@ export const QuestionEditorPanelContent: React.FC<QuestionEditorPanelContentProp
               <Input
                 value={choice.value}
                 onChange={(e) => onChoiceChange(index, e.target.value)}
-                placeholder={`Choice ${index + 1}`}
+                placeholder={t("quiz.questionEditor.choicePlaceholder", { number: index + 1 })}
                 className="flex-1"
               />
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
                     onClick={() => {
-                      if (choice.value.trim() === "" && !choice.isCorrect) return; // Prevent marking empty new choice as correct
+                      if (choice.value.trim() === "" && !choice.isCorrect) return;
                       onChoiceIsCorrectChange(index, !choice.isCorrect);
                     }}
                     variant={choice.isCorrect ? "default" : "ghost"}
@@ -197,7 +196,7 @@ export const QuestionEditorPanelContent: React.FC<QuestionEditorPanelContentProp
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>{choice.isCorrect ? "Unmark as correct" : "Mark as correct"}</p>
+                  <p>{choice.isCorrect ? t("quiz.questionEditor.unmarkAsCorrect") : t("quiz.questionEditor.markAsCorrect")}</p>
                 </TooltipContent>
               </Tooltip>
               <Tooltip>
@@ -207,31 +206,31 @@ export const QuestionEditorPanelContent: React.FC<QuestionEditorPanelContentProp
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>Remove Choice</p>
+                  <p>{t("quiz.questionEditor.removeChoice")}</p>
                 </TooltipContent>
               </Tooltip>
             </div>
           ))}
-          {selectedQuestion.choices.length === 0 && <p className="text-sm text-muted-foreground">No choices yet. Click Add Choice below.</p>}
+          {selectedQuestion.choices.length === 0 && <p className="text-sm text-muted-foreground">{t("quiz.questionEditor.noChoicesYet")}</p>}
           <Button onClick={onAddChoice} variant="default" className="w-full mt-2">
             <PlusCircle className="h-4 w-4 mr-2" />
-            Add Choice
+            {t("quiz.questionEditor.addChoice")}
           </Button>
         </div>
         <div className="space-y-4">
           <div className="space-y-1">
-            <Label htmlFor="questionTags" className="font-semibold">Assign Tags:</Label>
+            <Label htmlFor="questionTags" className="font-semibold">{t("quiz.questionEditor.assignTags")}</Label>
             <FancyMultiSelect
               value={selectedQuestion.tags}
               onChange={onTagsChange}
               availableOptions={availableTags}
-              placeholder="Select or create tags..."
+              placeholder={t("quiz.questionEditor.selectOrCreateTags")}
             />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1">
-              <Label htmlFor="questionCategory" className="font-semibold">Category:</Label>
+              <Label htmlFor="questionCategory" className="font-semibold">{t("quiz.category")}:</Label>
               <Input
                 id="questionCategory"
                 name="category"
@@ -240,25 +239,25 @@ export const QuestionEditorPanelContent: React.FC<QuestionEditorPanelContentProp
               />
             </div>
             <div className="space-y-1">
-              <Label htmlFor="questionDifficulty" className="font-semibold">Difficulty:</Label>
+              <Label htmlFor="questionDifficulty" className="font-semibold">{t("quiz.difficulty.title")}:</Label>
               <Select
                 value={selectedQuestion.difficulty || ""}
                 onValueChange={handleDifficultyChange}
               >
                 <SelectTrigger id="questionDifficulty">
-                  <SelectValue placeholder="Select difficulty" />
+                  <SelectValue placeholder={t("quiz.questionEditor.selectDifficulty")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="easy">Easy</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="hard">Hard</SelectItem>
+                  <SelectItem value="easy">{t("quiz.difficulty.easy")}</SelectItem>
+                  <SelectItem value="medium">{t("quiz.difficulty.medium")}</SelectItem>
+                  <SelectItem value="hard">{t("quiz.difficulty.hard")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
 
           <div className="space-y-1">
-            <Label htmlFor="questionCreatedAt" className="font-semibold">Created At:</Label>
+            <Label htmlFor="questionCreatedAt" className="font-semibold">{t("quiz.questionEditor.createdAt")}</Label>
             <DatetimePicker
               value={createdAtDate}
               onChange={handleCreatedAtChange}
@@ -266,13 +265,13 @@ export const QuestionEditorPanelContent: React.FC<QuestionEditorPanelContentProp
           </div>
         </div>
         <div className="space-y-2">
-          <h3 className="text-lg font-semibold">Notes</h3>
+          <h3 className="text-lg font-semibold">{t("quiz.notes")}</h3>
           <MinimalTiptapEditor
             key={`notes-editor-${selectedQuestion.id}`}
             value={selectedQuestion.notes || ""}
             onChange={handleNotesChange}
             output="html"
-            placeholder="Enter notes for the question..."
+            placeholder={t("quiz.questionEditor.enterNotesForQuestion")}
             editorContentClassName="min-h-[100px] p-2"
             immediatelyRender={false}
           />

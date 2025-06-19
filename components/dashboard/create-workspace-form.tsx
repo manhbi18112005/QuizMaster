@@ -16,19 +16,22 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { saveQuestionBank } from "@/lib/db";
 import { Button } from "../ui/button";
-
-const formSchema = z.object({
-    id: z.string().optional(),
-    name: z.string().min(1, "Bank name is required"),
-    description: z.string(),
-});
-
+import { useTranslation } from "@/hooks/use-translation";
 interface CreateBankDialogProps {
     onBankCreated: (slug: string) => void;
 }
 
 export function CreateWorkspaceForm({ onBankCreated }: CreateBankDialogProps) {
+    const { t } = useTranslation();
+
     const [isCreating, setIsCreating] = useState(false);
+
+    const formSchema = z.object({
+        id: z.string().optional(),
+        name: z.string().min(1, t("quiz.createBank.validation.nameRequired")),
+        description: z.string(),
+    });
+
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -55,10 +58,10 @@ export function CreateWorkspaceForm({ onBankCreated }: CreateBankDialogProps) {
             });
             onBankCreated(savedId);
             resetForm();
-            toast.success("Question bank created successfully.");
+            toast.success(t('quiz.createBank.successMessage'));
         } catch (error) {
             console.error(error, "Failed to create new bank");
-            toast.error("Failed to create question bank. Please try again.");
+            toast.error(t('quiz.createBank.errorMessage'));
         } finally {
             setIsCreating(false);
         }
@@ -73,12 +76,12 @@ export function CreateWorkspaceForm({ onBankCreated }: CreateBankDialogProps) {
                     render={({ field }) => (
                         <FormItem className="grid grid-cols-4 items-center gap-4">
                             <FormLabel className="text-right">
-                                Name <span className="text-red-500">*</span>
+                                {t('quiz.createBank.fields.name')} <span className="text-red-500">*</span>
                             </FormLabel>
                             <div className="col-span-3">
                                 <FormControl>
                                     <Input
-                                        placeholder="e.g., Algebra Basics"
+                                        placeholder={t('quiz.createBank.fields.namePlaceholder')}
                                         {...field}
                                     />
                                 </FormControl>
@@ -92,11 +95,11 @@ export function CreateWorkspaceForm({ onBankCreated }: CreateBankDialogProps) {
                     name="description"
                     render={({ field }) => (
                         <FormItem className="grid grid-cols-4 items-center gap-4">
-                            <FormLabel className="text-right">Description</FormLabel>
+                            <FormLabel className="text-right">{t('quiz.createBank.fields.description')}</FormLabel>
                             <div className="col-span-3">
                                 <FormControl>
                                     <Input
-                                        placeholder="e.g., A collection of fundamental algebra questions."
+                                        placeholder={t('quiz.createBank.fields.descriptionPlaceholder')}
                                         {...field}
                                     />
                                 </FormControl>
@@ -110,11 +113,11 @@ export function CreateWorkspaceForm({ onBankCreated }: CreateBankDialogProps) {
                     name="id"
                     render={({ field }) => (
                         <FormItem className="grid grid-cols-4 items-center gap-4">
-                            <FormLabel className="text-right">ID</FormLabel>
+                            <FormLabel className="text-right">{t('quiz.createBank.fields.id')}</FormLabel>
                             <div className="col-span-3">
                                 <FormControl>
                                     <Input
-                                        placeholder="e.g., custom-bank-id (or leave blank)"
+                                        placeholder={t('quiz.createBank.fields.idPlaceholder')}
                                         {...field}
                                     />
                                 </FormControl>
@@ -124,7 +127,7 @@ export function CreateWorkspaceForm({ onBankCreated }: CreateBankDialogProps) {
                     )}
                 />
                 <Button className="w-full" type="submit" disabled={isCreating}>
-                    {isCreating ? "Creating..." : "Create Bank"}
+                    {isCreating ? t('quiz.createBank.creating') : t('quiz.createBank.createButton')}
                 </Button>
             </form>
         </Form>

@@ -8,19 +8,16 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useMemo } from 'react';
+import { useMemo, useCallback } from 'react';
 import { Language, languageMetadata } from '@/types/language';
 import { getLanguagesFromCodes, findLanguageByCode } from '@/lib/language-utils';
+import { cn } from '@/lib/utils';
 
 export default function LanguageSwitcher() {
     const { i18n } = useTranslation();
 
-    // Automatically get available languages from i18n configuration
     const availableLanguages = useMemo((): Language[] => {
-        // Get languages from i18n resources instead of supportedLngs to avoid type issues
         const resourceLanguages = Object.keys(i18n.store.data || {});
-
-        // Fallback to metadata keys if no resources are loaded yet
         const languageCodes = resourceLanguages.length > 0
             ? resourceLanguages
             : Object.keys(languageMetadata);
@@ -28,25 +25,28 @@ export default function LanguageSwitcher() {
         return getLanguagesFromCodes(languageCodes);
     }, [i18n.store.data]);
 
-    const changeLanguage = (languageCode: string) => {
+    const currentLanguage = useMemo(() => {
+        return availableLanguages.find(lang => lang.code === i18n.language) ||
+            findLanguageByCode(i18n.language) ||
+            availableLanguages[0];
+    }, [availableLanguages, i18n.language]);
+
+    const changeLanguage = useCallback((languageCode: string) => {
         i18n.changeLanguage(languageCode);
-    };
+    }, [i18n]);
 
-    const currentLanguage = availableLanguages.find((lang: Language) => lang.code === i18n.language) ||
-        findLanguageByCode(i18n.language) ||
-        availableLanguages[0];
-
-    // Don't render if no languages available
-    if (availableLanguages.length <= 1) {
-        return null;
-    }
+    // Early return for single language
+    if (availableLanguages.length <= 1) return null;
 
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <Button
-                    className="rounded-full w-8 h-8 bg-background"
-                    variant="outline"
+                    className={cn(
+                        "rounded-full w-8 h-8",
+                        currentLanguage?.code === 'vi' ? 'bg-red-600' : 'bg-background'
+                    )}
+                    variant={currentLanguage?.code === 'vi' ? 'destructive' : 'outline'}
                     size="icon"
                 >
                     <span>{currentLanguage?.flag}</span>
@@ -57,8 +57,10 @@ export default function LanguageSwitcher() {
                     <DropdownMenuItem
                         key={language.code}
                         onClick={() => changeLanguage(language.code)}
-                        className={`flex items-center gap-2 ${i18n.language === language.code ? 'bg-accent' : ''
-                            }`}
+                        className={cn(
+                            "flex items-center gap-2",
+                            i18n.language === language.code && "bg-accent"
+                        )}
                     >
                         <span>{language.flag}</span>
                         <span>{language.name}</span>

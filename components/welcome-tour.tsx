@@ -2,65 +2,63 @@
 
 import { useEffect, useState, useCallback } from "react"
 import { IntroDisclosure } from "@/components/cultui/intro-disclosure"
-
-const steps = [
-    {
-        title: "Welcome to QuizMaster",
-        short_description: "Your personal quiz creation platform",
-        full_description:
-            "Welcome to QuizMaster! A modern, offline-first quiz platform designed to help students create, organize, and practice with custom question banks. Let's explore what makes it special.",
-        media: {
-            type: "image" as const,
-            src: "/tour/1.png",
-            alt: "QuizMaster dashboard overview",
-        },
-    },
-    {
-        title: "Create Question Banks",
-        short_description: "Organize your study materials",
-        full_description:
-            "Start by creating question banks for different subjects or topics. Each bank can contain multiple questions with rich formatting, multiple choice answers, tags, and difficulty levels.",
-        media: {
-            type: "image" as const,
-            src: "/tour/2.png",
-            alt: "Question bank creation interface",
-        },
-        action: {
-            label: "Create Your First Bank",
-            href: "/banks",
-        },
-    },
-    {
-        title: "Rich Question Editor",
-        short_description: "Craft detailed questions",
-        full_description:
-            "Use our powerful editor to create questions with formatted text, multiple choices, correct answers, tags, categories, and notes. Drag and drop to reorder questions as needed.",
-        media: {
-            type: "image" as const,
-            src: "/tour/3.png",
-            alt: "Question editor interface",
-        },
-        action: {
-            label: "Explore Editor Features",
-            href: "/banks",
-        },
-    },
-    {
-        title: "Import & Export",
-        short_description: "Share and backup your work",
-        full_description:
-            "Import questions from JSON files or export your question banks to share with classmates or backup your work. Everything works offline using your browser's local storage.",
-        action: {
-            label: "Start Creating Questions",
-            href: "/banks",
-        },
-    },
-]
+import { useTranslation } from "@/hooks/use-translation"
 
 const FEATURE_INTRO_DEMO_KEY = "feature_intro-demo"
 
 export function WelcomeTour() {
+    const { t } = useTranslation()
     const [open, setOpen] = useState(false)
+
+    const steps = [
+        {
+            title: t("welcome_tour.step_1.title"),
+            short_description: t("welcome_tour.step_1.short_description"),
+            full_description: t("welcome_tour.step_1.full_description"),
+            media: {
+                type: "image" as const,
+                src: "/tour/1.png",
+                alt: t("welcome_tour.step_1.media_alt"),
+            },
+        },
+        {
+            title: t("welcome_tour.step_2.title"),
+            short_description: t("welcome_tour.step_2.short_description"),
+            full_description: t("welcome_tour.step_2.full_description"),
+            media: {
+                type: "image" as const,
+                src: "/tour/2.png",
+                alt: t("welcome_tour.step_2.media_alt"),
+            },
+            action: {
+                label: t("welcome_tour.step_2.action_label"),
+                href: "/banks",
+            },
+        },
+        {
+            title: t("welcome_tour.step_3.title"),
+            short_description: t("welcome_tour.step_3.short_description"),
+            full_description: t("welcome_tour.step_3.full_description"),
+            media: {
+                type: "image" as const,
+                src: "/tour/3.png",
+                alt: t("welcome_tour.step_3.media_alt"),
+            },
+            action: {
+                label: t("welcome_tour.step_3.action_label"),
+                href: "/banks",
+            },
+        },
+        {
+            title: t("welcome_tour.step_4.title"),
+            short_description: t("welcome_tour.step_4.short_description"),
+            full_description: t("welcome_tour.step_4.full_description"),
+            action: {
+                label: t("welcome_tour.step_4.action_label"),
+                href: "/banks",
+            },
+        },
+    ]
 
     const syncIntroOpenState = useCallback(() => {
         const featureIntroStatus = localStorage.getItem(FEATURE_INTRO_DEMO_KEY)

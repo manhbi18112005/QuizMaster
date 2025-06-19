@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Download, Eye, EyeOff } from "lucide-react";
 import useWorkspace from '@/helpers/swr/use-workspace';
+import { useTranslation } from "@/hooks/use-translation";
 
 interface ExportDialogProps {
   isOpen: boolean;
@@ -25,6 +26,7 @@ export const ExportDialog: FC<ExportDialogProps> = ({
   onClose,
   onExportData,
 }) => {
+  const { t } = useTranslation();
 
   const { workspace } = useWorkspace();
   const defaultFilename = workspace?.name ? `${workspace.name}-quiz-data` : 'quiz-data';
@@ -60,15 +62,15 @@ export const ExportDialog: FC<ExportDialogProps> = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Download className="h-5 w-5" />
-            Export Quiz Data
+            {t("quiz.export.title")}
           </DialogTitle>
           <DialogDescription>
-            Configure export settings for your quiz data.
+            {t("quiz.export.description")}
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
-            <Label htmlFor="filename">Filename</Label>
+            <Label htmlFor="filename">{t("quiz.export.filename")}</Label>
             <div className="flex items-center gap-2">
               <Input
                 id="filename"
@@ -86,7 +88,7 @@ export const ExportDialog: FC<ExportDialogProps> = ({
               onCheckedChange={(checked) => setFormatJson(checked as boolean)}
             />
             <Label htmlFor="format" className="text-sm">
-              Format JSON (pretty print)
+              {t("quiz.export.formatJson")}
             </Label>
           </div>
           <div className="flex items-center space-x-2">
@@ -96,20 +98,20 @@ export const ExportDialog: FC<ExportDialogProps> = ({
               onCheckedChange={(checked) => setEnablePassword(checked as boolean)}
             />
             <Label htmlFor="password" className="text-sm">
-              Encrypt with password
+              {t("quiz.export.encryptPassword")}
             </Label>
           </div>
           {enablePassword && (
             <div className="grid gap-4 pl-6 border-l-2 border-muted">
               <div className="grid gap-2">
-                <Label htmlFor="passwordInput">Password</Label>
+                <Label htmlFor="passwordInput">{t("quiz.export.password")}</Label>
                 <div className="relative">
                   <Input
                     id="passwordInput"
                     type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Enter password"
+                    placeholder={t("quiz.export.passwordPlaceholder")}
                     className="pr-10"
                     autoComplete="off"
                   />
@@ -125,14 +127,14 @@ export const ExportDialog: FC<ExportDialogProps> = ({
                 </div>
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="confirmPasswordInput">Confirm Password</Label>
+                <Label htmlFor="confirmPasswordInput">{t("quiz.export.confirmPassword")}</Label>
                 <div className="relative">
                   <Input
                     id="confirmPasswordInput"
                     type={showConfirmPassword ? "text" : "password"}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="Confirm password"
+                    placeholder={t("quiz.export.confirmPasswordPlaceholder")}
                     className={`pr-10 ${confirmPassword && !passwordsMatch ? 'border-destructive' : ''}`}
                     autoComplete="off"
                   />
@@ -147,7 +149,7 @@ export const ExportDialog: FC<ExportDialogProps> = ({
                   </Button>
                 </div>
                 {confirmPassword && !passwordsMatch && (
-                  <p className="text-sm text-destructive">Passwords do not match</p>
+                  <p className="text-sm text-destructive">{t("quiz.export.passwordMismatch")}</p>
                 )}
               </div>
             </div>
@@ -155,10 +157,10 @@ export const ExportDialog: FC<ExportDialogProps> = ({
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={handleClose}>
-            Cancel
+            {t("common.cancel")}
           </Button>
           <Button onClick={handleExport} disabled={!canExport}>
-            Export
+            {t("quiz.export.exportButton")}
           </Button>
         </DialogFooter>
       </DialogContent>

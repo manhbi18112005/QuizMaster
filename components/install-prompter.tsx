@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useIsPWA } from "@/hooks/use-pwa";
+import { useTranslation } from "@/hooks/use-translation";
 
 interface BeforeInstallPromptEvent extends Event {
     readonly platforms: string[];
@@ -29,32 +30,33 @@ interface InstallState {
 const FEATURES = [
     {
         icon: Zap,
-        title: "Instant Access",
-        description: "Launch directly from your home screen without opening a browser",
+        titleKey: "installPrompter.features.instantAccess.title",
+        descriptionKey: "installPrompter.features.instantAccess.description",
         colorClass: "blue"
     },
     {
         icon: Wifi,
-        title: "Offline Ready",
-        description: "Continue learning even without internet connection",
+        titleKey: "installPrompter.features.offlineReady.title",
+        descriptionKey: "installPrompter.features.offlineReady.description",
         colorClass: "green"
     },
     {
         icon: Bell,
-        title: "Smart Notifications",
-        description: "Get immediate notifications about new features and updates",
+        titleKey: "installPrompter.features.smartNotifications.title",
+        descriptionKey: "installPrompter.features.smartNotifications.description",
         colorClass: "purple"
     },
     {
         icon: Shield,
-        title: "Secure & Private",
-        description: "Your data stays safe with enhanced security features",
+        titleKey: "installPrompter.features.securePrivate.title",
+        descriptionKey: "installPrompter.features.securePrivate.description",
         colorClass: "orange"
     }
 ] as const;
 
 export default function InstallPrompter({ isOpen }: InstallPrompterProps) {
     const isPWA = useIsPWA();
+    const { t } = useTranslation();
     const [installState, setInstallState] = useState<InstallState>({
         isInstallable: false,
         deferredPrompt: null,
@@ -129,7 +131,7 @@ export default function InstallPrompter({ isOpen }: InstallPrompterProps) {
                             isOpen === false ? "opacity-0 hidden" : "opacity-100"
                         )}
                     >
-                        {isPWA ? `Installed` : "Install App"}
+                        {isPWA ? t("installPrompter.installed") : t("installPrompter.installApp")}
                     </p>
                     {isPWA && (
                         <span className="ml-2 text-xs text-muted-foreground">
@@ -146,23 +148,23 @@ export default function InstallPrompter({ isOpen }: InstallPrompterProps) {
                             <Smartphone className="h-6 w-6 text-primary" />
                         </div>
                         <DialogTitle className="text-xl font-semibold">
-                            Install QuizMaster
+                            {t("installPrompter.dialog.title")}
                         </DialogTitle>
                         <DialogDescription className="text-muted-foreground">
-                            Transform your browser experience into a native app
+                            {t("installPrompter.dialog.description")}
                         </DialogDescription>
                     </DialogHeader>
 
                     <div className="space-y-4">
                         <div className="grid gap-3">
-                            {FEATURES.map(({ icon: Icon, title, description, colorClass }) => (
-                                <div key={title} className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
+                            {FEATURES.map(({ icon: Icon, titleKey, descriptionKey, colorClass }) => (
+                                <div key={titleKey} className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
                                     <div className={`w-8 h-8 bg-${colorClass}-500/10 rounded-full flex items-center justify-center flex-shrink-0`}>
                                         <Icon className={`h-4 w-4 text-${colorClass}-600`} />
                                     </div>
                                     <div className="space-y-1">
-                                        <p className="text-sm font-medium">{title}</p>
-                                        <p className="text-xs text-muted-foreground">{description}</p>
+                                        <p className="text-sm font-medium">{t(titleKey)}</p>
+                                        <p className="text-xs text-muted-foreground">{t(descriptionKey)}</p>
                                     </div>
                                 </div>
                             ))}
@@ -170,7 +172,7 @@ export default function InstallPrompter({ isOpen }: InstallPrompterProps) {
 
                         <div className="border-t pt-4">
                             <p className="text-xs text-muted-foreground text-center">
-                                Installing takes just a few seconds and uses minimal storage space
+                                {t("installPrompter.dialog.storageNote")}
                             </p>
                         </div>
                     </div>
@@ -181,13 +183,13 @@ export default function InstallPrompter({ isOpen }: InstallPrompterProps) {
                             onClick={handleDialogClose}
                             className="w-full sm:w-auto"
                         >
-                            Not Now
+                            {t("installPrompter.dialog.notNow")}
                         </Button>
                         <Button
                             onClick={handleInstallPWA}
                             className="w-full sm:w-auto group"
                         >
-                            Install App
+                            {t("installPrompter.dialog.installApp")}
                             <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
                         </Button>
                     </DialogFooter>

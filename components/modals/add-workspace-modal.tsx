@@ -15,6 +15,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
+import { useTranslation } from "@/hooks/use-translation";
 
 function AddWorkspaceModalHelper({
     showAddWorkspaceModal,
@@ -23,14 +24,17 @@ function AddWorkspaceModalHelper({
     showAddWorkspaceModal: boolean;
     setShowAddWorkspaceModal: Dispatch<SetStateAction<boolean>>;
 }) {
+
     const router = useRouter();
+    const { t } = useTranslation();
+
     return (
         <Dialog open={showAddWorkspaceModal} onOpenChange={setShowAddWorkspaceModal}>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle>Create New Question Bank</DialogTitle>
+                    <DialogTitle>{t('quiz.createBank.title')}</DialogTitle>
                     <DialogDescription>
-                        Fill in the details below to create a new question bank. Click create when you are done.
+                        {t('quiz.createBank.description')}
                     </DialogDescription>
                 </DialogHeader>
                 <CreateWorkspaceForm

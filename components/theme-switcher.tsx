@@ -1,29 +1,76 @@
 "use client";
 
 import { useTheme } from "next-themes";
-import { MoonIcon, SunIcon } from "@radix-ui/react-icons";
+import { MoonIcon, SunIcon, DesktopIcon } from "@radix-ui/react-icons";
 
 import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useTranslation } from "@/hooks/use-translation";
 
 export default function ThemeSwitcher() {
+  const { t } = useTranslation();
   const { setTheme, theme } = useTheme();
 
+  const getThemeIcon = () => {
+    switch (theme) {
+      case "light":
+        return <SunIcon className="w-[1.2rem] h-[1.2rem]" />;
+      case "dark":
+        return <MoonIcon className="w-[1.2rem] h-[1.2rem]" />;
+      case "system":
+        return <DesktopIcon className="w-[1.2rem] h-[1.2rem]" />;
+      default:
+        return <DesktopIcon className="w-[1.2rem] h-[1.2rem]" />;
+    }
+  };
+
+  const themeOptions = [
+    {
+      value: "light",
+      label: t("settings.theme.light"),
+      icon: <SunIcon className="w-4 h-4" />,
+    },
+    {
+      value: "dark",
+      label: t("settings.theme.dark"),
+      icon: <MoonIcon className="w-4 h-4" />,
+    },
+    {
+      value: "system",
+      label: t("settings.theme.system"),
+      icon: <DesktopIcon className="w-4 h-4" />,
+    },
+  ];
+
   return (
-    <Tooltip delayDuration={100}>
-      <TooltipTrigger asChild>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
         <Button
           className="rounded-full w-8 h-8 bg-background"
           variant="outline"
           size="icon"
-          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
         >
-          <SunIcon className="w-[1.2rem] h-[1.2rem] rotate-90 scale-0 transition-transform ease-in-out duration-500 dark:rotate-0 dark:scale-100" />
-          <MoonIcon className="absolute w-[1.2rem] h-[1.2rem] rotate-0 scale-100 transition-transform ease-in-out duration-500 dark:-rotate-90 dark:scale-0" />
-          <span className="sr-only">Switch Theme</span>
+          {getThemeIcon()}
+          <span className="sr-only">{t("settings.theme.light")}</span>
         </Button>
-      </TooltipTrigger>
-      <TooltipContent side="bottom">Switch Theme</TooltipContent>
-    </Tooltip>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        {themeOptions.map((option) => (
+          <DropdownMenuItem
+            key={option.value}
+            onClick={() => setTheme(option.value)}
+            className="flex items-center gap-2 cursor-pointer"
+          >
+            {option.icon}
+            {option.label}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

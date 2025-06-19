@@ -9,6 +9,7 @@ import { SafeContent } from '@/components/safecontent';
 import { Blockquote } from '@/components/ui/block-quote';
 import { TipTapViewer } from '@/components/tiptap-viewer';
 import { Button } from '@/components/ui/button';
+import { useTranslation } from "@/hooks/use-translation";
 
 interface QuestionViewerPanelContentProps {
   selectedQuestion: Question | undefined;
@@ -25,10 +26,12 @@ export const QuestionViewerPanelContent: FC<QuestionViewerPanelContentProps> = (
   canGoPrevious,
   canGoNext,
 }) => {
+  const { t } = useTranslation();
+
   if (!selectedQuestion) {
     return (
       <div className="flex items-center justify-center h-full">
-        <p className="text-muted-foreground">Select a question to see its details.</p>
+        <p className="text-muted-foreground">{t("quiz.questionViewer.selectQuestionToSeeDetails")}</p>
       </div>
     );
   }
@@ -37,11 +40,11 @@ export const QuestionViewerPanelContent: FC<QuestionViewerPanelContentProps> = (
     if (!text) return;
     try {
       await navigator.clipboard.writeText(text);
-      toast.success("Copied to clipboard!");
+      toast.success(t("quiz.questionViewer.copiedToClipboard"));
     } catch (err) {
       console.error(err, 'Failed to copy');
-      toast.error("Failed to copy", {
-        description: "Could not copy text to clipboard.",
+      toast.error(t("quiz.questionViewer.failedToCopy"), {
+        description: t("quiz.questionViewer.couldNotCopyText"),
       });
     }
   };
@@ -75,10 +78,10 @@ export const QuestionViewerPanelContent: FC<QuestionViewerPanelContentProps> = (
             {onPrevious && onNext && (
               <>
                 <Button onClick={onPrevious} disabled={!canGoPrevious} variant="outline">
-                  Previous
+                  {t("common.previous")}
                 </Button>
                 <Button onClick={onNext} disabled={!canGoNext} variant="outline">
-                  Next
+                  {t("common.next")}
                 </Button>
               </>
             )}
@@ -91,7 +94,7 @@ export const QuestionViewerPanelContent: FC<QuestionViewerPanelContentProps> = (
               const textToCopy = (e.currentTarget as HTMLElement).textContent || "";
               handleCopy(textToCopy);
             }}
-            title="Click to copy question text"
+            title={t("quiz.questionViewer.clickToCopyQuestion")}
           >
             <TipTapViewer content={selectedQuestion.question} />
           </div>
@@ -112,7 +115,7 @@ export const QuestionViewerPanelContent: FC<QuestionViewerPanelContentProps> = (
                   key={index}
                   className={`${baseClasses} ${correctnessClasses} cursor-pointer`}
                   onClick={() => handleCopy(choice.value)}
-                  title="Click to copy choice text"
+                  title={t("quiz.questionViewer.clickToCopyChoice")}
                 >
                   <span className="flex-1 font-semibold">
                     <SafeContent content={choice.value} />
@@ -124,14 +127,14 @@ export const QuestionViewerPanelContent: FC<QuestionViewerPanelContentProps> = (
               );
             })
           ) : (
-            <p className="text-sm text-muted-foreground">No choices for this question.</p>
+            <p className="text-sm text-muted-foreground">{t("quiz.questionViewer.noChoicesForQuestion")}</p>
           )}
         </div>
 
         <div className="space-y-4">
           {selectedQuestion.tags && selectedQuestion.tags.length > 0 && (
             <div className="space-y-1">
-              <Label htmlFor="questionTags" className="font-semibold">Tags:</Label>
+              <Label htmlFor="questionTags" className="font-semibold">{t("quiz.tags")}:</Label>
               <div className="flex flex-wrap gap-2">
                 {selectedQuestion.tags.map(tag => (
                   <span key={tag} className="px-2 py-1 bg-muted text-muted-foreground rounded-md text-sm">

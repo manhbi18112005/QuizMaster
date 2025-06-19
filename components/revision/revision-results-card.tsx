@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { FlickeringGrid } from "@/components/ui/flickering-grid";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from "@/hooks/use-translation";
 import {
     CheckCircle,
     Trophy,
@@ -22,7 +23,7 @@ import {
 } from "lucide-react";
 import { TestResults } from "@/types/test-results";
 import { TestSettingsType } from "@/types/test-settings";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
 
 interface TestResultsCardProps {
     testResults: TestResults;
@@ -35,101 +36,6 @@ interface TestResultsCardProps {
     formatTime: (seconds: number) => string;
 }
 
-// Grade configuration
-const GRADE_CONFIG = {
-    A: { threshold: 90, label: 'Excellent!', color: 'text-emerald-600', bg: 'bg-emerald-50 border-emerald-200', gridColor: '#10B981' },
-    B: { threshold: 80, label: 'Good Job!', color: 'text-blue-600', bg: 'bg-blue-50 border-blue-200', gridColor: '#3B82F6' },
-    C: { threshold: 70, label: 'Well Done!', color: 'text-amber-600', bg: 'bg-amber-50 border-amber-200', gridColor: '#F59E0B' },
-    D: { threshold: 60, label: 'Keep Trying!', color: 'text-orange-600', bg: 'bg-orange-50 border-orange-200', gridColor: '#F97316' },
-    F: { threshold: 0, label: 'Need Improvement', color: 'text-red-600', bg: 'bg-red-50 border-red-200', gridColor: '#EF4444' }
-} as const;
-
-// Badge color configurations
-const BADGE_COLORS = {
-    emerald: 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800',
-    blue: 'bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800',
-    green: 'bg-green-50 dark:bg-green-950/50 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800',
-    amber: 'bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800',
-} as const;
-
-// Insight configurations
-const INSIGHTS_CONFIG = [
-    {
-        condition: (score: number) => score >= 90,
-        icon: Trophy,
-        title: 'Outstanding Performance!',
-        description: 'You\'ve mastered this material completely.',
-        colorScheme: 'emerald'
-    },
-    {
-        condition: (score: number) => score >= 70 && score < 90,
-        icon: CheckCircle,
-        title: 'Good Work!',
-        description: 'Consider reviewing the questions you missed.',
-        colorScheme: 'blue'
-    },
-    {
-        condition: (score: number) => score < 70,
-        icon: BookOpen,
-        title: 'More Study Needed',
-        description: 'Focus on the areas where you struggled.',
-        colorScheme: 'amber'
-    }
-] as const;
-
-const getGradeInfo = (score: number) => {
-    return Object.entries(GRADE_CONFIG).find(([_, config]) => score >= config.threshold)?.[1] || GRADE_CONFIG.F;
-};
-
-// Reusable components
-const StatCard = ({ icon: Icon, value, label, iconColor }: {
-    icon: React.ComponentType<{ className?: string }>;
-    value: string | number;
-    label: string;
-    iconColor: string;
-}) => (
-    <div className="text-center p-4 rounded-lg bg-muted/30">
-        <Icon className={`h-5 w-5 mx-auto mb-2 ${iconColor}`} />
-        <div className="text-2xl font-bold">{value}</div>
-        <div className="text-sm text-muted-foreground">{label}</div>
-    </div>
-);
-
-const InsightCard = ({ icon: Icon, title, description, colorScheme }: {
-    icon: React.ComponentType<{ className?: string }>;
-    title: string;
-    description: string;
-    colorScheme: keyof typeof BADGE_COLORS;
-}) => {
-    const colorClass = BADGE_COLORS[colorScheme];
-    const iconColorMap = {
-        emerald: 'text-emerald-600 dark:text-emerald-400',
-        blue: 'text-blue-600 dark:text-blue-400',
-        green: 'text-green-600 dark:text-green-400',
-        amber: 'text-amber-600 dark:text-amber-400',
-    };
-
-    return (
-        <div className={`flex items-start gap-3 p-3 ${colorClass} border rounded-lg`}>
-            <Icon className={`h-5 w-5 ${iconColorMap[colorScheme]} mt-0.5 flex-shrink-0`} />
-            <div>
-                <p className={`text-sm font-medium ${colorScheme === 'emerald' ? 'text-emerald-800 dark:text-emerald-200' :
-                    colorScheme === 'blue' ? 'text-blue-800 dark:text-blue-200' :
-                        colorScheme === 'amber' ? 'text-amber-800 dark:text-amber-200' :
-                            'text-green-800 dark:text-green-200'}`}>
-                    {title}
-                </p>
-                <p className={`text-xs mt-1 ${colorScheme === 'emerald' ? 'text-emerald-600 dark:text-emerald-400' :
-                    colorScheme === 'blue' ? 'text-blue-600 dark:text-blue-400' :
-                        colorScheme === 'amber' ? 'text-amber-600 dark:text-amber-400' :
-                            'text-green-600 dark:text-green-400'}`}>
-                    {description}
-                </p>
-            </div>
-        </div>
-    );
-};
-
 export function TestResultsCard({
     testResults,
     answers,
@@ -140,9 +46,104 @@ export function TestResultsCard({
     onRetakeTest,
     formatTime
 }: TestResultsCardProps) {
+    const { t } = useTranslation();
+
+    const GRADE_CONFIG = useMemo(() => ({
+        A: { threshold: 90, label: t('quiz.testResults.gradeLabels.excellent'), color: 'text-emerald-600', bg: 'bg-emerald-50 border-emerald-200', gridColor: '#10B981' },
+        B: { threshold: 80, label: t('quiz.testResults.gradeLabels.goodJob'), color: 'text-blue-600', bg: 'bg-blue-50 border-blue-200', gridColor: '#3B82F6' },
+        C: { threshold: 70, label: t('quiz.testResults.gradeLabels.wellDone'), color: 'text-amber-600', bg: 'bg-amber-50 border-amber-200', gridColor: '#F59E0B' },
+        D: { threshold: 60, label: t('quiz.testResults.gradeLabels.keepTrying'), color: 'text-orange-600', bg: 'bg-orange-50 border-orange-200', gridColor: '#F97316' },
+        F: { threshold: 0, label: t('quiz.testResults.gradeLabels.needImprovement'), color: 'text-red-600', bg: 'bg-red-50 border-red-200', gridColor: '#EF4444' }
+    } as const), [t]);
+
+    // Badge color configurations
+    const BADGE_COLORS = {
+        emerald: 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800',
+        blue: 'bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800',
+        green: 'bg-green-50 dark:bg-green-950/50 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800',
+        amber: 'bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800',
+    } as const;
+
+    // Insight configurations
+    const INSIGHTS_CONFIG = useMemo(() => [
+        {
+            condition: (score: number) => score >= 90,
+            icon: Trophy,
+            title: t('quiz.testResults.outstandingPerformance'),
+            description: t('quiz.testResults.youveMasteredMaterial'),
+            colorScheme: 'emerald'
+        },
+        {
+            condition: (score: number) => score >= 70 && score < 90,
+            icon: CheckCircle,
+            title: t('quiz.testResults.goodWork'),
+            description: t('quiz.testResults.considerReviewing'),
+            colorScheme: 'blue'
+        },
+        {
+            condition: (score: number) => score < 70,
+            icon: BookOpen,
+            title: t('quiz.testResults.moreStudyNeeded'),
+            description: t('quiz.testResults.focusOnStruggleAreas'),
+            colorScheme: 'amber'
+        }
+    ], [t]);
+
+    const getGradeInfo = useCallback((score: number) => {
+        return Object.entries(GRADE_CONFIG).find(([_, config]) => score >= config.threshold)?.[1] || GRADE_CONFIG.F;
+    }, [GRADE_CONFIG]);
+
+    // Reusable components
+    const StatCard = ({ icon: Icon, value, label, iconColor }: {
+        icon: React.ComponentType<{ className?: string }>;
+        value: string | number;
+        label: string;
+        iconColor: string;
+    }) => (
+        <div className="text-center p-4 rounded-lg bg-muted/30">
+            <Icon className={`h-5 w-5 mx-auto mb-2 ${iconColor}`} />
+            <div className="text-2xl font-bold">{value}</div>
+            <div className="text-sm text-muted-foreground">{label}</div>
+        </div>
+    );
+
+    const InsightCard = ({ icon: Icon, title, description, colorScheme }: {
+        icon: React.ComponentType<{ className?: string }>;
+        title: string;
+        description: string;
+        colorScheme: keyof typeof BADGE_COLORS;
+    }) => {
+        const colorClass = BADGE_COLORS[colorScheme];
+        const iconColorMap = {
+            emerald: 'text-emerald-600 dark:text-emerald-400',
+            blue: 'text-blue-600 dark:text-blue-400',
+            green: 'text-green-600 dark:text-green-400',
+            amber: 'text-amber-600 dark:text-amber-400',
+        };
+
+        return (
+            <div className={`flex items-start gap-3 p-3 ${colorClass} border rounded-lg`}>
+                <Icon className={`h-5 w-5 ${iconColorMap[colorScheme]} mt-0.5 flex-shrink-0`} />
+                <div>
+                    <p className={`text-sm font-medium ${colorScheme === 'emerald' ? 'text-emerald-800 dark:text-emerald-200' :
+                        colorScheme === 'blue' ? 'text-blue-800 dark:text-blue-200' :
+                            colorScheme === 'amber' ? 'text-amber-800 dark:text-amber-200' :
+                                'text-green-800 dark:text-green-200'}`}>
+                        {title}
+                    </p>
+                    <p className={`text-xs mt-1 ${colorScheme === 'emerald' ? 'text-emerald-600 dark:text-emerald-400' :
+                        colorScheme === 'blue' ? 'text-blue-600 dark:text-blue-400' :
+                            colorScheme === 'amber' ? 'text-amber-600 dark:text-amber-400' :
+                                'text-green-600 dark:text-green-400'}`}>
+                        {description}
+                    </p>
+                </div>
+            </div>
+        );
+    };
+
     const [isExpanded, setIsExpanded] = useState(true);
 
-    // Memoize expensive calculations
     const calculations = useMemo(() => {
         const accuracyRate = Math.round((testResults.correctAnswers / testResults.totalQuestions) * 100);
         const answeredQuestions = Object.values(answers).filter(answerArray => answerArray && answerArray.length > 0);
@@ -162,7 +163,7 @@ export function TestResultsCard({
         };
     }, [testResults, answers, questionTimes]);
 
-    const gradeInfo = useMemo(() => getGradeInfo(testResults.score), [testResults.score]);
+    const gradeInfo = useMemo(() => getGradeInfo(testResults.score), [getGradeInfo, testResults.score]);
 
     // Generate insights based on test performance
     const insights = useMemo(() => {
@@ -184,8 +185,8 @@ export function TestResultsCard({
         if (testResults.flaggedQuestions.length > 0) {
             results.push({
                 icon: Flag,
-                title: 'Review Flagged Questions',
-                description: `You flagged ${testResults.flaggedQuestions.length} questions for review.`,
+                title: t('quiz.testResults.reviewFlaggedQuestions'),
+                description: t('quiz.testResults.flaggedQuestionsDesc', { count: testResults.flaggedQuestions.length }),
                 colorScheme: 'amber' as const
             });
         }
@@ -193,8 +194,8 @@ export function TestResultsCard({
         if (calculations.unansweredCount > 0) {
             results.push({
                 icon: AlertCircle,
-                title: 'Incomplete Test',
-                description: `You left ${calculations.unansweredCount} questions unanswered.`,
+                title: t('quiz.testResults.incompleteTest'),
+                description: t('quiz.testResults.unansweredQuestionsDesc', { count: calculations.unansweredCount }),
                 colorScheme: 'amber' as const
             });
         }
@@ -202,8 +203,8 @@ export function TestResultsCard({
         if (calculations.avgTimePerQuestion < 30) {
             results.push({
                 icon: Zap,
-                title: 'Quick Responder',
-                description: 'You answered quickly! Make sure you read each question carefully.',
+                title: t('quiz.testResults.quickResponder'),
+                description: t('quiz.testResults.answeredQuickly'),
                 colorScheme: 'blue' as const
             });
         }
@@ -211,21 +212,21 @@ export function TestResultsCard({
         if (calculations.avgTimePerQuestion > 120) {
             results.push({
                 icon: Clock,
-                title: 'Thoughtful Approach',
-                description: 'You took your time with each question - thoroughness is valuable!',
+                title: t('quiz.testResults.thoughtfulApproach'),
+                description: t('quiz.testResults.thoroughnessValuable'),
                 colorScheme: 'blue' as const
             });
         }
 
         return results;
-    }, [testResults.score, testResults.flaggedQuestions.length, calculations]);
+    }, [INSIGHTS_CONFIG, testResults.flaggedQuestions.length, testResults.score, calculations.unansweredCount, calculations.avgTimePerQuestion, t]);
 
     const statCards = useMemo(() => [
-        { icon: Target, value: testResults.correctAnswers, label: 'Correct', iconColor: 'text-emerald-600' },
-        { icon: BookOpen, value: testResults.totalQuestions, label: 'Total', iconColor: 'text-blue-600' },
-        { icon: Clock, value: formatTime(Math.floor(testResults.timeSpent / 1000)), label: 'Total Time', iconColor: 'text-purple-600' },
-        { icon: TrendingUp, value: formatTime(calculations.avgTimePerQuestion), label: 'Avg/Question', iconColor: 'text-amber-600' }
-    ], [testResults, calculations.avgTimePerQuestion, formatTime]);
+        { icon: Target, value: testResults.correctAnswers, label: t('quiz.testResults.correct'), iconColor: 'text-emerald-600' },
+        { icon: BookOpen, value: testResults.totalQuestions, label: t('quiz.testResults.total'), iconColor: 'text-blue-600' },
+        { icon: Clock, value: formatTime(Math.floor(testResults.timeSpent / 1000)), label: t('quiz.testResults.totalTime'), iconColor: 'text-purple-600' },
+        { icon: TrendingUp, value: formatTime(calculations.avgTimePerQuestion), label: t('quiz.testResults.avgQuestion'), iconColor: 'text-amber-600' }
+    ], [testResults.correctAnswers, testResults.totalQuestions, testResults.timeSpent, t, formatTime, calculations.avgTimePerQuestion]);
 
     return (
         <div className="space-y-6">
@@ -241,7 +242,7 @@ export function TestResultsCard({
 
                 <div
                     onClick={() => setIsExpanded(!isExpanded)}
-                    className="relative z-10 text-center cursor-pointer hover:bg-muted/20 transition-colors duration-200 rounded-t-lg"
+                    className="relative z-10 text-center cursor-pointer"
                 >
                     <CardHeader className="pb-4">
                         <motion.div
@@ -252,7 +253,7 @@ export function TestResultsCard({
                             <Trophy className="h-8 w-8 text-emerald-600" />
                         </motion.div>
                         <div className="flex items-center justify-center gap-2">
-                            <CardTitle className="text-2xl font-bold">Test Complete!</CardTitle>
+                            <CardTitle className="text-2xl font-bold">{t('quiz.testResults.testComplete')}</CardTitle>
                             <motion.div
                                 animate={{ rotate: isExpanded ? 180 : 0 }}
                                 transition={{ duration: 0.2, ease: "easeInOut" }}
@@ -262,7 +263,7 @@ export function TestResultsCard({
 
                         </div>
                         <p className="text-muted-foreground">
-                            {isExpanded ? "Here are your results" : "Click to view detailed results"}
+                            {isExpanded ? t('quiz.testResults.hereAreResults') : t('quiz.testResults.clickToViewDetailed')}
                         </p>
 
                         <div className="text-center mb-6">
@@ -270,7 +271,7 @@ export function TestResultsCard({
                                 {testResults.score}%
                             </div>
                             <Badge variant="secondary" className={`${gradeInfo.bg} ${gradeInfo.color} border px-4 py-1 text-lg font-semibold`}>
-                                Grade {Object.entries(GRADE_CONFIG).find(([_, config]) => config === gradeInfo)?.[0]} • {gradeInfo.label}
+                                {t('quiz.testResults.grade')} {Object.entries(GRADE_CONFIG).find(([_, config]) => config === gradeInfo)?.[0]} • {gradeInfo.label}
                             </Badge>
                         </div>
                     </CardHeader>
@@ -310,9 +311,9 @@ export function TestResultsCard({
 
                                 <div className="mt-6 space-y-3">
                                     <div className="flex justify-between items-center">
-                                        <span className="text-sm font-medium">Overall Progress</span>
+                                        <span className="text-sm font-medium">{t('quiz.testResults.overallProgress')}</span>
                                         <span className="text-sm text-muted-foreground">
-                                            {testResults.correctAnswers} of {testResults.totalQuestions} correct
+                                            {testResults.correctAnswers} {t('common.of')} {testResults.totalQuestions} {t('quiz.testResults.correct').toLowerCase()}
                                         </span>
                                     </div>
                                     <div className="relative">
@@ -337,13 +338,13 @@ export function TestResultsCard({
                                     <div className="space-y-4 md:pr-6">
                                         <h3 className="text-lg font-semibold flex items-center gap-2">
                                             <Target className="h-5 w-5 text-emerald-600" />
-                                            Performance Breakdown
+                                            {t('quiz.testResults.performanceBreakdown')}
                                         </h3>
                                         <div className="space-y-3">
                                             <div className="flex justify-between items-center">
                                                 <span className="text-sm flex items-center gap-2">
                                                     <div className="w-2 h-2 bg-emerald-500 rounded-full" />
-                                                    Accuracy Rate
+                                                    {t('quiz.testResults.accuracyRate')}
                                                 </span>
                                                 <Badge variant="secondary" className={BADGE_COLORS.emerald}>
                                                     {calculations.accuracyRate}%
@@ -352,14 +353,14 @@ export function TestResultsCard({
                                             <div className="flex justify-between items-center">
                                                 <span className="text-sm flex items-center gap-2">
                                                     <Flag className="w-3 h-3 text-amber-500" />
-                                                    Questions Flagged
+                                                    {t('quiz.testResults.questionsFlagged')}
                                                 </span>
                                                 <Badge variant="outline">{testResults.flaggedQuestions.length}</Badge>
                                             </div>
                                             <div className="flex justify-between items-center">
                                                 <span className="text-sm flex items-center gap-2">
                                                     <AlertCircle className="w-3 h-3 text-red-500" />
-                                                    Unanswered
+                                                    {t('quiz.testResults.unanswered')}
                                                 </span>
                                                 <Badge variant={calculations.unansweredCount > 0 ? "destructive" : "outline"}>
                                                     {calculations.unansweredCount}
@@ -371,24 +372,24 @@ export function TestResultsCard({
                                     <div className="space-y-4 md:pl-6">
                                         <h3 className="text-lg font-semibold flex items-center gap-2">
                                             <Clock className="h-5 w-5 text-blue-600" />
-                                            Time Analysis
+                                            {t('quiz.testResults.timeAnalysis')}
                                         </h3>
                                         <div className="space-y-3">
                                             <div className="flex justify-between items-center">
-                                                <span className="text-sm">Fastest Question</span>
+                                                <span className="text-sm">{t('quiz.testResults.fastestQuestion')}</span>
                                                 <Badge variant="outline" className={BADGE_COLORS.green}>
                                                     {formatTime(Math.floor(calculations.fastestTime / 1000))}
                                                 </Badge>
                                             </div>
                                             <div className="flex justify-between items-center">
-                                                <span className="text-sm">Slowest Question</span>
+                                                <span className="text-sm">{t('quiz.testResults.slowestQuestion')}</span>
                                                 <Badge variant="outline" className={BADGE_COLORS.amber}>
                                                     {formatTime(Math.floor(calculations.slowestTime / 1000))}
                                                 </Badge>
                                             </div>
                                             {settings.hasTimeLimit && (
                                                 <div className="flex justify-between items-center">
-                                                    <span className="text-sm">Time Remaining</span>
+                                                    <span className="text-sm">{t('revision.timeRemaining')}: </span>
                                                     <Badge variant="outline" className={BADGE_COLORS.blue}>
                                                         {formatTime(timeLeft)}
                                                     </Badge>
@@ -408,7 +409,7 @@ export function TestResultsCard({
                                 >
                                     <h3 className="text-lg font-semibold flex items-center gap-2">
                                         <Zap className="h-5 w-5 text-blue-600" />
-                                        Performance Insights
+                                        {t('quiz.testResults.performanceInsights')}
                                     </h3>
                                     <div className="grid gap-3">
                                         {insights.map((insight, index) => (
@@ -436,7 +437,7 @@ export function TestResultsCard({
                     >
                         <Button onClick={onBackToSettings} variant="outline" size="lg" className="w-full sm:w-auto sm:min-w-[140px]">
                             <BookOpen className="w-4 h-4 mr-2" />
-                            New Test
+                            {t('quiz.testResults.backToSettings')}
                         </Button>
                     </motion.div>
                     {settings.allowRetake && onRetakeTest && (
@@ -447,7 +448,7 @@ export function TestResultsCard({
                         >
                             <Button onClick={onRetakeTest} size="lg" className="w-full sm:w-auto sm:min-w-[140px]">
                                 <Target className="w-4 h-4 mr-2" />
-                                Retake Test
+                                {t('quiz.testResults.retakeTest')}
                             </Button>
                         </motion.div>
                     )}

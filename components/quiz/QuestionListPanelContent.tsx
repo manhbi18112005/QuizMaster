@@ -5,6 +5,7 @@ import {
 } from '@dnd-kit/sortable';
 import { Question } from '@/types/quiz';
 import { QuestionCard } from './QuestionCard';
+import { useTranslation } from "@/hooks/use-translation";
 interface QuestionListPanelContentProps {
   questions: Question[];
   selectedQuestionId: string | null;
@@ -16,6 +17,7 @@ export const QuestionListPanelContent: FC<QuestionListPanelContentProps> = memo(
   selectedQuestionId,
   onCardClick,
 }) => {
+  const { t } = useTranslation();
   const itemRefs = useRef(new Map<string, HTMLDivElement | null>());
 
   useEffect(() => {
@@ -35,7 +37,7 @@ export const QuestionListPanelContent: FC<QuestionListPanelContentProps> = memo(
       items={questions.map(q => q.id)}
       strategy={verticalListSortingStrategy}
     >
-      {questions.length === 0 && <p className="text-muted-foreground">No questions yet. Click create to add one.</p>}
+      {questions.length === 0 && <p className="text-muted-foreground">{t("quiz.questionList.noQuestions")}</p>}
       {questions.map(q => (
         <div
           key={q.id}

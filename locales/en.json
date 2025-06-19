@@ -1,0 +1,577 @@
+{
+  "app": {
+    "name": "QuizMaster",
+    "description": "Master your knowledge with interactive quizzes"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save",
+    "edit": "Edit",
+    "delete": "Delete",
+    "create": "Create",
+    "update": "Update",
+    "search": "Search",
+    "next": "Next",
+    "previous": "Previous",
+    "download": "Download",
+    "upload": "Upload",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "get_started": "Get Started",
+    "of": "of"
+  },
+  "auth": {
+    "welcome": "Welcome to QuizMaster",
+    "sign_in": "Sign In",
+    "sign_up": "Sign Up",
+    "sign_out": "Sign Out",
+    "already_have_account": "Already have an account?",
+    "dont_have_account": "Don't have an account?"
+  },
+  "questionDetailModal": {
+    "title": "Question Details",
+    "editQuestion": "Edit Question"
+  },
+  "quiz": {
+    "question": "Question",
+    "answer": "Answer",
+    "correct_answer": "Correct Answer",
+    "your_answer": "Your Answer",
+    "score": "Score",
+    "time_left": "Time Left",
+    "time_up": "Time's Up!",
+    "quiz_completed": "Quiz Completed!",
+    "questions_answered": "Questions Answered",
+    "correct_answers": "Correct Answers",
+    "wrong_answers": "Wrong Answers",
+    "percentage": "Percentage",
+    "questions": "questions",
+    "tags": "Tags",
+    "notes": "Notes",
+    "difficulty": {
+      "title": "Difficulty Level",
+      "easy": "Easy",
+      "medium": "Medium",
+      "hard": "Hard"
+    },
+    "category": "Category",
+    "total_questions": "Total Questions",
+    "duration": "Duration",
+    "minutes": "minutes",
+    "seconds": "seconds",
+    "editmode": "Edit Mode",
+    "viewmode": "View Mode",
+    "fullscreen": {
+      "enter": "Enter fullscreen",
+      "exit": "Exit fullscreen"
+    },
+    "bank": {
+      "notFound": "$t(Workspace) Not Found",
+      "notFoundDescription": "The $t(workspace) you're looking for doesn't exist or has been removed.",
+      "backToDashboard": "Back to Dashboard"
+    },
+    "createBank": {
+      "title": "Create New $t(Workspace)",
+      "description": "Fill in the details below to create a new $t(workspace). Click create when you are done. You can optionally provide an ID, or one will be generated.",
+      "fields": {
+        "id": "ID",
+        "idPlaceholder": "e.g., custom-$t(workspace)-id (or leave blank)",
+        "name": "Name",
+        "namePlaceholder": "e.g., Algebra Basics",
+        "description": "Description",
+        "descriptionPlaceholder": "e.g., A collection of fundamental algebra questions."
+      },
+      "creating": "Creating...",
+      "createButton": "Create $t(Workspace)",
+      "successMessage": "$t(Workspace) created successfully.",
+      "errorMessage": "Failed to create $t(workspace). Please try again.",
+      "validation": {
+        "nameRequired": "$t(Workspace) name is required"
+      }
+    },
+    "export": {
+      "title": "Export Quiz Data",
+      "description": "Configure export settings for your quiz data.",
+      "filename": "Filename",
+      "formatJson": "Format JSON (pretty print)",
+      "encryptPassword": "Encrypt with password",
+      "password": "Password",
+      "confirmPassword": "Confirm Password",
+      "passwordPlaceholder": "Enter password",
+      "confirmPasswordPlaceholder": "Confirm password",
+      "passwordMismatch": "Passwords do not match",
+      "exportButton": "Export"
+    },
+    "import": {
+      "title": "Import Quiz Data",
+      "description": "Select a JSON file containing quiz questions to import.",
+      "dragDrop": "Drag & drop JSON files here",
+      "browseFiles": "Browse files",
+      "browseDescription": "Or click to browse (JSON files only, max 10 files)",
+      "importButton": "Import",
+      "importFiles": "{{count}} Files",
+      "importFile": "1 File",
+      "confirmMultipleFileImport": "Confirm Multiple File Import",
+      "importQuestionsFromFiles": "Import questions from {{count}} file{{plural}} to \"{{bankName}}\"? This will add the imported questions to the existing ones.",
+      "importProcessFailed": "Import process failed unexpectedly.",
+      "allQuestionsDeleted": "All questions deleted from $t(workspace): {{bankName}}",
+      "validation": {
+        "maxFiles": "You can only upload up to 10 files",
+        "jsonOnly": "Only JSON files are allowed",
+        "maxSize": "File size must be less than {{size}}MB",
+        "rejectedFile": "\"{{fileName}}\" has been rejected"
+      }
+    },
+    "passwordDialog": {
+      "title": "Enter Password",
+      "description": "Please enter the password for the encrypted file.",
+      "password": "Password",
+      "submitButton": "Submit",
+      "titleForImport": "Enter Password for Import",
+      "descriptionForImport": "This file is encrypted. Please enter the password to decrypt it."
+    },
+    "questionList": {
+      "noQuestions": "No questions yet. Click create to add one.",
+      "selectQuestionToEdit": "Select a question to edit or create a new one."
+    },
+    "toolbar": {
+      "deleteConfirm": "Are you sure you want to delete {{count}} question(s)?",
+      "newQuestion": "New Question",
+      "addNewQuestion": "Add new question",
+      "deleteSelectedQuestion": "Delete selected question",
+      "importQuizData": "Import quiz data",
+      "exportQuizData": "Export quiz data",
+      "clearAll": "Clear All",
+      "clearAllQuizData": "Clear all quiz data",
+      "confirmDeleteAllData": "Confirm delete all data in \"{{bankName}}\""
+    },
+    "questionEditor": {
+      "selectQuestion": "Select a question to view details or create a new question.",
+      "enterQuestionText": "Enter question text...",
+      "choices": "Choices",
+      "choicePlaceholder": "Choice {{number}}",
+      "markAsCorrect": "Mark as correct",
+      "unmarkAsCorrect": "Unmark as correct",
+      "removeChoice": "Remove choice",
+      "noChoicesYet": "No choices yet. Click Add Choice below.",
+      "addChoice": "Add Choice",
+      "assignTags": "Assign tags:",
+      "selectOrCreateTags": "Select or create tags...",
+      "selectDifficulty": "Select difficulty",
+      "createdAt": "Created at:",
+      "enterNotesForQuestion": "Enter notes for this question..."
+    },
+    "questionViewer": {
+      "selectQuestionToSeeDetails": "Select a question to see details.",
+      "copiedToClipboard": "Copied to clipboard!",
+      "failedToCopy": "Failed to copy",
+      "couldNotCopyText": "Could not copy text to clipboard.",
+      "clickToCopyQuestion": "Click to copy question text",
+      "clickToCopyChoice": "Click to copy choice text",
+      "noChoicesForQuestion": "No choices for this question."
+    },
+    "testPresets": {
+      "casual": {
+        "name": "Casual Learning",
+        "description": "Relaxed pace with maximum support - perfect for learning and practice"
+      },
+      "normal": {
+        "name": "Shonen Adventure",
+        "description": "Balanced journey with friends - challenging but fair like classic battle anime"
+      },
+      "strict": {
+        "name": "Tournament Arc",
+        "description": "Intense competition with time pressure - prove your worth in the arena"
+      },
+      "hardcore": {
+        "name": "Final Boss Battle",
+        "description": "Ultimate trial by fire - no mercy, no second chances, only victory or defeat"
+      }
+    },
+    "testResults": {
+      "explanation": "Explanation",
+      "testComplete": "Test Complete!",
+      "hereAreResults": "Here are your results",
+      "clickToViewDetailed": "Click to view detailed results",
+      "correct": "Correct",
+      "total": "Total",
+      "totalTime": "Total time",
+      "timeAnalysis": "Time analysis",
+      "fastestQuestion": "Fastest question",
+      "slowestQuestion": "Slowest question",
+      "averageTime": "Average time",
+      "accuracyRate": "Accuracy rate",
+      "questionsFlagged": "Questions flagged",
+      "unanswered": "Unanswered",
+      "performanceInsights": "Performance insights",
+      "considerReviewing": "Consider reviewing the material and trying again.",
+      "reviewFlaggedQuestions": "Review flagged questions",
+      "flaggedQuestionsDesc": "You flagged {{count}} questions for review.",
+      "incompleteTest": "Incomplete test",
+      "unansweredQuestionsDesc": "You left {{count}} questions unanswered.",
+      "quickResponder": "Quick responder",
+      "answeredQuickly": "You answered quickly! Make sure to read each question carefully.",
+      "thoughtfulApproach": "Thoughtful approach",
+      "tookYourTime": "You took your time with each question - thoughtfulness is valuable!",
+      "backToSettings": "Back to Settings",
+      "retakeTest": "Retake Test",
+      "outstandingPerformance": "Outstanding Performance!",
+      "youveMasteredMaterial": "You've mastered this material completely.",
+      "goodWork": "Good Work!",
+      "moreStudyNeeded": "More Study Needed",
+      "thoroughnessValuable": "You took your time with each question - thoroughness is valuable!",
+      "avgQuestion": "Avg/Question",
+      "grade": "Grade",
+      "gradeLabels": {
+        "excellent": "Excellent!",
+        "goodJob": "Good Job!",
+        "wellDone": "Well Done!",
+        "keepTrying": "Keep Trying!",
+        "needImprovement": "Need Improvement"
+      },
+      "overallProgress": "Overall Progress",
+      "performanceBreakdown": "Performance Breakdown",
+      "focusOnStruggleAreas": "Focus on the areas where you struggled."
+    }
+  },
+  "sidebar": {
+    "dashboard": "Dashboard",
+    "search": "Search",
+    "help": "Help",
+    "questions": "Questions",
+    "general": "General",
+    "revision": "Revision",
+    "practice": "Practice",
+    "notes": "Notes",
+    "settings": "Settings",
+    "workspace": "$t(Workspace)",
+    "billing": "Billing",
+    "userSettings": "User Settings",
+    "account": "Account",
+    "security": "Security",
+    "workspaces": "$t(Workspace)s",
+    "profile": "Profile"
+  },
+  "settings": {
+    "general": "General",
+    "account": "Account",
+    "language": "Language",
+    "theme": {
+      "light": "Light",
+      "dark": "Dark",
+      "system": "System"
+    },
+    "save_changes": "Save Changes",
+    "saving": "Saving...",
+    "changes_saved": "Changes saved successfully",
+    "failed_to_save": "Failed to save changes",
+    "workspace": {
+      "loading_message": "Loading $t(workspace) settings...",
+      "no_bank_id": "No $t(workspace) ID specified.",
+      "bank_not_found": "Question $t(workspace) with ID \"{{bankId}}\" not found.",
+      "failed_to_load": "Failed to load $t(workspace) data.",
+      "bank_name_empty": "Bank name cannot be empty.",
+      "bank_deleted_success": "Bank deleted successfully!",
+      "failed_to_delete": "Failed to delete $t(workspace).",
+      "id": {
+        "title": "$t(Workspace) ID",
+        "description": "Unique ID of your $t(workspace).",
+        "usage_note": "Used to identify your $t(workspace) when interacting."
+      },
+      "name": {
+        "title": "$t(Workspace) Name",
+        "description": "The display name for your $t(workspace).",
+        "placeholder": "e.g., Algebra Basics"
+      },
+      "description": {
+        "title": "$t(Workspace) Description",
+        "description": "A brief description of what this $t(workspace) contains.",
+        "placeholder": "e.g., A collection of fundamental algebra questions."
+      },
+      "delete": {
+        "title": "Delete $t(Workspace)",
+        "description": "Permanently delete your $t(workspace), and all associated contents + their stats. This action cannot be undone - please proceed with caution.",
+        "button": "Delete $t(Workspace)",
+        "confirm_title": "Are you absolutely sure?",
+        "confirm_description": "This action cannot be undone. This will permanently delete the $t(workspace) {{bankName}} and all its associated questions.",
+        "deleting": "Deleting...",
+        "delete_bank": "Delete Bank"
+      }
+    }
+  },
+  "revision": {
+    "reset_progress": "Reset Progress",
+    "navigator": "Question Navigator",
+    "flagged": "{{count}} flagged",
+    "question": "Question {{current}} / {{total}}",
+    "timeRemaining": "Time remaining",
+    "answered": "(Answered)",
+    "flaggedStatus": "(Flagged)",
+    "resultsPage": "Page {{current}} / {{total}}",
+    "testPaused": "Test Paused",
+    "resumeTest": "Resume Test",
+    "exitTest": "Exit Test",
+    "yourTestIsPaused": "Your test is paused. Click resume to continue.",
+    "flaggedQuestions": "Flagged Questions",
+    "submit": "Submit",
+    "finish": "Finish",
+    "pause": "Pause",
+    "show": "Show",
+    "hide": "Hide",
+    "page": "Page",
+    "of": "of",
+    "previousPage": "Previous Page",
+    "nextPage": "Next Page",
+    "questions": "Questions",
+    "questionNumberStatus": "Question {{number}} ({{status}})",
+    "clickToReviewFlagged": "Click to review flagged question",
+    "reviewAnswers": "Review Answers",
+    "searchQuestions": "Search questions...",
+    "noQuestionsMatchSearch": "No questions match your search.",
+    "noResultsToDisplay": "No results to display.",
+    "yourAnswer": "Your answer:",
+    "correctAnswer": "Correct answer:",
+    "noAnswer": "No answer",
+    "showingResults": "Showing {{start}} to {{end}} of {{total}} results",
+    "removeFlagFromQuestion": "Remove flag from this question",
+    "flagQuestionForReview": "Flag this question for review",
+    "youHaveFlaggedQuestions": "You have flagged {{count}} question(s) for review",
+    "settings": {
+      "startTest": "Start Test",
+      "questionsCount": "{{count}} questions",
+      "choosePreset": "Choose a preset configuration or customize your own settings below",
+      "timeSettings": "Time Settings",
+      "configureTimeLimit": "Configure time limits for your test",
+      "overallTimeLimit": "Overall time limit",
+      "testTimeLimit": "Test time limit",
+      "questionTimeLimit": "Question time limit",
+      "eachQuestionLimit": "Each question limit",
+      "minutes": "minutes",
+      "seconds": "seconds",
+      "questionSettings": "Question Settings",
+      "chooseQuestionsAndFilters": "Choose how many questions and apply filters",
+      "numberOfQuestions": "Number of questions",
+      "all": "All",
+      "available": "available",
+      "difficulty": "Difficulty",
+      "difficultyAll": "All difficulties",
+      "difficultyEasy": "Easy only",
+      "difficultyMedium": "Medium only",
+      "difficultyHard": "Hard only",
+      "behaviorSettings": "Behavior Settings",
+      "controlTestBehavior": "Control how the test behaves during execution",
+      "freeNavigation": "Free navigation",
+      "allowMoveBetweenQuestions": "Allow moving between questions freely",
+      "pauseTest": "Pause test",
+      "allowPausingTest": "Allow pausing the test",
+      "shuffleQuestions": "Shuffle questions",
+      "randomizeQuestionOrder": "Randomize the order of questions",
+      "shuffleAnswers": "Shuffle answers",
+      "randomizeAnswerOrder": "Randomize the order of answer choices",
+      "resultSettings": "Result Settings",
+      "configureResultDisplay": "Configure what is shown after test completion",
+      "showScore": "Show score at end",
+      "displayFinalScore": "Display the final score when test completes",
+      "showCorrectAnswers": "Show correct answers",
+      "revealCorrectAnswers": "Reveal the correct answers in results",
+      "allowRetake": "Allow retake",
+      "enableRetakingTest": "Enable retaking the test after completion",
+      "ready_to_start_your_test": "Ready to start your test?",
+      "no_time_limit": "No time limit",
+      "min_limit": "min limit",
+      "active": "Active",
+      "timed": "Timed",
+      "linear": "Linear",
+      "set_a_maximum_duration_for_the_entire_test": "Set a maximum duration for the entire test",
+      "limit_time_spent_on_each_question": "Limit time spent on each question",
+      "maximum_test_time": "Maximum test time",
+      "free_navigation_is_disabled_when_per_question_time_limits_are_active": "Free navigation is disabled when per-question time limits are active",
+      "max_available": "Max available",
+      "content_filtering": "Content Filtering",
+      "filter_questions_by_specific_topics_or_tags": "Filter questions by specific topics or tags",
+      "enable_tag_filtering": "Enable tag filtering",
+      "only_include_questions_with_selected_tags": "Only include questions with selected tags",
+      "select_tags": "Select tags",
+      "select_tags_to_filter_questions": "Select tags to filter questions",
+      "no_tags_selected_all_questions_will_be_included": "No tags selected. All questions will be included.",
+      "navigation_control": "Navigation Control",
+      "randomization_scoring": "Randomization & Scoring"
+    }
+  },
+  "questionTypes": {
+    "singleChoice": {
+      "label": "Single Choice",
+      "description": "Select one correct answer"
+    },
+    "multipleChoice": {
+      "label": "Multiple Choice",
+      "description": "Select one or more correct answers"
+    },
+    "trueFalse": {
+      "label": "True/False",
+      "description": "Select true or false"
+    },
+    "numerical": {
+      "label": "Numerical",
+      "description": "Enter a numerical answer"
+    },
+    "essay": {
+      "label": "Essay",
+      "description": "Write a detailed answer"
+    },
+    "default": {
+      "description": "Type your answer here..."
+    }
+  },
+  "installPrompter": {
+    "installApp": "Install App",
+    "installed": "Installed",
+    "dialog": {
+      "title": "Install QuizMaster",
+      "description": "Transform your browser experience into a native app",
+      "notNow": "Not Now",
+      "installApp": "Install App",
+      "storageNote": "Installing takes just a few seconds and uses minimal storage space"
+    },
+    "features": {
+      "instantAccess": {
+        "title": "Instant Access",
+        "description": "Launch directly from your home screen without opening a browser"
+      },
+      "offlineReady": {
+        "title": "Offline Ready",
+        "description": "Continue learning even without internet connection"
+      },
+      "smartNotifications": {
+        "title": "Smart Notifications",
+        "description": "Get immediate notifications about new features and updates"
+      },
+      "securePrivate": {
+        "title": "Secure & Private",
+        "description": "Your data stays safe with enhanced security features"
+      }
+    }
+  },
+  "search": {
+    "globalSearch": "Global Search",
+    "searchPlaceholder": "Search questions, tags, notes, banks...",
+    "loadingQuestions": "Loading questions...",
+    "noQuestionsAvailable": "No questions available.",
+    "noResultsFound": "No results found for",
+    "suggestions": "Suggestions",
+    "matchingQuestions": "Matching Questions",
+    "inBank": "In:",
+    "moreItems": "more",
+    "clearSearch": "Clear search",
+    "failedToLoad": "Failed to load questions for search.",
+    "searchInputPlaceholder": "Search {{questions}}, {{tags}}, {{notes}}..."
+  },
+  "landing": {
+    "modernQuizPlatform": "Modern Quiz Platform",
+    "heroTitle": "Master Your Studies with",
+    "heroDescription": "A modern, interactive quiz platform designed to help students revise and master their subjects through customizable question banks, instant feedback, and a beautiful interface.",
+    "startCreatingQuizzes": "Start Creating Quizzes",
+    "viewOnGithub": "View on GitHub",
+    "stats": {
+      "offlineCapable": "100% Offline",
+      "openSource": "Open Source",
+      "zeroSetup": "Zero Setup"
+    },
+    "features": {
+      "title": "Everything you need for",
+      "subtitle": "effective studying",
+      "description": "QuizMaster provides all the tools you need to create, organize, and practice with custom question banks.",
+      "tryThisFeature": "Try This Feature",
+      "questionBanks": {
+        "title": "Question Banks",
+        "description": "Organize questions into named banks for different subjects or topics with rich categorization.",
+        "detailedDescription": "Create unlimited question banks for different subjects, topics, or difficulty levels. Each bank can be customized with names, descriptions, and categories. Perfect for organizing your study materials by subject, chapter, or exam type."
+      },
+      "richEditor": {
+        "title": "Rich Question Editor",
+        "description": "Create questions with formatted text, multiple choices, tags, categories, and difficulty levels.",
+        "detailedDescription": "Advanced question editor with rich text formatting, multiple choice options, drag-and-drop answer ordering, difficulty levels, tags, and categories. Supports images, code snippets, and mathematical expressions."
+      },
+      "importExport": {
+        "title": "Import/Export",
+        "description": "Import questions from JSON files and export your data for backup or sharing.",
+        "detailedDescription": "Seamlessly import questions from JSON files or export your entire question banks for backup or sharing with classmates. Supports bulk operations and maintains all question metadata."
+      },
+      "practiceSupport": {
+        "title": "Practice Mode",
+        "description": "Take interactive quizzes with customizable settings, instant feedback, and detailed performance analytics.",
+        "detailedDescription": "Comprehensive practice mode with customizable quiz settings, time limits, question shuffling, instant feedback, and detailed performance analytics. Track your progress and identify areas for improvement."
+      }
+    }
+  },
+  "welcome_tour": {
+    "step_1": {
+      "title": "Welcome to QuizMaster",
+      "short_description": "Your personal quiz creation platform",
+      "full_description": "Welcome to QuizMaster! A modern, offline-first quiz platform designed to help students create, organize, and practice with custom question banks. Let's explore what makes it special.",
+      "media_alt": "QuizMaster dashboard overview"
+    },
+    "step_2": {
+      "title": "Create Question Banks",
+      "short_description": "Organize your study materials",
+      "full_description": "Start by creating question banks for different subjects or topics. Each bank can contain multiple questions with rich formatting, multiple choice answers, tags, and difficulty levels.",
+      "media_alt": "Question bank creation interface",
+      "action_label": "Create Your First Bank"
+    },
+    "step_3": {
+      "title": "Rich Question Editor",
+      "short_description": "Craft detailed questions",
+      "full_description": "Use our powerful editor to create questions with formatted text, multiple choices, correct answers, tags, categories, and notes. Drag and drop to reorder questions as needed.",
+      "media_alt": "Question editor interface",
+      "action_label": "Explore Editor Features"
+    },
+    "step_4": {
+      "title": "Import & Export",
+      "short_description": "Share and backup your work",
+      "full_description": "Import questions from JSON files or export your question banks to share with classmates or backup your work. Everything works offline using your browser's local storage.",
+      "action_label": "Start Creating Questions"
+    }
+  },
+  "dashboard": {
+    "onboarding": {
+      "step_progress": "Step {{current}} of {{total}}",
+      "step_1": {
+        "title": "Welcome to QuizMaster! 👋",
+        "description": "Let's get you set up in just a few simple steps.",
+        "action": "Get Started"
+      },
+      "step_2": {
+        "title": "Create Your First $t(Workspace)",
+        "description": "Workspaces help you organize your question banks and collaborate with your team.",
+        "action": "Create $t(Workspace)"
+      },
+      "step_3": {
+        "title": "You're All Set! 🎉",
+        "description": "Your $t(workspace) is ready. You can now start creating questions and building quizzes.",
+        "action": "Go to $t(Workspace)"
+      },
+      "features": {
+        "question_banks": "Question Banks",
+        "team_collaboration": "Team Collaboration",
+        "analytics": "Analytics",
+        "quick_setup": "Quick Setup"
+      },
+      "workspace_info": {
+        "title": "What is a $t(workspace)?",
+        "description": "A $t(workspace) is like a $t(workspace) that helps you manage and organize questions by topic or subject. Each $t(workspace) contains your questions, quiz templates, and analytics all in one organized space."
+      },
+      "next_steps": {
+        "title": "What is next?",
+        "create_bank": "Create your first $t(workspace)",
+        "add_questions": "Add questions to your $t(workspace)",
+        "generate_quizzes": "Generate and share quizzes"
+      }
+    }
+  },
+  "Workspace": "Workspace",
+  "workspace": "workspace"
+}

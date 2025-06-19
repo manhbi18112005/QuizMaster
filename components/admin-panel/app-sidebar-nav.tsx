@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouterStuff } from "@/hooks/use-router-stuff";
+import { useTranslation } from "@/hooks/use-translation";
 import { Shield } from "lucide-react";
 import { Session } from "next-auth";
 import { useSession } from "next-auth/react";
@@ -14,13 +15,13 @@ import { Usage } from "./usage";
 import { Receipt2 } from "../icons/receipt2";
 import InstallPrompter from "../install-prompter";
 
-const NAV_AREAS: SidebarNavAreas<{
+const createNavAreas = (t: (key: string) => string): SidebarNavAreas<{
   slug: string;
   pathname: string;
   queryString: string;
   session?: Session | null;
   showNews?: boolean;
-}> = {
+}> => ({
   // Top-level
   default: () => ({
     showSwitcher: false,
@@ -30,19 +31,19 @@ const NAV_AREAS: SidebarNavAreas<{
       {
         items: [
           {
-            name: "Dashboard",
+            name: t("sidebar.workspaces"),
             icon: LayoutDashboardIcon,
             href: `/dashboard`,
             exact: true,
           },
           {
-            name: "Search",
+            name: t("sidebar.search"),
             icon: Library,
             href: `/dashboard/search`,
             exact: true,
           },
           {
-            name: "Help",
+            name: t("sidebar.help"),
             icon: HelpCircleIcon,
             href: `/`,
             exact: true,
@@ -60,34 +61,34 @@ const NAV_AREAS: SidebarNavAreas<{
     direction: "left",
     content: [
       {
-        name: "Questions",
+        name: t("sidebar.questions"),
         items: [
           {
-            name: "General",
+            name: t("sidebar.general"),
             icon: Library,
             href: `${BANKPREFIX_URL}/${slug}`,
             exact: true,
           },
           {
-            name: "Revision",
+            name: t("sidebar.revision"),
             icon: BookCheck,
             href: `${BANKPREFIX_URL}/${slug}/revision`,
             exact: true,
           },
           {
-            name: "Practice",
+            name: t("sidebar.practice"),
             icon: Lamp,
             href: `${BANKPREFIX_URL}/${slug}/practice`,
             exact: true,
           },
           {
-            name: "Notes",
+            name: t("sidebar.notes"),
             icon: NotebookIcon,
             href: `${BANKPREFIX_URL}/${slug}/notes`,
             exact: true,
           },
           {
-            name: "Search",
+            name: t("sidebar.search"),
             icon: Search,
             href: `/dashboard/search`,
             exact: true,
@@ -99,20 +100,20 @@ const NAV_AREAS: SidebarNavAreas<{
 
   // Workspace settings
   workspaceSettings: ({ slug }) => ({
-    title: "Settings",
+    title: t("sidebar.settings"),
     backHref: `${BANKPREFIX_URL}/${slug}`,
     content: [
       {
-        name: "Workspace",
+        name: t("sidebar.workspace"),
         items: [
           {
-            name: "General",
+            name: t("sidebar.general"),
             icon: Shield,
             href: `${BANKPREFIX_URL}/${slug}/settings`,
             exact: true,
           },
           {
-            name: "Billing",
+            name: t("sidebar.billing"),
             icon: Receipt2,
             href: `${BANKPREFIX_URL}/${slug}/settings/billing`,
           },
@@ -122,20 +123,20 @@ const NAV_AREAS: SidebarNavAreas<{
   }),
 
   userSettings: () => ({
-    title: "User Settings",
+    title: t("sidebar.userSettings"),
     backHref: `/dashboard`,
     content: [
       {
-        name: "User Settings",
+        name: t("sidebar.userSettings"),
         items: [
           {
-            name: "Account",
+            name: t("sidebar.account"),
             icon: Shield,
             href: `/settings/account`,
             exact: true,
           },
           {
-            name: "Security",
+            name: t("sidebar.security"),
             icon: Shield,
             href: `/settings/security`,
             exact: true,
@@ -144,7 +145,7 @@ const NAV_AREAS: SidebarNavAreas<{
       },
     ],
   }),
-};
+});
 
 export function AppSidebarNav({
   toolContent,
@@ -157,6 +158,9 @@ export function AppSidebarNav({
   const pathname = usePathname();
   const { getQueryString } = useRouterStuff();
   const { data: session } = useSession();
+  const { t } = useTranslation();
+
+  const navAreas = useMemo(() => createNavAreas(t), [t]);
 
   const currentArea = useMemo(() => {
     if (pathname.startsWith("/settings")) return "userSettings";
@@ -172,7 +176,7 @@ export function AppSidebarNav({
 
   return (
     <SidebarNav
-      areas={NAV_AREAS}
+      areas={navAreas}
       currentArea={currentArea}
       data={{
         slug: slug || "",

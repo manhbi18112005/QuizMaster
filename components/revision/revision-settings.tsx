@@ -20,152 +20,7 @@ import type {
 } from "@/types/test-settings";
 import { MagicCard } from "@/components/magicui/magic-card";
 import { useTheme } from "next-themes";
-
-const DEFAULT_SETTINGS: TestSettingsType = {
-    hasTimeLimit: false,
-    timeLimitMinutes: 30,
-    hasQuestionTimeLimit: false,
-    questionTimeLimitSeconds: 60,
-    totalQuestions: 10,
-    maxQuestions: 10,
-    useTagFilter: false,
-    selectedTags: [],
-    allowFreeNavigation: true,
-    allowPause: true,
-    shuffleQuestions: true,
-    shuffleAnswers: true,
-    showScoreAtEnd: true,
-    showCorrectAnswers: true,
-    allowRetake: true,
-    difficultyFilter: 'all'
-};
-
-const TEST_PRESETS: Record<PresetType, TestPreset> = {
-    casual: {
-        name: "Slice of Life",
-        description: "Relaxed pace like a peaceful anime - take your time, no pressure",
-        icon: <BookOpen className="h-4 w-4" />,
-        gradient: "from-green-400 to-emerald-500",
-        settings: {
-            hasTimeLimit: false,
-            timeLimitMinutes: 90,
-            hasQuestionTimeLimit: false,
-            questionTimeLimitSeconds: 120,
-            allowFreeNavigation: true,
-            allowPause: true,
-            shuffleQuestions: false,
-            shuffleAnswers: false,
-            showScoreAtEnd: true,
-            showCorrectAnswers: true,
-            allowRetake: true,
-        }
-    },
-    normal: {
-        name: "Shonen Adventure",
-        description: "Balanced journey with friends - challenging but fair like a classic battle anime",
-        icon: <Target className="h-4 w-4" />,
-        gradient: "from-blue-500 to-cyan-500",
-        settings: {
-            hasTimeLimit: true,
-            timeLimitMinutes: 60,
-            hasQuestionTimeLimit: false,
-            questionTimeLimitSeconds: 90,
-            allowFreeNavigation: true,
-            allowPause: true,
-            shuffleQuestions: true,
-            shuffleAnswers: true,
-            showScoreAtEnd: true,
-            showCorrectAnswers: true,
-            allowRetake: true,
-        }
-    },
-    strict: {
-        name: "Tournament Arc",
-        description: "High-stakes competition with time pressure - prove your worth in the arena",
-        icon: <Shield className="h-4 w-4" />,
-        gradient: "from-orange-500 to-red-500",
-        settings: {
-            hasTimeLimit: true,
-            timeLimitMinutes: 45,
-            hasQuestionTimeLimit: false,
-            questionTimeLimitSeconds: 75,
-            allowFreeNavigation: false,
-            allowPause: false,
-            shuffleQuestions: true,
-            shuffleAnswers: true,
-            showScoreAtEnd: true,
-            showCorrectAnswers: false,
-            allowRetake: false,
-        }
-    },
-    hardcore: {
-        name: "Final Boss Battle",
-        description: "Ultimate trial by fire - no mercy, no second chances, only victory or defeat",
-        icon: <Flame className="h-4 w-4" />,
-        gradient: "from-purple-600 to-pink-600",
-        settings: {
-            hasTimeLimit: true,
-            timeLimitMinutes: 30,
-            hasQuestionTimeLimit: true,
-            questionTimeLimitSeconds: 45,
-            allowFreeNavigation: false,
-            allowPause: false,
-            shuffleQuestions: true,
-            shuffleAnswers: true,
-            showScoreAtEnd: false,
-            showCorrectAnswers: false,
-            allowRetake: false,
-        }
-    }
-};
-
-const NAVIGATION_SETTINGS: SettingItem[] = [
-    {
-        key: 'allowFreeNavigation',
-        label: 'Allow free navigation',
-        desc: 'Jump between questions freely'
-    },
-    {
-        key: 'allowPause',
-        label: 'Allow pausing test',
-        desc: 'Permit pausing during the test'
-    },
-];
-
-const SCORING_SETTINGS: SettingItem[] = [
-    {
-        key: 'shuffleQuestions',
-        label: 'Shuffle questions',
-        desc: 'Randomize question order'
-    },
-    {
-        key: 'shuffleAnswers',
-        label: 'Shuffle answer options',
-        desc: 'Randomize answer choice order'
-    },
-    {
-        key: 'showScoreAtEnd',
-        label: 'Show score at end',
-        desc: 'Display final score after completion'
-    },
-    {
-        key: 'showCorrectAnswers',
-        label: 'Show test feedback',
-        desc: 'Reveal answers and explanations after completion'
-    },
-    {
-        key: 'allowRetake',
-        label: 'Allow retaking test',
-        desc: 'Permit multiple attempts'
-    },
-];
-
-const DIFFICULTY_OPTIONS: DifficultyOption[] = [
-    { value: 'all', label: '🎯 All Levels' },
-    { value: 'easy', label: '🟢 Easy' },
-    { value: 'medium', label: '🟡 Medium' },
-    { value: 'hard', label: '🔴 Hard' },
-];
+import { useTranslation } from "@/hooks/use-translation";
 
 export function TestSettings({
     availableTags,
@@ -175,6 +30,153 @@ export function TestSettings({
 }: TestSettingsProps) {
 
     const { theme } = useTheme();
+    const { t } = useTranslation();
+
+    const DEFAULT_SETTINGS: TestSettingsType = {
+        hasTimeLimit: false,
+        timeLimitMinutes: 30,
+        hasQuestionTimeLimit: false,
+        questionTimeLimitSeconds: 60,
+        totalQuestions: 10,
+        maxQuestions: 10,
+        useTagFilter: false,
+        selectedTags: [],
+        allowFreeNavigation: true,
+        allowPause: true,
+        shuffleQuestions: true,
+        shuffleAnswers: true,
+        showScoreAtEnd: true,
+        showCorrectAnswers: true,
+        allowRetake: true,
+        difficultyFilter: 'all'
+    };
+
+    const NAVIGATION_SETTINGS: SettingItem[] = [
+        {
+            key: 'allowFreeNavigation',
+            label: t('revision.settings.freeNavigation'),
+            desc: t('revision.settings.allowMoveBetweenQuestions')
+        },
+        {
+            key: 'allowPause',
+            label: t('revision.settings.pauseTest'),
+            desc: t('revision.settings.allowPausingTest')
+        },
+    ];
+
+    const SCORING_SETTINGS: SettingItem[] = [
+        {
+            key: 'shuffleQuestions',
+            label: t('revision.settings.shuffleQuestions'),
+            desc: t('revision.settings.randomizeQuestionOrder')
+        },
+        {
+            key: 'shuffleAnswers',
+            label: t('revision.settings.shuffleAnswers'),
+            desc: t('revision.settings.randomizeAnswerOrder')
+        },
+        {
+            key: 'showScoreAtEnd',
+            label: t('revision.settings.showScore'),
+            desc: t('revision.settings.displayFinalScore')
+        },
+        {
+            key: 'showCorrectAnswers',
+            label: t('revision.settings.showCorrectAnswers'),
+            desc: t('revision.settings.revealCorrectAnswers')
+        },
+        {
+            key: 'allowRetake',
+            label: t('revision.settings.allowRetake'),
+            desc: t('revision.settings.enableRetakingTest')
+        },
+    ];
+
+    const DIFFICULTY_OPTIONS: DifficultyOption[] = [
+        { value: 'all', label: t('revision.settings.difficultyAll') },
+        { value: 'easy', label: t('revision.settings.difficultyEasy') },
+        { value: 'medium', label: t('revision.settings.difficultyMedium') },
+        { value: 'hard', label: t('revision.settings.difficultyHard') },
+    ];
+
+    const testPresets: Record<PresetType, TestPreset> = {
+        casual: {
+            name: t('quiz.testPresets.casual.name'),
+            description: t('quiz.testPresets.casual.description'),
+            icon: <BookOpen className="h-4 w-4" />,
+            gradient: "from-green-400 to-emerald-500",
+            settings: {
+                hasTimeLimit: false,
+                timeLimitMinutes: 90,
+                hasQuestionTimeLimit: false,
+                questionTimeLimitSeconds: 120,
+                allowFreeNavigation: true,
+                allowPause: true,
+                shuffleQuestions: false,
+                shuffleAnswers: false,
+                showScoreAtEnd: true,
+                showCorrectAnswers: true,
+                allowRetake: true,
+            }
+        },
+        normal: {
+            name: t('quiz.testPresets.normal.name'),
+            description: t('quiz.testPresets.normal.description'),
+            icon: <Target className="h-4 w-4" />,
+            gradient: "from-blue-500 to-cyan-500",
+            settings: {
+                hasTimeLimit: true,
+                timeLimitMinutes: 60,
+                hasQuestionTimeLimit: false,
+                questionTimeLimitSeconds: 90,
+                allowFreeNavigation: true,
+                allowPause: true,
+                shuffleQuestions: true,
+                shuffleAnswers: true,
+                showScoreAtEnd: true,
+                showCorrectAnswers: true,
+                allowRetake: true,
+            }
+        },
+        strict: {
+            name: t('quiz.testPresets.strict.name'),
+            description: t('quiz.testPresets.strict.description'),
+            icon: <Shield className="h-4 w-4" />,
+            gradient: "from-orange-500 to-red-500",
+            settings: {
+                hasTimeLimit: true,
+                timeLimitMinutes: 45,
+                hasQuestionTimeLimit: false,
+                questionTimeLimitSeconds: 75,
+                allowFreeNavigation: false,
+                allowPause: false,
+                shuffleQuestions: true,
+                shuffleAnswers: true,
+                showScoreAtEnd: true,
+                showCorrectAnswers: false,
+                allowRetake: false,
+            }
+        },
+        hardcore: {
+            name: t('quiz.testPresets.hardcore.name'),
+            description: t('quiz.testPresets.hardcore.description'),
+            icon: <Flame className="h-4 w-4" />,
+            gradient: "from-purple-600 to-pink-600",
+            settings: {
+                hasTimeLimit: true,
+                timeLimitMinutes: 30,
+                hasQuestionTimeLimit: true,
+                questionTimeLimitSeconds: 45,
+                allowFreeNavigation: false,
+                allowPause: false,
+                shuffleQuestions: true,
+                shuffleAnswers: true,
+                showScoreAtEnd: false,
+                showCorrectAnswers: false,
+                allowRetake: false,
+            }
+        }
+    };
 
     const [settings, setSettings] = useState<TestSettingsType>({
         ...DEFAULT_SETTINGS,
@@ -196,7 +198,7 @@ export function TestSettings({
     };
 
     const applyPreset = (presetType: PresetType) => {
-        const preset = TEST_PRESETS[presetType];
+        const preset = testPresets[presetType];
         setSettings(prev => ({
             ...prev,
             ...preset.settings,
@@ -218,7 +220,6 @@ export function TestSettings({
     };
 
     const handleStartTest = () => {
-        // Validation
         if (settings.totalQuestions <= 0) {
             return;
         }
@@ -234,25 +235,24 @@ export function TestSettings({
 
     return (
         <div className="max-w-4xl mx-auto space-y-6 p-6">
-
             <Card className="border-0 shadow-lg bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
                 <CardContent>
                     <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
                         <div className="text-center sm:text-left">
-                            <p className="text-sm text-muted-foreground">Ready to start your test?</p>
+                            <p className="text-sm text-muted-foreground">{t('revision.settings.ready_to_start_your_test')}</p>
                             <p className="font-medium">
-                                {settings.totalQuestions} questions • {settings.hasTimeLimit ? `${settings.timeLimitMinutes}min limit` : 'No time limit'}
+                                {settings.totalQuestions} {t('revision.questions')} • {settings.hasTimeLimit ? `${settings.timeLimitMinutes} ${t('revision.settings.minutes')}` : t('revision.settings.no_time_limit')}
                             </p>
                         </div>
                         <div className="flex space-x-3">
                             {onCancel && (
                                 <Button variant="outline" onClick={onCancel} size="lg">
-                                    Cancel
+                                    {t('common.cancel')}
                                 </Button>
                             )}
                             <Button onClick={handleStartTest} size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg">
                                 <Play className="h-4 w-4 mr-2" />
-                                Start Test ({settings.totalQuestions} questions)
+                                {t('revision.settings.startTest')} ({t('revision.settings.questionsCount', { count: settings.totalQuestions })})
                             </Button>
                         </div>
                     </div>
@@ -260,13 +260,12 @@ export function TestSettings({
             </Card>
 
             {/* Preset Selection */}
-
             <div className="space-y-4 w-full">
                 <div className="text-center">
-                    <p className="text-sm text-muted-foreground">Choose a preset configuration or customize your own settings below</p>
+                    <p className="text-sm text-muted-foreground">{t('revision.settings.choosePreset')}</p>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {Object.entries(TEST_PRESETS).map(([key, preset]) => (
+                    {Object.entries(testPresets).map(([key, preset]) => (
                         <Card
                             key={key}
                             className={`p-0 max-w-sm w-full shadow-none border-none cursor-pointer transition-all hover:scale-105 ${selectedPreset === key ? 'border-primary ring-2 ring-primary/20' : ''}`}
@@ -283,7 +282,7 @@ export function TestSettings({
                                         </div>
                                         {selectedPreset === key && (
                                             <Badge variant="default" className="ml-auto text-xs">
-                                                Active
+                                                {t('revision.settings.active')}
                                             </Badge>
                                         )}
                                     </div>
@@ -297,13 +296,13 @@ export function TestSettings({
                                         {preset.settings.hasTimeLimit && (
                                             <Badge variant="outline" className="text-xs">
                                                 <Clock className="h-2 w-2 mr-1" />
-                                                Timed
+                                                {t('revision.settings.timed')}
                                             </Badge>
                                         )}
                                         {!preset.settings.allowFreeNavigation && (
                                             <Badge variant="outline" className="text-xs">
                                                 <Navigation className="h-2 w-2 mr-1" />
-                                                Linear
+                                                {t('revision.settings.linear')}
                                             </Badge>
                                         )}
                                     </div>
@@ -316,16 +315,16 @@ export function TestSettings({
 
             {/* Time Settings Card */}
             <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50/50 to-indigo-50/50 dark:from-blue-950/20 dark:to-indigo-950/20">
-                <CardHeader className="pb-4">
+                <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-blue-700 dark:text-blue-300">
                         <div className="p-1.5 rounded-md bg-blue-100 dark:bg-blue-900/50">
                             <Clock className="h-4 w-4" />
                         </div>
-                        Time Management
+                        {t('revision.settings.timeSettings')}
                     </CardTitle>
-                    <CardDescription>Control timing constraints for your test</CardDescription>
+                    <CardDescription>{t('revision.settings.configureTimeLimit')}</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-6">
+                <CardContent>
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         <div className="space-y-4 p-4 rounded-lg bg-white/50 dark:bg-gray-800/50 border border-blue-200/50 dark:border-blue-800/50">
                             <div className="flex items-center space-x-3">
@@ -337,9 +336,9 @@ export function TestSettings({
                                 />
                                 <div className="space-y-1">
                                     <Label htmlFor="time-limit" className={`font-medium ${settings.hasQuestionTimeLimit ? 'text-muted-foreground' : ''}`}>
-                                        Overall Time Limit
+                                        {t('revision.settings.overallTimeLimit')}
                                     </Label>
-                                    <p className="text-sm text-muted-foreground">Set a maximum duration for the entire test</p>
+                                    <p className="text-sm text-muted-foreground">{t('revision.settings.set_a_maximum_duration_for_the_entire_test')}</p>
                                 </div>
                             </div>
                             {settings.hasTimeLimit && !settings.hasQuestionTimeLimit && (
@@ -353,7 +352,7 @@ export function TestSettings({
                                         onChange={(e) => updateSetting('timeLimitMinutes', parseInt(e.target.value) || 1)}
                                         className="w-20 text-center"
                                     />
-                                    <Label className="text-sm">minutes</Label>
+                                    <Label className="text-sm">{t('revision.settings.minutes')}</Label>
                                 </div>
                             )}
                         </div>
@@ -372,8 +371,8 @@ export function TestSettings({
                                     }}
                                 />
                                 <div className="space-y-1">
-                                    <Label htmlFor="question-time-limit" className="font-medium">Per Question Limit</Label>
-                                    <p className="text-sm text-muted-foreground">Limit time spent on each question</p>
+                                    <Label htmlFor="question-time-limit" className="font-medium">{t('revision.settings.questionTimeLimit')}</Label>
+                                    <p className="text-sm text-muted-foreground">{t('revision.settings.limit_time_spent_on_each_question')}</p>
                                 </div>
                             </div>
                             {settings.hasQuestionTimeLimit && (
@@ -388,18 +387,18 @@ export function TestSettings({
                                             onChange={(e) => updateSetting('questionTimeLimitSeconds', parseInt(e.target.value) || 10)}
                                             className="w-20 text-center"
                                         />
-                                        <Label className="text-sm">seconds</Label>
+                                        <Label className="text-sm">{t('revision.settings.seconds')}</Label>
                                     </div>
                                     <div className="p-3 rounded-md bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
                                         <p className="text-sm text-blue-700 dark:text-blue-300 flex items-center gap-2">
                                             <Info className="h-4 w-4" />
-                                            Maximum test time: <strong>{Math.ceil((settings.totalQuestions * settings.questionTimeLimitSeconds) / 60)} minutes</strong>
+                                            {t('revision.settings.maximum_test_time')}: <strong>{Math.ceil((settings.totalQuestions * settings.questionTimeLimitSeconds) / 60)} {t('revision.settings.minutes')}</strong>
                                         </p>
                                     </div>
                                     <div className="p-3 rounded-md bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
                                         <p className="text-sm text-amber-700 dark:text-amber-300 flex items-center gap-2">
                                             <AlertCircle className="h-4 w-4" />
-                                            Free navigation is disabled when per-question time limits are active
+                                            {t('revision.settings.free_navigation_is_disabled_when_per_question_time_limits_are_active')}
                                         </p>
                                     </div>
                                 </>
@@ -411,14 +410,14 @@ export function TestSettings({
 
             {/* Question Settings Card */}
             <Card className="border-0 shadow-lg bg-gradient-to-br from-emerald-50/50 to-teal-50/50 dark:from-emerald-950/20 dark:to-teal-950/20">
-                <CardHeader className="pb-4">
+                <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-emerald-700 dark:text-emerald-300">
                         <div className="p-1.5 rounded-md bg-emerald-100 dark:bg-emerald-900/50">
                             <Hash className="h-4 w-4" />
                         </div>
-                        Question Configuration
+                        {t('revision.settings.questionSettings')}
                     </CardTitle>
-                    <CardDescription>Customize the number and difficulty of questions</CardDescription>
+                    <CardDescription>{t('revision.settings.chooseQuestionsAndFilters')}</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -426,7 +425,7 @@ export function TestSettings({
                             <div className="space-y-2">
                                 <Label htmlFor="total-questions" className="font-medium flex items-center gap-2">
                                     <Target className="h-4 w-4" />
-                                    Number of Questions
+                                    {t('revision.settings.numberOfQuestions')}
                                 </Label>
                                 <Input
                                     id="total-questions"
@@ -438,14 +437,14 @@ export function TestSettings({
                                     className="w-full text-center text-lg font-semibold"
                                 />
                                 <Badge variant="secondary" className="w-fit">
-                                    Max available: {settings.maxQuestions}
+                                    {t('revision.settings.max_available')}: {settings.maxQuestions}
                                 </Badge>
                             </div>
                         </div>
 
                         <div className="space-y-4 p-4 rounded-lg bg-white/50 dark:bg-gray-800/50 border border-emerald-200/50 dark:border-emerald-800/50">
                             <div className="space-y-2">
-                                <Label htmlFor="difficulty" className="font-medium">Difficulty Level</Label>
+                                <Label htmlFor="difficulty" className="font-medium">{t('revision.settings.difficulty')}</Label>
                                 <Select
                                     value={settings.difficultyFilter}
                                     onValueChange={(value: 'all' | 'easy' | 'medium' | 'hard') =>
@@ -471,14 +470,14 @@ export function TestSettings({
 
             {/* Tag Filtering Card */}
             <Card className="border-0 shadow-lg bg-gradient-to-br from-purple-50/50 to-pink-50/50 dark:from-purple-950/20 dark:to-pink-950/20">
-                <CardHeader className="pb-4">
+                <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-purple-700 dark:text-purple-300">
                         <div className="p-1.5 rounded-md bg-purple-100 dark:bg-purple-900/50">
                             <Filter className="h-4 w-4" />
                         </div>
-                        Content Filtering
+                        {t('revision.settings.content_filtering')}
                     </CardTitle>
-                    <CardDescription>Filter questions by specific topics or tags</CardDescription>
+                    <CardDescription>{t('revision.settings.filter_questions_by_specific_topics_or_tags')}</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <div className="flex items-center space-x-3 p-4 rounded-lg bg-white/50 dark:bg-gray-800/50 border border-purple-200/50 dark:border-purple-800/50">
@@ -488,25 +487,25 @@ export function TestSettings({
                             onCheckedChange={(checked) => updateSetting('useTagFilter', checked)}
                         />
                         <div className="space-y-1">
-                            <Label htmlFor="use-tag-filter" className="font-medium">Enable Tag Filtering</Label>
-                            <p className="text-sm text-muted-foreground">Only include questions with selected tags</p>
+                            <Label htmlFor="use-tag-filter" className="font-medium">{t('revision.settings.enable_tag_filtering')}</Label>
+                            <p className="text-sm text-muted-foreground">{t('revision.settings.only_include_questions_with_selected_tags')}</p>
                         </div>
                     </div>
 
                     {settings.useTagFilter && (
                         <div className="space-y-4 p-4 rounded-lg bg-white/70 dark:bg-gray-800/70 border border-purple-200/50 dark:border-purple-800/50">
-                            <Label className="font-medium">Select Tags:</Label>
+                            <Label className="font-medium">{t('revision.settings.select_tags')}:</Label>
                             <FancyMultiSelect
                                 value={settings.selectedTags}
                                 onChange={handleTagsChange}
                                 availableOptions={availableTags}
-                                placeholder="Select tags to filter questions..."
+                                placeholder={t('revision.settings.select_tags_to_filter_questions')}
                             />
                             {settings.selectedTags.length === 0 && (
                                 <div className="flex items-center gap-2 p-3 rounded-md bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
                                     <AlertCircle className="h-4 w-4 text-amber-600" />
                                     <p className="text-sm text-amber-700 dark:text-amber-300">
-                                        No tags selected - all questions will be included
+                                        {t('revision.settings.no_tags_selected_all_questions_will_be_included')}
                                     </p>
                                 </div>
                             )}
@@ -517,19 +516,19 @@ export function TestSettings({
 
             {/* Behavior Settings Card */}
             <Card className="border-0 shadow-lg bg-gradient-to-br from-orange-50/50 to-red-50/50 dark:from-orange-950/20 dark:to-red-950/20">
-                <CardHeader className="pb-4">
+                <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-orange-700 dark:text-orange-300">
                         <div className="p-1.5 rounded-md bg-orange-100 dark:bg-orange-900/50">
                             <Navigation className="h-4 w-4" />
                         </div>
-                        Test Behavior
+                        {t('revision.settings.behaviorSettings')}
                     </CardTitle>
-                    <CardDescription>Configure how the test behaves and what feedback is shown</CardDescription>
+                    <CardDescription>{t('revision.settings.controlTestBehavior')}</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         <div className="space-y-4">
-                            <h4 className="font-medium text-sm uppercase tracking-wide text-muted-foreground mb-3">Navigation & Control</h4>
+                            <h4 className="font-medium text-sm uppercase tracking-wide text-muted-foreground mb-3">{t('revision.settings.navigation_control')}</h4>
 
                             <div className="space-y-4">
                                 {NAVIGATION_SETTINGS.map((setting) => (
@@ -555,7 +554,7 @@ export function TestSettings({
                         <div className="space-y-4">
                             <h4 className="font-medium text-sm uppercase tracking-wide text-muted-foreground mb-3 flex items-center gap-2">
                                 <Shuffle className="h-3 w-3" />
-                                Randomization & Scoring
+                                {t('revision.settings.randomization_scoring')}
                             </h4>
 
                             <div className="space-y-4">

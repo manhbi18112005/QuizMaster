@@ -21,14 +21,18 @@ import { Button } from "@/components/ui/button";
 import { buttonVariants } from "@/components/ui/button";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { VariantProps } from "class-variance-authority";
-import { Maximize, Minimize, ArrowLeft, Database } from 'lucide-react';
+import { Maximize, Minimize } from 'lucide-react';
 import { PasswordInputDialog } from '@/components/quiz/PasswordInputDialog';
 import { MaxWidthWrapper } from "@/components/ui/max-width-wrapper";
 import LoadingScreen from "@/components/loading-screen";
 import { BANKPREFIX_URL } from "@/lib/client-constants";
 import { debounce } from 'lodash';
+import { useTranslation } from "@/hooks/use-translation";
+import BankNotFound from "@/components/quiz/BankNotFound";
 
 export default function BankPageClient() {
+    const { t } = useTranslation();
+
     const params = useParams();
     const bankId = typeof params.slug === 'string' ? params.slug : null;
     const searchParams = useSearchParams();
@@ -283,33 +287,38 @@ export default function BankPageClient() {
                 }
             } catch (error) {
                 console.error('Import process failed:', error);
-                toast.error('Import process failed unexpectedly.');
+                toast.error(t('quiz.import.importProcessFailed'));
             }
         };
 
         const currentBankName = currentBank?.name || "current bank";
-        const dialogDescription = `Import questions from ${files.length} file${files.length > 1 ? 's' : ''} to "${currentBankName}"? This will add the imported questions to the existing ones.`;
+        const plural = files.length > 1 ? 's' : '';
+        const dialogDescription = t('quiz.import.importQuestionsFromFiles', {
+            count: files.length,
+            plural,
+            bankName: currentBankName
+        });
 
         showConfirmationDialog(
-            "Confirm Multiple File Import",
+            t('quiz.import.confirmMultipleFileImport'),
             dialogDescription,
             processFiles,
             () => { /* onCancel */ }
         );
-    }, [showConfirmationDialog, currentBank, requestPasswordForImport]);
+    }, [showConfirmationDialog, currentBank, requestPasswordForImport, t]);
 
     const handleClearAllData = useCallback(() => {
         if (!currentBank) return;
         showConfirmationDialog(
-            `Confirm delete all data in "${currentBank.name}"`,
-            "Are you sure you want to delete ALL questions in this bank? This action cannot be undone.",
+            t('quiz.toolbar.confirmDeleteAllData', { bankName: currentBank.name }),
+            t('quiz.toolbar.deleteConfirm', { count: currentBank.questions.length }),
             () => {
                 setQuestions([]);
                 setSelectedQuestionId(null);
-                toast.success(`All questions deleted from bank: ${currentBank.name}`);
+                toast.success(t('quiz.import.allQuestionsDeleted', { bankName: currentBank.name }));
             }
         );
-    }, [showConfirmationDialog, currentBank]);
+    }, [currentBank, showConfirmationDialog, t]);
 
 
     const handleCardClick = useCallback((questionId: string) =>
@@ -415,12 +424,8 @@ export default function BankPageClient() {
         }
     }, [canGoNext, currentQuestionIndex, filteredQuestions]);
 
-
-    // Determine page title based on loading state and currentBank
-    const pageTitle = currentBank ? currentBank.name : (isLoading ? "Loading Bank..." : "Bank Not Found");
-
     const fullScreenButtonElement = (
-        <Button onClick={toggleFullScreen} variant="outline" size="icon" title={isFullScreen ? "Exit Fullscreen" : "Enter Fullscreen"}>
+        <Button onClick={toggleFullScreen} variant="outline" size="icon" title={isFullScreen ? t('quiz.fullscreen.exit') : t('quiz.fullscreen.enter')}>
             {isFullScreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
         </Button>
     );
@@ -474,7 +479,7 @@ export default function BankPageClient() {
     }, [selectedQuestionId]);
 
     return (
-        <ContentLayout title={pageTitle} description={currentBank?.description || "Manage your question bank."}>
+        <ContentLayout>
             <MaxWidthWrapper>
                 <div className={`flex flex-col h-screen ${isFullScreen ? 'fixed inset-0 bg-background z-50 p-2 sm:p-4' : 'h-[calc(100vh-4rem)]'}`}>
                     {!currentBank ? (
@@ -500,28 +505,7 @@ export default function BankPageClient() {
                     {isLoading ? (
                         <LoadingScreen className="flex-1 flex items-center justify-center" />
                     ) : !currentBank ? (
-                        <div className="flex-1 flex items-center justify-center">
-                            <div className="text-center space-y-6 max-w-md mx-auto p-8">
-                                <div className="flex justify-center">
-                                    <div className="rounded-full bg-muted p-4">
-                                        <Database className="h-8 w-8 text-muted-foreground" />
-                                    </div>
-                                </div>
-                                <div className="space-y-2">
-                                    <h3 className="text-xl font-semibold">Question Bank Not Found</h3>
-                                    <p className="text-muted-foreground">
-                                        The question bank you are looking for does not exist or may have been deleted.
-                                    </p>
-                                </div>
-                                <Button
-                                    onClick={() => router.push('/dashboard')}
-                                    className="w-full sm:w-auto"
-                                >
-                                    <ArrowLeft className="h-4 w-4 mr-2" />
-                                    Back to Dashboard
-                                </Button>
-                            </div>
-                        </div>
+                        <BankNotFound />
                     ) : (
                         <div className="flex-1 min-h-0">
                             <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
@@ -532,7 +516,7 @@ export default function BankPageClient() {
                                                 items={filteredQuestions.map(q => q.id)}
                                                 strategy={verticalListSortingStrategy}
                                             >
-                                                {filteredQuestions.length === 0 && <p className="text-muted-foreground">No questions yet. Click create to add one.</p>}
+                                                {filteredQuestions.length === 0 && <p className="text-muted-foreground">{t('quiz.questionList.noQuestions')}</p>}
                                                 {filteredQuestions.map(q => (
                                                     <div
                                                         key={q.id}
@@ -560,8 +544,8 @@ export default function BankPageClient() {
                                         <div className="h-full overflow-y-auto p-6">
                                             <Tabs value={activeTab} onValueChange={v => setActiveTab(v as "edit" | "view")} className="w-full h-full flex flex-col">
                                                 <TabsList className="grid w-full grid-cols-2 mb-4 shrink-0">
-                                                    <TabsTrigger value="edit">Edit Mode</TabsTrigger>
-                                                    <TabsTrigger value="view">View Mode</TabsTrigger>
+                                                    <TabsTrigger value="edit">{t("quiz.editmode")}</TabsTrigger>
+                                                    <TabsTrigger value="view">{t("quiz.viewmode")}</TabsTrigger>
                                                 </TabsList>
 
                                                 <div className="flex-1 min-h-0">
@@ -583,7 +567,7 @@ export default function BankPageClient() {
                                                             />
                                                         ) : (
                                                             <div className="h-full flex items-center justify-center">
-                                                                <p className="text-center text-muted-foreground">Select a question to edit or create a new one.</p>
+                                                                <p className="text-center text-muted-foreground">{t('quiz.questionList.selectQuestionToEdit')}</p>
                                                             </div>
                                                         )}
                                                     </TabsContent>
@@ -599,7 +583,7 @@ export default function BankPageClient() {
                                                             />
                                                         ) : (
                                                             <div className="h-full flex items-center justify-center">
-                                                                <p className="text-center text-muted-foreground">Select a question to edit or create a new one.</p>
+                                                                <p className="text-center text-muted-foreground">{t('quiz.questionList.selectQuestionToEdit')}</p>
                                                             </div>
                                                         )}
                                                     </TabsContent>
@@ -636,8 +620,8 @@ export default function BankPageClient() {
                     }}
                     onSubmit={handlePasswordDialogSubmit} // onSubmit should pass the password string
                     onCancel={() => handlePasswordDialogSubmit(null)} // onCancel should pass null
-                    title="Enter Password for Import"
-                    description="This file is encrypted. Please enter the password to decrypt it."
+                    title={t('quiz.passwordDialog.titleForImport')}
+                    description={t('quiz.passwordDialog.descriptionForImport')}
                 />
             )}
         </ContentLayout>

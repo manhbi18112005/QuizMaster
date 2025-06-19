@@ -29,6 +29,7 @@ import {
   useState,
 } from "react";
 import { BANKPREFIX_URL } from "@/lib/client-constants";
+import { useTranslation } from "@/hooks/use-translation";
 
 export function WorkspaceDropdown() {
   const { workspaces, loading } = useWorkspaces();
@@ -160,6 +161,7 @@ function WorkspaceList({
   workspaces: QuestionBank[];
   setOpenPopover: (open: boolean) => void;
 }) {
+  const { t } = useTranslation();
   const { setShowAddWorkspaceModal } = useContext(ModalContext);
   const pathname = usePathname();
 
@@ -210,7 +212,6 @@ function WorkspaceList({
             </div>
           </div>
 
-          {/* Settings and Invite members options */}
           <div className="mt-2 flex flex-col gap-0.5">
             <Link
               href={`${BANKPREFIX_URL}/${selected.slug}/settings`}
@@ -218,14 +219,14 @@ function WorkspaceList({
               onClick={() => setOpenPopover(false)}
             >
               <Gear className="size-4 text-muted-foreground" />
-              <span className="block truncate text-sm">Settings</span>
+              <span className="block truncate text-sm">{t("sidebar.settings")}</span>
             </Link>
           </div>
         </div>
 
         {/* Workspaces section */}
         <div className="p-2">
-          <p className="p-1 text-xs font-medium text-muted-foreground">Workspaces</p>
+          <p className="p-1 text-xs font-medium text-muted-foreground">{t("sidebar.workspaces")}</p>
           <div className="flex flex-col gap-0.5">
             {workspaces.map(({ id, name, logo }) => {
               const isActive = selected.slug === id;

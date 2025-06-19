@@ -15,6 +15,8 @@ import { ModalContext } from "../modals/model-provider";
 import { getQuestionTypeConfig, validateQuestionAnswers, detectQuestionType } from "@/lib/question-types";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { useTranslation } from "@/hooks/use-translation";
+import { useKeyboardShortcut } from "@/hooks/use-keyboard-shortcut";
 
 interface PracticeComponentProps {
     questions: Question[];
@@ -28,6 +30,44 @@ interface AnswerFeedback {
 }
 
 const NAVIGATOR_PAGE_SIZE = 50; // Show 50 questions per page in navigator
+
+const getButtonStyles = (isActive: boolean, hasAnswer: boolean, feedback?: AnswerFeedback) => {
+    if (isActive) {
+        return { variant: "default" as const, className: "w-8 h-8 p-0 relative" };
+    }
+
+    if (feedback) {
+        const baseClassName = "w-8 h-8 p-0 relative";
+        return feedback.isCorrect
+            ? {
+                variant: "outline" as const,
+                className: `${baseClassName} bg-green-100 hover:bg-green-200 border-green-300 text-green-800 dark:bg-green-900/50 dark:hover:bg-green-800/50 dark:border-green-600 dark:text-green-200`
+            }
+            : {
+                variant: "outline" as const,
+                className: `${baseClassName} bg-red-100 hover:bg-red-200 border-red-300 text-red-800 dark:bg-red-900/50 dark:hover:bg-red-800/50 dark:border-red-600 dark:text-red-200`
+            };
+    }
+
+    return {
+        variant: hasAnswer ? "secondary" as const : "outline" as const,
+        className: "w-8 h-8 p-0 relative"
+    };
+};
+
+const getTooltipText = (index: number, hasAnswer: boolean, feedback?: AnswerFeedback, isFlagged = false) => {
+    const parts = [`Question ${index + 1}`];
+
+    if (hasAnswer && feedback) {
+        parts.push(`(${feedback.isCorrect ? 'Correct' : 'Incorrect'})`);
+    }
+
+    if (isFlagged) {
+        parts.push("(Flagged)");
+    }
+
+    return parts.join(' ');
+};
 
 const QuestionNavigatorButton = memo(({
     index,
@@ -45,45 +85,26 @@ const QuestionNavigatorButton = memo(({
     onClick: (index: number) => void;
 }) => {
     const handleClick = useCallback(() => onClick(index), [index, onClick]);
+    const { variant, className } = getButtonStyles(isActive, hasAnswer, feedback);
+    const tooltipText = getTooltipText(index, hasAnswer, feedback, isFlagged);
 
     return (
         <Tooltip>
             <TooltipTrigger asChild>
                 <Button
-                    variant={
-                        isActive
-                            ? "default"
-                            : feedback?.isCorrect
-                                ? "secondary"
-                                : hasAnswer && !feedback?.isCorrect
-                                    ? "destructive"
-                                    : "outline"
-                    }
+                    variant={variant}
                     size="sm"
-                    className="w-8 h-8 p-0 relative"
+                    className={className}
                     onClick={handleClick}
                 >
                     {index + 1}
                     {isFlagged && (
                         <Flag className="h-2 w-2 absolute -top-1 -right-1 text-amber-500" />
                     )}
-                    {feedback && (
-                        <div className="absolute -bottom-1 -right-1">
-                            {feedback.isCorrect ? (
-                                <CheckCircle className="h-3 w-3 text-green-500" />
-                            ) : (
-                                <XCircle className="h-3 w-3 text-red-500" />
-                            )}
-                        </div>
-                    )}
                 </Button>
             </TooltipTrigger>
             <TooltipContent>
-                <p>
-                    Question {index + 1}
-                    {hasAnswer && ` (${feedback?.isCorrect ? 'Correct' : 'Incorrect'})`}
-                    {isFlagged && " (Flagged)"}
-                </p>
+                <p>{tooltipText}</p>
             </TooltipContent>
         </Tooltip>
     );
@@ -94,6 +115,8 @@ QuestionNavigatorButton.displayName = "QuestionNavigatorButton";
 export function PracticeComponent({
     questions,
 }: PracticeComponentProps) {
+    const { t } = useTranslation();
+
     const { setShowQuestionDetailModal, setSelectedQuestionDetailModal } = useContext(ModalContext);
     const [practiceState, setPracticeState] = useState({
         currentQuestionIndex: 0,
@@ -110,10 +133,8 @@ export function PracticeComponent({
 
     const navigatorRef = useRef<HTMLDivElement>(null);
 
-    // Destructure for cleaner code
     const { currentQuestionIndex, navigatorPage, isNavigatorCollapsed } = practiceState;
 
-    // Memoized current question with lazy loading
     const currentQuestion = useMemo(() => {
         if (!loadedQuestions.has(currentQuestionIndex)) {
             setLoadedQuestions(prev => new Set([...prev, currentQuestionIndex]));
@@ -121,24 +142,17 @@ export function PracticeComponent({
         return questions[currentQuestionIndex];
     }, [questions, currentQuestionIndex, loadedQuestions]);
 
-    // Optimized calculations with fewer dependencies
     const derivedState = useMemo(() => {
         const answeredCount = Object.keys(answers).length;
         const correctCount = Object.values(answerFeedback).filter(f => f.isCorrect).length;
         const incorrectCount = Object.values(answerFeedback).filter(f => !f.isCorrect).length;
-
         const progress = (answeredCount / questions.length) * 100;
         const accuracy = answeredCount > 0 ? Math.round((correctCount / answeredCount) * 100) : 0;
-
         const currentFeedback = answerFeedback[currentQuestionIndex];
         const currentSelectedAnswers = selectedAnswers[currentQuestionIndex] || [];
         const hasSubmittedAnswer = !!answers[currentQuestionIndex];
-
-        // Detect current question type
         const currentQuestionType = currentQuestion?.questionType || detectQuestionType(currentQuestion?.choices || []);
         const questionTypeConfig = getQuestionTypeConfig(currentQuestionType);
-
-        // Navigator range
         const navigatorStart = navigatorPage * NAVIGATOR_PAGE_SIZE;
         const navigatorEnd = Math.min(navigatorStart + NAVIGATOR_PAGE_SIZE, questions.length);
 
@@ -160,12 +174,10 @@ export function PracticeComponent({
         };
     }, [answers, answerFeedback, questions.length, currentQuestionIndex, selectedAnswers, navigatorPage, currentQuestion]);
 
-    // Memoized visible navigator questions
     const visibleNavigatorQuestions = useMemo(() => {
         return questions.slice(derivedState.navigatorRange.start, derivedState.navigatorRange.end);
     }, [questions, derivedState.navigatorRange]);
 
-    // Optimized preloading with debouncing
     const preloadAdjacentQuestions = useCallback(() => {
         const toLoad = new Set<number>();
 
@@ -189,7 +201,6 @@ export function PracticeComponent({
         return () => clearTimeout(timer);
     }, [preloadAdjacentQuestions]);
 
-    // Optimized event handlers
     const handleAnswerSelect = useCallback((answer: string) => {
         if (!derivedState.hasSubmittedAnswer) {
             const { questionTypeConfig } = derivedState;
@@ -315,6 +326,10 @@ export function PracticeComponent({
         handleNavigation(index);
     }, [handleNavigation]);
 
+    useKeyboardShortcut('ArrowLeft', () => handleNavigation('prev'));
+    useKeyboardShortcut('ArrowRight', () => handleNavigation('next'));
+    useKeyboardShortcut('Enter', () => handleSubmitAnswer());
+
     return (
         <div className="space-y-6">
             {/* Statistics Card */}
@@ -330,7 +345,7 @@ export function PracticeComponent({
                                 className="flex items-center gap-2"
                             >
                                 <RotateCcw className="h-4 w-4" />
-                                Reset Progress
+                                {t('revision.reset_progress')}
                             </Button>
                         </div>
                     </div>
@@ -362,85 +377,6 @@ export function PracticeComponent({
                 </CardContent>
             </Card>
 
-            {/* Question Navigator */}
-            <Card>
-                <CardHeader>
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium">Question Navigator</span>
-                            <Badge variant="outline">{currentQuestionIndex + 1} of {questions.length}</Badge>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <span className="text-sm text-muted-foreground">
-                                Page {navigatorPage + 1} of {Math.ceil(questions.length / NAVIGATOR_PAGE_SIZE)}
-                            </span>
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={handleNavigatorToggle}
-                                className="flex items-center gap-1"
-                            >
-                                {isNavigatorCollapsed ? (
-                                    <>
-                                        <ChevronDown className="h-4 w-4" />
-                                        <span className="text-sm">Show</span>
-                                    </>
-                                ) : (
-                                    <>
-                                        <ChevronUp className="h-4 w-4" />
-                                        <span className="text-sm">Hide</span>
-                                    </>
-                                )}
-                            </Button>
-                        </div>
-                    </div>
-                </CardHeader>
-                {!isNavigatorCollapsed && (
-                    <CardContent>
-                        <div className="space-y-4">
-                            <div className="flex items-center justify-between">
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => handleNavigatorPageChange('prev')}
-                                    disabled={navigatorPage === 0}
-                                >
-                                    Previous Page
-                                </Button>
-                                <span className="text-sm text-muted-foreground">
-                                    Questions {derivedState.navigatorRange.start + 1} - {derivedState.navigatorRange.end}
-                                </span>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => handleNavigatorPageChange('next')}
-                                    disabled={derivedState.navigatorRange.end >= questions.length}
-                                >
-                                    Next Page
-                                </Button>
-                            </div>
-
-                            <div ref={navigatorRef} className="grid grid-cols-10 gap-2">
-                                {visibleNavigatorQuestions.map((_, localIndex) => {
-                                    const globalIndex = derivedState.navigatorRange.start + localIndex;
-                                    return (
-                                        <QuestionNavigatorButton
-                                            key={globalIndex}
-                                            index={globalIndex}
-                                            isActive={globalIndex === currentQuestionIndex}
-                                            hasAnswer={!!answers[globalIndex]}
-                                            feedback={answerFeedback[globalIndex]}
-                                            isFlagged={flaggedQuestions.has(globalIndex)}
-                                            onClick={questionNavigationHandler}
-                                        />
-                                    );
-                                })}
-                            </div>
-                        </div>
-                    </CardContent>
-                )}
-            </Card>
-
             {/* Question Card */}
             <Card>
                 <CardHeader>
@@ -453,7 +389,7 @@ export function PracticeComponent({
                                 className="flex items-center gap-2"
                             >
                                 <ArrowLeft className="h-4 w-4" />
-                                Previous
+                                {t('common.previous')}
                             </Button>
 
                             <Tooltip>
@@ -473,8 +409,8 @@ export function PracticeComponent({
                                 <TooltipContent>
                                     <p>
                                         {flaggedQuestions.has(currentQuestionIndex)
-                                            ? 'Remove flag from this question'
-                                            : 'Flag this question for review'
+                                            ? t('revision.removeFlagFromQuestion')
+                                            : t('revision.flagQuestionForReview')
                                         }
                                     </p>
                                 </TooltipContent>
@@ -487,7 +423,7 @@ export function PracticeComponent({
                                     onClick={handleSubmitAnswer}
                                     className="flex items-center gap-2"
                                 >
-                                    Submit Answer{derivedState.currentSelectedAnswers.length > 1 ? 's' : ''}
+                                    {t('revision.submit')}
                                 </Button>
                             )}
                             {
@@ -507,11 +443,12 @@ export function PracticeComponent({
                             }
 
                             <Button
+                                variant="outline"
                                 onClick={() => handleNavigation('next')}
                                 disabled={currentQuestionIndex === questions.length - 1}
                                 className="flex items-center gap-2"
                             >
-                                Next
+                                {t('common.next')}
                                 <ArrowRight className="h-4 w-4" />
                             </Button>
                         </div>
@@ -525,13 +462,11 @@ export function PracticeComponent({
                             </CardTitle>
                             <div className="flex items-center gap-2">
                                 <Badge variant="outline" className="text-xs">
-                                    {derivedState.questionTypeConfig.label}
+                                    {t(derivedState.questionTypeConfig.label)}
                                 </Badge>
-                                {derivedState.questionTypeConfig.allowMultipleSelection && (
-                                    <Badge variant="secondary" className="text-xs">
-                                        Select multiple answers
-                                    </Badge>
-                                )}
+                                <Badge variant="secondary" className="text-xs">
+                                    {t(derivedState.questionTypeConfig.description)}
+                                </Badge>
                             </div>
                         </div>
                         {derivedState.currentFeedback && (
@@ -559,37 +494,34 @@ export function PracticeComponent({
 
                     <div className="space-y-2">
                         {derivedState.questionTypeConfig.requiresInput ? (
-                            // Input question rendering
                             <div className="space-y-4">
                                 {derivedState.currentQuestionType === 'essay' ? (
                                     <Textarea
-                                        placeholder="Type your answer here..."
+                                        placeholder={t('questionTypes.essay.description')}
                                         value={inputAnswers[currentQuestionIndex] || ''}
                                         onChange={(e) => handleInputChange(e.target.value)}
                                         disabled={derivedState.hasSubmittedAnswer}
                                         rows={6}
-                                        className={`w-full text-lg p-4 resize-none ${
-                                            derivedState.hasSubmittedAnswer
-                                                ? derivedState.currentFeedback?.isCorrect
-                                                    ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
-                                                    : 'border-red-500 bg-red-50 dark:bg-red-900/20'
-                                                : ''
-                                        }`}
+                                        className={`w-full text-lg p-4 resize-none ${derivedState.hasSubmittedAnswer
+                                            ? derivedState.currentFeedback?.isCorrect
+                                                ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
+                                                : 'border-red-500 bg-red-50 dark:bg-red-900/20'
+                                            : ''
+                                            }`}
                                     />
                                 ) : (
                                     <Input
-                                        placeholder={derivedState.currentQuestionType === 'numerical' ? "Enter your numerical answer..." : "Type your answer here..."}
+                                        placeholder={derivedState.currentQuestionType === 'numerical' ? t('questionTypes.numerical.description') : t('questionTypes.default.description')}
                                         value={inputAnswers[currentQuestionIndex] || ''}
                                         onChange={(e) => handleInputChange(e.target.value)}
                                         disabled={derivedState.hasSubmittedAnswer}
                                         type={derivedState.currentQuestionType === 'numerical' ? 'text' : 'text'}
-                                        className={`w-full text-lg p-4 ${
-                                            derivedState.hasSubmittedAnswer
-                                                ? derivedState.currentFeedback?.isCorrect
-                                                    ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
-                                                    : 'border-red-500 bg-red-50 dark:bg-red-900/20'
-                                                : ''
-                                        }`}
+                                        className={`w-full text-lg p-4 ${derivedState.hasSubmittedAnswer
+                                            ? derivedState.currentFeedback?.isCorrect
+                                                ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
+                                                : 'border-red-500 bg-red-50 dark:bg-red-900/20'
+                                            : ''
+                                            }`}
                                     />
                                 )}
                                 {derivedState.hasSubmittedAnswer && (
@@ -600,8 +532,8 @@ export function PracticeComponent({
                                             <XCircle className="h-4 w-4 text-red-600" />
                                         )}
                                         <span className={derivedState.currentFeedback?.isCorrect ? 'text-green-600' : 'text-red-600'}>
-                                            {derivedState.currentFeedback?.isCorrect 
-                                                ? 'Correct!' 
+                                            {derivedState.currentFeedback?.isCorrect
+                                                ? 'Correct!'
                                                 : `Correct answer: ${derivedState.currentFeedback?.correctAnswer}`
                                             }
                                         </span>
@@ -660,13 +592,94 @@ export function PracticeComponent({
                         <Alert className="mt-4">
                             <AlertDescription>
                                 <div className="space-y-2">
-                                    <div className="text-sm font-medium">Explanation:</div>
+                                    <div className="text-sm font-medium">{t("quiz.testResults.explanation")}</div>
                                     <TipTapViewer content={derivedState.currentFeedback.notes} />
                                 </div>
                             </AlertDescription>
                         </Alert>
                     )}
                 </CardContent>
+            </Card>
+
+            {/* Question Navigator */}
+            <Card>
+                <CardHeader>
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium">{t("revision.navigator")}</span>
+                            <Badge variant="outline">
+                                {t("revision.question", { current: currentQuestionIndex + 1, total: questions.length })}
+                            </Badge>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <span className="text-sm text-muted-foreground">
+                                {t('revision.resultsPage', { current: navigatorPage + 1, total: Math.ceil(questions.length / NAVIGATOR_PAGE_SIZE) })}
+                            </span>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={handleNavigatorToggle}
+                                className="flex items-center gap-1"
+                            >
+                                {isNavigatorCollapsed ? (
+                                    <>
+                                        <ChevronDown className="h-4 w-4" />
+                                        <span className="text-sm">{t('revision.show')}</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <ChevronUp className="h-4 w-4" />
+                                        <span className="text-sm">{t('revision.hide')}</span>
+                                    </>
+                                )}
+                            </Button>
+                        </div>
+                    </div>
+                </CardHeader>
+                {!isNavigatorCollapsed && (
+                    <CardContent>
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleNavigatorPageChange('prev')}
+                                    disabled={navigatorPage === 0}
+                                >
+                                    {t('revision.previousPage')}
+                                </Button>
+                                <span className="text-sm text-muted-foreground">
+                                    {t('revision.question', { current: derivedState.navigatorRange.start + 1, total: derivedState.navigatorRange.end })}
+                                </span>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleNavigatorPageChange('next')}
+                                    disabled={derivedState.navigatorRange.end >= questions.length}
+                                >
+                                    {t('revision.nextPage')}
+                                </Button>
+                            </div>
+
+                            <div ref={navigatorRef} className="grid grid-cols-10 gap-2">
+                                {visibleNavigatorQuestions.map((_, localIndex) => {
+                                    const globalIndex = derivedState.navigatorRange.start + localIndex;
+                                    return (
+                                        <QuestionNavigatorButton
+                                            key={globalIndex}
+                                            index={globalIndex}
+                                            isActive={globalIndex === currentQuestionIndex}
+                                            hasAnswer={!!answers[globalIndex]}
+                                            feedback={answerFeedback[globalIndex]}
+                                            isFlagged={flaggedQuestions.has(globalIndex)}
+                                            onClick={questionNavigationHandler}
+                                        />
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </CardContent>
+                )}
             </Card>
         </div>
     );

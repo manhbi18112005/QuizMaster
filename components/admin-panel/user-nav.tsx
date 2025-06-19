@@ -8,22 +8,25 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tooltip, TooltipContent, TooltipTrigger, } from "@/components/ui/tooltip";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { useTranslation } from "@/hooks/use-translation";
 
-const MENU_ITEMS = [
-  {
-    label: "Your Banks",
-    href: "/dashboard",
-    icon: LayoutGrid
-  },
-  {
-    label: "Settings",
-    href: "/settings",
-    icon: Settings
-  }
-] as const;
 
 export function UserNav() {
+  const { t } = useTranslation();
   const { data: session } = useSession();
+
+  const MENU_ITEMS = [
+    {
+      label: t("sidebar.workspaces"),
+      href: "/dashboard",
+      icon: LayoutGrid
+    },
+    {
+      label: t("sidebar.settings"),
+      href: "/settings",
+      icon: Settings
+    }
+  ];
 
   const getUserInitials = (name?: string | null) =>
     name?.charAt(0).toUpperCase() || "U";
@@ -35,7 +38,7 @@ export function UserNav() {
     return (
       <Button onClick={() => signIn()} variant="outline"
         className="relative h-8 rounded-full">
-        Sign In
+        {t("auth.sign_in")}
       </Button>
     );
   }
@@ -60,7 +63,7 @@ export function UserNav() {
             </Button>
           </DropdownMenuTrigger>
         </TooltipTrigger>
-        <TooltipContent side="bottom">Profile</TooltipContent>
+        <TooltipContent side="bottom">{t("sidebar.profile")}</TooltipContent>
       </Tooltip>
 
       <DropdownMenuContent className="w-60 p-1" align="end" forceMount>
@@ -98,7 +101,7 @@ export function UserNav() {
           className="hover:cursor-pointer p-3 rounded-md m-1 text-sm flex items-center justify-between"
           onClick={() => signOut()}
         >
-          Sign out
+          {t("auth.sign_out")}
           <LogOut className="w-5 h-5 text-muted-foreground" />
         </DropdownMenuItem>
       </DropdownMenuContent>
