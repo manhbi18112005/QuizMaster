@@ -68,6 +68,12 @@ export function SidebarNav<T extends Record<any, any>>({
     <ClientOnly className="scrollbar-hide relative flex h-full w-full flex-col overflow-y-auto overflow-x-hidden">
       <nav className="relative flex grow flex-col p-3 text-muted-foreground">
         <div className="relative flex items-start justify-between gap-1 pb-3">
+          <div className="hidden items-center gap-2 md:flex">
+            <Suspense fallback={null}>{toolContent}</Suspense>
+            <UserNav />
+          </div>
+        </div>
+        <div className="relative flex items-start justify-between gap-1 pb-3">
           {Object.entries(areas).map(([area, areaConfig]) => {
             const { title, backHref } = areaConfig(data);
 
@@ -96,10 +102,6 @@ export function SidebarNav<T extends Record<any, any>>({
               </Link>
             );
           })}
-          <div className="hidden items-center gap-2 md:flex">
-            <Suspense fallback={null}>{toolContent}</Suspense>
-            <UserNav />
-          </div>
         </div>
         <div className="relative w-full grow">
           {Object.entries(areas).map(([area, areaConfig]) => {
