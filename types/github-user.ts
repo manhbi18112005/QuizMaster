@@ -50,7 +50,3 @@ export interface GitHubUser {
   plan: GitHubPlan;
   isActive: boolean;
 }
-
-export type GitHubUserSession = {
-  user: GitHubUser;
-}

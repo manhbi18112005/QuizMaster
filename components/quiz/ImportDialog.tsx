@@ -1,6 +1,6 @@
 "use client";
 
-import { FC, ChangeEvent, useState, useCallback } from 'react';
+import { FC, useState, useCallback } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -22,11 +22,14 @@ import {
 } from "@/components/ui/file-upload";
 import { Upload, X } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "@/hooks/use-translation";
 
+const MAX_SIZE = 100 * 1024 * 1024;
+const MAX_FILES = 10;
 interface ImportDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onFileImport: (event: ChangeEvent<HTMLInputElement>) => void;
+  onFileImport: (files: File[]) => void;
 }
 
 export const ImportDialog: FC<ImportDialogProps> = ({
@@ -34,59 +37,41 @@ export const ImportDialog: FC<ImportDialogProps> = ({
   onClose,
   onFileImport,
 }) => {
+  const { t } = useTranslation();
   const [files, setFiles] = useState<File[]>([]);
 
   const onFileValidate = useCallback(
     (file: File): string | null => {
-      // Validate max files
-      if (files.length >= 1) {
-        return "You can only upload 1 file";
+      if (files.length >= 10) {
+        return t("quiz.import.validation.maxFiles");
       }
 
-      // Validate file type (only JSON)
       if (file.type !== "application/json" && !file.name.endsWith('.json')) {
-        return "Only JSON files are allowed";
+        return t("quiz.import.validation.jsonOnly");
       }
 
-      // Validate file size (max 5MB)
-      const MAX_SIZE = 5 * 1024 * 1024; // 5MB
       if (file.size > MAX_SIZE) {
-        return `File size must be less than ${MAX_SIZE / (1024 * 1024)}MB`;
+        return t("quiz.import.validation.maxSize", {
+          size: (MAX_SIZE / (1024 * 1024)).toFixed(2),
+        });
       }
 
       return null;
     },
-    [files],
+    [files, t],
   );
 
   const onFileReject = useCallback((file: File, message: string) => {
     toast.error(message, {
-      description: `"${file.name.length > 20 ? `${file.name.slice(0, 20)}...` : file.name}" has been rejected`,
+      description: t("quiz.import.validation.rejectedFile", {
+        fileName: file.name.length > 20 ? `${file.name.slice(0, 20)}...` : file.name
+      }),
     });
-  }, []);
+  }, [t]);
 
   const handleImport = () => {
     if (files.length > 0) {
-      const syntheticEvent = {
-        target: {
-          files: files
-        },
-        nativeEvent: new Event('change'),
-        currentTarget: null,
-        bubbles: false,
-        cancelable: false,
-        defaultPrevented: false,
-        eventPhase: 0,
-        isTrusted: false,
-        preventDefault: () => { },
-        isDefaultPrevented: () => false,
-        stopPropagation: () => { },
-        isPropagationStopped: () => false,
-        persist: () => { },
-        timeStamp: Date.now(),
-        type: 'change'
-      } as unknown as ChangeEvent<HTMLInputElement>;
-      onFileImport(syntheticEvent);
+      onFileImport(files);
       setFiles([]);
       onClose();
     }
@@ -103,10 +88,10 @@ export const ImportDialog: FC<ImportDialogProps> = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Upload className="h-5 w-5" />
-            Import Quiz Data
+            {t("quiz.import.title")}
           </DialogTitle>
           <DialogDescription>
-            Select a JSON file containing quiz questions to import.
+            {t("quiz.import.description")}
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
@@ -116,7 +101,7 @@ export const ImportDialog: FC<ImportDialogProps> = ({
             onFileValidate={onFileValidate}
             onFileReject={onFileReject}
             accept=".json,application/json"
-            maxFiles={1}
+            maxFiles={MAX_FILES}
             className="w-full"
           >
             <FileUploadDropzone>
@@ -124,14 +109,14 @@ export const ImportDialog: FC<ImportDialogProps> = ({
                 <div className="flex items-center justify-center rounded-full border p-2.5">
                   <Upload className="size-6 text-muted-foreground" />
                 </div>
-                <p className="font-medium text-sm">Drag & drop JSON file here</p>
+                <p className="font-medium text-sm">{t("quiz.import.dragDrop")}</p>
                 <p className="text-muted-foreground text-xs">
-                  Or click to browse (JSON files only)
+                  {t("quiz.import.browseDescription")}
                 </p>
               </div>
               <FileUploadTrigger asChild>
                 <Button variant="outline" size="sm" className="mt-2 w-fit">
-                  Browse files
+                  {t("quiz.import.browseFiles")}
                 </Button>
               </FileUploadTrigger>
             </FileUploadDropzone>
@@ -152,10 +137,10 @@ export const ImportDialog: FC<ImportDialogProps> = ({
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={handleClose}>
-            Cancel
+            {t("common.cancel")}
           </Button>
           <Button onClick={handleImport} disabled={files.length === 0}>
-            Import
+            {t("quiz.import.importButton")} {files.length > 1 ? t("quiz.import.importFiles", { count: files.length }) : files.length === 1 ? t("quiz.import.importFile") : ''}
           </Button>
         </DialogFooter>
       </DialogContent>

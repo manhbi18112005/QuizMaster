@@ -3,54 +3,42 @@
 import { useSession, signIn, signOut } from "next-auth/react"
 import Link from "next/link";
 import { LayoutGrid, LogOut, Settings } from "lucide-react";
-
+import { OG_AVATAR_URL } from "@/lib/utils/avatar";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-  TooltipProvider
-} from "@/components/ui/tooltip";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger
-} from "@/components/ui/dropdown-menu";
+import { Tooltip, TooltipContent, TooltipTrigger, } from "@/components/ui/tooltip";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { useTranslation } from "@/hooks/use-translation";
 
-const MENU_ITEMS = [
-  {
-    label: "Your Banks",
-    href: "/dashboard",
-    icon: LayoutGrid
-  },
-  {
-    label: "Settings",
-    href: "/settings",
-    icon: Settings
-  }
-] as const;
-
-const DEFAULT_AVATAR = "/avt.png";
 
 export function UserNav() {
+  const { t } = useTranslation();
   const { data: session } = useSession();
+
+  const MENU_ITEMS = [
+    {
+      label: t("sidebar.workspaces"),
+      href: "/dashboard",
+      icon: LayoutGrid
+    },
+    {
+      label: t("sidebar.settings"),
+      href: "/settings",
+      icon: Settings
+    }
+  ];
 
   const getUserInitials = (name?: string | null) =>
     name?.charAt(0).toUpperCase() || "U";
 
   const getUserAvatar = (image?: string | null) =>
-    image || DEFAULT_AVATAR;
+    image || OG_AVATAR_URL;
 
   if (!session) {
     return (
       <Button onClick={() => signIn()} variant="outline"
         className="relative h-8 rounded-full">
-        Sign In
+        {t("auth.sign_in")}
       </Button>
     );
   }
@@ -59,26 +47,24 @@ export function UserNav() {
 
   return (
     <DropdownMenu>
-      <TooltipProvider disableHoverableContent>
-        <Tooltip delayDuration={100}>
-          <TooltipTrigger asChild>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                className="relative h-8 w-8 rounded-full"
-              >
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={getUserAvatar(user?.image)} alt="Avatar" />
-                  <AvatarFallback className="bg-transparent">
-                    {getUserInitials(user?.name)}
-                  </AvatarFallback>
-                </Avatar>
-              </Button>
-            </DropdownMenuTrigger>
-          </TooltipTrigger>
-          <TooltipContent side="bottom">Profile</TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+      <Tooltip delayDuration={100}>
+        <TooltipTrigger asChild>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="outline"
+              className="relative h-8 w-8 rounded-full"
+            >
+              <Avatar className="h-8 w-8">
+                <AvatarImage src={getUserAvatar(user?.image)} alt="Avatar" />
+                <AvatarFallback className="bg-transparent">
+                  {getUserInitials(user?.name)}
+                </AvatarFallback>
+              </Avatar>
+            </Button>
+          </DropdownMenuTrigger>
+        </TooltipTrigger>
+        <TooltipContent side="bottom">{t("sidebar.profile")}</TooltipContent>
+      </Tooltip>
 
       <DropdownMenuContent className="w-60 p-1" align="end" forceMount>
         <DropdownMenuLabel className="font-normal p-3">
@@ -115,7 +101,7 @@ export function UserNav() {
           className="hover:cursor-pointer p-3 rounded-md m-1 text-sm flex items-center justify-between"
           onClick={() => signOut()}
         >
-          Sign out
+          {t("auth.sign_out")}
           <LogOut className="w-5 h-5 text-muted-foreground" />
         </DropdownMenuItem>
       </DropdownMenuContent>

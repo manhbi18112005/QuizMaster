@@ -1,4 +1,4 @@
-import { FC, ChangeEvent, useState, memo } from 'react';
+import { FC, useState, memo } from 'react';
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -9,6 +9,7 @@ import { PlusCircle, Trash2, Upload, FileText, AlertTriangle } from "lucide-reac
 import { motion } from "framer-motion";
 import { ImportDialog } from './ImportDialog';
 import { ExportDialog } from './ExportDialog';
+import { useTranslation } from "@/hooks/use-translation";
 
 interface QuizToolbarProps {
   onCreateQuestion: () => void;
@@ -16,7 +17,7 @@ interface QuizToolbarProps {
   selectedQuestionId: string | null;
   onExportData: (filename?: string, formatted?: boolean, password?: string) => void;
   onClearAllData: () => void;
-  onFileImport: (event: ChangeEvent<HTMLInputElement>) => void;
+  onFileImport: (files: File[]) => void; // Changed from ChangeEvent<HTMLInputElement> to File[]
   disabled?: boolean;
 }
 
@@ -29,6 +30,7 @@ export const QuizToolbar: FC<QuizToolbarProps> = memo(({
   onFileImport,
   disabled = false,
 }) => {
+  const { t } = useTranslation();
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
 
@@ -41,11 +43,11 @@ export const QuizToolbar: FC<QuizToolbarProps> = memo(({
             <TooltipTrigger asChild>
               <Button onClick={onCreateQuestion} size="sm" className="gap-1.5" disabled={disabled}>
                 <PlusCircle className="h-4 w-4" />
-                <span className="hidden sm:inline">New Question</span>
+                <span className="hidden sm:inline">{t("quiz.toolbar.newQuestion")}</span>
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              <p>Add a new question</p>
+              <p>{t("quiz.toolbar.addNewQuestion")}</p>
             </TooltipContent>
           </Tooltip>
 
@@ -60,11 +62,11 @@ export const QuizToolbar: FC<QuizToolbarProps> = memo(({
                 <TooltipTrigger asChild>
                   <Button onClick={onDeleteQuestion} variant="destructive" size="sm" className="gap-1.5" disabled={disabled}>
                     <Trash2 className="h-4 w-4" />
-                    <span className="hidden sm:inline">Delete</span>
+                    <span className="hidden sm:inline">{t("common.delete")}</span>
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>Delete selected question</p>
+                  <p>{t("quiz.toolbar.deleteSelectedQuestion")}</p>
                 </TooltipContent>
               </Tooltip>
             </motion.div>
@@ -80,11 +82,11 @@ export const QuizToolbar: FC<QuizToolbarProps> = memo(({
             <TooltipTrigger asChild>
               <Button onClick={() => setIsImportDialogOpen(true)} variant="outline" size="sm" className="gap-1.5" disabled={disabled}>
                 <Upload className="h-4 w-4" />
-                <span className="hidden sm:inline">Import</span>
+                <span className="hidden sm:inline">{t("common.upload")}</span>
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              <p>Import quiz data</p>
+              <p>{t("quiz.toolbar.importQuizData")}</p>
             </TooltipContent>
           </Tooltip>
 
@@ -92,11 +94,11 @@ export const QuizToolbar: FC<QuizToolbarProps> = memo(({
             <TooltipTrigger asChild>
               <Button onClick={() => setIsExportDialogOpen(true)} variant="outline" size="sm" className="gap-1.5" disabled={disabled}>
                 <FileText className="h-4 w-4" />
-                <span className="hidden sm:inline">Export</span>
+                <span className="hidden sm:inline">{t("common.download")}</span>
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              <p>Export quiz data</p>
+              <p>{t("quiz.toolbar.exportQuizData")}</p>
             </TooltipContent>
           </Tooltip>
         </div>
@@ -109,11 +111,11 @@ export const QuizToolbar: FC<QuizToolbarProps> = memo(({
           <TooltipTrigger asChild>
             <Button onClick={onClearAllData} variant="ghost" size="sm" className="gap-1.5 text-destructive hover:text-destructive hover:bg-destructive/10" disabled={disabled}>
               <AlertTriangle className="h-4 w-4" />
-              <span className="hidden sm:inline">Clear All</span>
+              <span className="hidden sm:inline">{t("quiz.toolbar.clearAll")}</span>
             </Button>
           </TooltipTrigger>
           <TooltipContent>
-            <p>Clear all quiz data</p>
+            <p>{t("quiz.toolbar.clearAllQuizData")}</p>
           </TooltipContent>
         </Tooltip>
       </div>

@@ -24,13 +24,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { saveQuestionBank, getAllQuestionBanks, DbQuestionBank } from "@/lib/db";
-import { logger } from "@/packages/logger";
-
-const formSchema = z.object({
-    id: z.string().optional(),
-    name: z.string().min(1, "Bank name is required"),
-    description: z.string(),
-});
+import { useTranslation } from "@/hooks/use-translation";
 
 interface CreateBankDialogProps {
     isOpen: boolean;
@@ -39,7 +33,14 @@ interface CreateBankDialogProps {
 }
 
 export function CreateBankDialog({ isOpen, onOpenChange, onBankCreated }: CreateBankDialogProps) {
+    const { t } = useTranslation();
     const [isCreating, setIsCreating] = useState(false);
+
+    const formSchema = z.object({
+        id: z.string().optional(),
+        name: z.string().min(1, t("quiz.createBank.validation.nameRequired")),
+        description: z.string(),
+    });
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -69,10 +70,10 @@ export function CreateBankDialog({ isOpen, onOpenChange, onBankCreated }: Create
             onBankCreated(updatedBanks);
             onOpenChange(false);
             resetForm();
-            toast.success("Question bank created successfully.");
+            toast.success(t("quiz.createBank.successMessage"));
         } catch (error) {
-            logger.error(error, "Failed to create new bank");
-            toast.error("Failed to create question bank. Please try again.");
+            console.error(error, "Failed to create new bank");
+            toast.error(t("quiz.createBank.errorMessage"));
         } finally {
             setIsCreating(false);
         }
@@ -87,10 +88,9 @@ export function CreateBankDialog({ isOpen, onOpenChange, onBankCreated }: Create
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle>Create New Question Bank</DialogTitle>
+                    <DialogTitle>{t("quiz.createBank.title")}</DialogTitle>
                     <DialogDescription>
-                        Fill in the details below to create a new question bank. Click create when you are done.
-                        You can optionally provide an ID, or one will be generated.
+                        {t("quiz.createBank.description")}
                     </DialogDescription>
                 </DialogHeader>
                 <Form {...form}>

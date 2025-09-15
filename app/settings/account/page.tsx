@@ -2,26 +2,14 @@
 import { ContentLayout } from "@/components/admin-panel/content-layout";
 import { useSession } from "next-auth/react";
 import { redirect } from "next/navigation";
-import { User } from "next-auth";
-import { GitHubUser } from "@/types/github-user";
 import { ShieldCheck, Star, Calendar, HardDrive, Lock, Users } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
-
-// Type guard to check if user has GitHub properties
-function isGitHubUser(user: unknown): user is GitHubUser & User {
-    return user !== null &&
-        typeof user === 'object' &&
-        user !== undefined &&
-        'login' in user &&
-        typeof (user as Record<string, unknown>).login === 'string' &&
-        'avatar_url' in user &&
-        typeof (user as Record<string, unknown>).avatar_url === 'string' &&
-        ('id' in user && (typeof (user as Record<string, unknown>).id === 'number' || typeof (user as Record<string, unknown>).id === 'string'));
-}
+import { getAvatarUrl, getAvatarFallback } from "@/lib/utils/avatar";
+import { MaxWidthWrapper } from "@/components/ui/max-width-wrapper";
 
 export default function SettingsProfilePage() {
     const { data: session, status } = useSession();
@@ -29,7 +17,7 @@ export default function SettingsProfilePage() {
     // Show loading state while session is being fetched
     if (status === "loading") {
         return (
-            <ContentLayout showNavbar={false} title="Account Settings">
+            <ContentLayout title="Account Settings">
                 <div className="flex items-center justify-center w-full h-full">
                     <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500"></div>
                 </div>
@@ -42,35 +30,22 @@ export default function SettingsProfilePage() {
         redirect("/auth/login");
     }
 
-    // If not a GitHub user, redirect or show error
-    if (!isGitHubUser(session.user)) {
-        return (
-            <ContentLayout showNavbar={false} title="Account Settings">
-                <div className="flex items-center justify-center w-full h-full">
-                    <p className="text-red-500">GitHub account information not available.</p>
-                </div>
-            </ContentLayout>
-        );
-    }
-
-    // Now we can safely use the user as GitHubUser
-    const user = session.user;
+    const { user } = session;
 
     return (
-        <ContentLayout showNavbar={false} title="Account Settings">
-            <div className="container max-w-4xl mx-auto p-6 space-y-6">
-                {/* Profile Header */}
+        <ContentLayout title="Account Settings">
+            <MaxWidthWrapper className="space-y-6">
                 <Card>
                     <CardContent className="p-6">
                         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
                             <div className="flex items-center gap-4">
                                 <Avatar className="w-20 h-20">
-                                    <AvatarImage 
-                                        src={user?.avatar_url || user?.image || '/default-avatar.png'} 
-                                        alt="Profile Avatar" 
+                                    <AvatarImage
+                                        src={getAvatarUrl(user)}
+                                        alt="Profile Avatar"
                                     />
                                     <AvatarFallback className="text-xl">
-                                        {user?.name?.charAt(0) || user?.login?.charAt(0) || 'U'}
+                                        {getAvatarFallback(user)}
                                     </AvatarFallback>
                                 </Avatar>
                                 <div className="space-y-1">
@@ -123,14 +98,14 @@ export default function SettingsProfilePage() {
                                     </div>
                                     <span className="text-sm font-medium">Two-Factor Authentication</span>
                                 </div>
-                                <Badge 
+                                <Badge
                                     variant={user?.two_factor_authentication ? "default" : "secondary"}
                                     className="text-xs"
                                 >
                                     {user?.two_factor_authentication ? 'Enabled' : 'Disabled'}
                                 </Badge>
                             </div>
-                            
+
                             <div className="flex justify-between items-center">
                                 <div className="flex items-center gap-3">
                                     <div className="w-8 h-8 bg-muted rounded-md flex items-center justify-center">
@@ -138,7 +113,7 @@ export default function SettingsProfilePage() {
                                     </div>
                                     <span className="text-sm font-medium">Account Status</span>
                                 </div>
-                                <Badge 
+                                <Badge
                                     variant={user?.isActive ? "default" : "secondary"}
                                     className="text-xs"
                                 >
@@ -147,17 +122,17 @@ export default function SettingsProfilePage() {
                             </div>
 
                             <Separator />
-                            
+
                             <div className="space-y-2">
                                 <div className="flex items-center gap-2">
                                     <Calendar className="w-4 h-4 text-muted-foreground" />
                                     <span className="text-sm font-medium">Member Since</span>
                                 </div>
                                 <p className="text-sm text-muted-foreground ml-6">
-                                    {user?.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { 
-                                        year: 'numeric', 
-                                        month: 'long', 
-                                        day: 'numeric' 
+                                    {user?.created_at ? new Date(user.created_at).toLocaleDateString('en-US', {
+                                        year: 'numeric',
+                                        month: 'long',
+                                        day: 'numeric'
                                     }) : 'Unknown'}
                                 </p>
                             </div>
@@ -182,7 +157,7 @@ export default function SettingsProfilePage() {
                                     {user?.plan?.space ? `${(user.plan.space / 1024 / 1024).toFixed(0)} MB` : 'Unlimited'}
                                 </p>
                             </div>
-                            
+
                             <div className="space-y-2">
                                 <div className="flex items-center gap-2">
                                     <Lock className="w-4 h-4 text-muted-foreground" />
@@ -194,7 +169,7 @@ export default function SettingsProfilePage() {
                             </div>
 
                             <Separator />
-                            
+
                             <div className="space-y-3">
                                 <div className="flex items-center gap-2">
                                     <HardDrive className="w-4 h-4 text-muted-foreground" />
@@ -209,11 +184,11 @@ export default function SettingsProfilePage() {
                                             {user?.plan?.space ? `${(user.plan.space / 1024 / 1024).toFixed(0)} MB` : 'Unlimited'}
                                         </span>
                                     </div>
-                                    <Progress 
-                                        value={user?.plan?.space 
-                                            ? Math.min((user.disk_usage || 0) / user.plan.space * 100, 100) 
+                                    <Progress
+                                        value={user?.plan?.space
+                                            ? Math.min((user.disk_usage || 0) / user.plan.space * 100, 100)
                                             : 0
-                                        } 
+                                        }
                                         className="h-2"
                                     />
                                 </div>
@@ -221,7 +196,7 @@ export default function SettingsProfilePage() {
                         </CardContent>
                     </Card>
                 </div>
-            </div>
+            </MaxWidthWrapper>
         </ContentLayout>
     );
 }

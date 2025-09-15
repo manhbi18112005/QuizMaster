@@ -37,10 +37,10 @@ export default function OfflinePage() {
                             What you can do offline:
                         </h3>
                         <ul className="text-sm text-blue-800 space-y-1">
-                            <li>• Take quizzes from your saved question banks</li>
-                            <li>• Create and edit question banks</li>
-                            <li>• View quiz results and statistics</li>
-                            <li>• Access all previously loaded content</li>
+                            <li>Take quizzes from your saved question banks</li>
+                            <li>Create and edit question banks</li>
+                            <li>View quiz results and statistics</li>
+                            <li>Access all previously loaded content</li>
                         </ul>
                     </div>
 

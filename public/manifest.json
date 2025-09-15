@@ -2,7 +2,7 @@
   "name": "QuizMaster - Student Revision Quizzes",
   "short_name": "QuizMaster",
   "description": "A powerful quiz platform designed to help students revise and master their subjects through interactive quizzes and instant feedback.",
-  "start_url": "/",
+  "start_url": "/pwa",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#8b5cf6",
@@ -495,8 +495,8 @@
   ],
   "protocol_handlers": [
     {
-      "protocol": "quizmaster",
-      "url": "/dashboard/banks/%s"
+      "protocol": "web+quiz",
+      "url": "/pwa?route=%s"
     }
   ]
 }

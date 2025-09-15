@@ -1,7 +1,9 @@
+import { withNextVideo } from "next-video/process";
 import { withSentryConfig } from "@sentry/nextjs";
 import type { NextConfig } from "next";
 import withSerwistInit from "@serwist/next";
 import { IS_PRODUCTION } from "./lib/constants";
+import { version } from "./package.json";
 
 // Constants for reusable values
 const CACHE_IMMUTABLE = "public, max-age=31536000, s-maxage=31536000, immutable";
@@ -24,9 +26,9 @@ const SECURITY_HEADERS = [
   { key: "X-Content-Type-Options", value: "nosniff" },
   {
     key: "Content-Security-Policy",
-    value: IS_PRODUCTION 
-      ? "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.nnsvn.me; style-src 'self' 'unsafe-inline' https://*.nnsvn.me; img-src 'self' blob: data: https://*.nnsvn.me https://avatars.githubusercontent.com https://images.unsplash.com https://lh3.googleusercontent.com; font-src 'self' data: https://*.nnsvn.me https:; connect-src 'self' wss://*.nnsvn.me https://*.nnsvn.me https://avatars.githubusercontent.com https://images.unsplash.com https://lh3.googleusercontent.com; frame-src 'self' https://*.nnsvn.me; media-src 'self' blob: data: https://*.nnsvn.me; object-src 'self' data: https://*.nnsvn.me; base-uri 'self'; form-action 'self'; worker-src 'self' blob:"
-      : "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.nnsvn.me http://localhost:*; style-src 'self' 'unsafe-inline' https://*.nnsvn.me; img-src 'self' blob: data: https://*.nnsvn.me https://avatars.githubusercontent.com https://images.unsplash.com https://lh3.googleusercontent.com http://localhost:*; font-src 'self' data: https://*.nnsvn.me https:; connect-src 'self' wss://*.nnsvn.me https://*.nnsvn.me https://avatars.githubusercontent.com https://images.unsplash.com https://lh3.googleusercontent.com ws://localhost:* http://localhost:*; frame-src 'self' https://*.nnsvn.me; media-src 'self' blob: data: https://*.nnsvn.me; object-src 'self' data: https://*.nnsvn.me; base-uri 'self'; form-action 'self'; worker-src 'self' blob:",
+    value: IS_PRODUCTION
+      ? "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.nnsvn.me; style-src 'self' 'unsafe-inline' https://*.nnsvn.me; img-src 'self' blob: data: https://*.nnsvn.me https://avatars.githubusercontent.com https://images.unsplash.com https://lh3.googleusercontent.com https://avatar.vercel.sh; font-src 'self' data: https://*.nnsvn.me https:; connect-src 'self' wss://*.nnsvn.me https://*.nnsvn.me https://avatars.githubusercontent.com https://images.unsplash.com https://lh3.googleusercontent.com; frame-src 'self' https://*.nnsvn.me; media-src 'self' blob: data: https://*.nnsvn.me; object-src 'self' data: https://*.nnsvn.me; base-uri 'self'; form-action 'self'; worker-src 'self' blob:"
+      : "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.nnsvn.me http://localhost:*; style-src 'self' 'unsafe-inline' https://*.nnsvn.me; img-src 'self' blob: data: https://*.nnsvn.me https://avatars.githubusercontent.com https://images.unsplash.com https://lh3.googleusercontent.com https://avatar.vercel.sh http://localhost:*; font-src 'self' data: https://*.nnsvn.me https:; connect-src 'self' wss://*.nnsvn.me https://*.nnsvn.me https://avatars.githubusercontent.com https://images.unsplash.com https://lh3.googleusercontent.com ws://localhost:* http://localhost:*; frame-src 'self' https://*.nnsvn.me; media-src 'self' blob: data: https://*.nnsvn.me; object-src 'self' data: https://*.nnsvn.me; base-uri 'self'; form-action 'self'; worker-src 'self' blob:",
   },
 ];
 
@@ -45,6 +47,10 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "avatars.githubusercontent.com",
+      },
+      {
+        protocol: "https",
+        hostname: "avatar.vercel.sh",
       },
       {
         protocol: "https",
@@ -152,6 +158,7 @@ const nextConfig: NextConfig = {
   },
   env: {
     NEXTAUTH_URL: process.env.WEBAPP_URL,
+    APP_VERSION: version
   },
 };
 
@@ -169,7 +176,7 @@ const withSerwist = withSerwistInit({
   disable: !IS_PRODUCTION
 });
 
-export default withSentryConfig(withSerwist(nextConfig), {
+export default withNextVideo(withSentryConfig(withSerwist(nextConfig), {
   org: process.env.SENTRY_ORG || "no-name-studio",
   project: process.env.SENTRY_PROJECT || "quizmaster",
   silent: !process.env.CI,
@@ -177,4 +184,4 @@ export default withSentryConfig(withSerwist(nextConfig), {
   tunnelRoute: "/monitoring",
   disableLogger: true,
   automaticVercelMonitors: true,
-});
+}));

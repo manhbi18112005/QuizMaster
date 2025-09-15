@@ -7,11 +7,11 @@ import Link from "next/link"
 import { buttonVariants } from "@/components/ui/button"
 import { ChevronLeft } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { ContentLayout } from "@/components/admin-panel/content-layout"
 import LoadingScreen from "@/components/loading-screen";
 import { ClientOnly } from "@/components/ui/client-only";
 import { Grid } from "@/components/ui/grid";
 import { useTheme } from "next-themes";
+import { useTranslation } from "@/hooks/use-translation";
 //I'm gay
 
 const GRID_CONFIG = {
@@ -28,6 +28,7 @@ const GRADIENT_CLASSES = [
 ] as const;
 
 function AuthLayoutContent({ children }: { children: React.ReactNode }) {
+    const { t } = useTranslation();
     const { setTheme, theme } = useTheme();
     const { data: session, status } = useSession();
     const router = useRouter();
@@ -59,62 +60,51 @@ function AuthLayoutContent({ children }: { children: React.ReactNode }) {
 
     if (isLoadingOrRedirecting) {
         return (
-            <ContentLayout showNavbar={false} title={status === "loading" ? "Loading" : "Redirecting"}>
-                <div className="flex min-h-screen flex-col items-center justify-center">
-                    <LoadingScreen />
-                    {status === "authenticated" && (
-                        <div className="text-center text-sm text-muted-foreground mt-4">
-                            Redirecting to dashboard...
-                        </div>
-                    )}
-                </div>
-            </ContentLayout>
+            <LoadingScreen message={status === "authenticated" ? "Redirecting to dashboard..." : "Loading..."} />
         );
     }
 
     return (
-        <ContentLayout showNavbar={false} title="Authentication">
-            <div className="flex min-h-screen flex-col items-center justify-center relative px-8 sm:px-0">
-                <Link
-                    href={callbackUrl || "/"}
-                    className={cn(
-                        buttonVariants({ variant: "ghost" }),
-                        "absolute left-4 top-4 md:left-8 md:top-8"
-                    )}
-                    prefetch={false}
-                >
-                    <ChevronLeft className="mr-2 h-4 w-4" />
-                    Back
-                </Link>
+        <div className="flex min-h-screen flex-col items-center justify-center relative px-8 sm:px-0">
+            <Link
+                href={callbackUrl || "/"}
+                className={cn(
+                    buttonVariants({ variant: "ghost" }),
+                    "absolute left-4 top-4 md:left-8 md:top-8"
+                )}
+                prefetch={false}
+            >
+                <ChevronLeft className="mr-2 h-4 w-4" />
+                Back
+            </Link>
 
-                <div className="grow basis-0">
-                    <div className="h-24" />
-                </div>
-                <ClientOnly className="relative flex w-full flex-col items-center justify-center px-4">
-                    <Suspense>{children}</Suspense>
-                </ClientOnly>
-                <div className="flex grow basis-0 flex-col justify-end">
-                    <p className="px-20 py-8 text-center text-xs font-medium text-neutral-500 md:px-0">
-                        By continuing, you agree to Quiz Master&rsquo;s{" "}
-                        <a
-                            href="/legal/terms"
-                            target="_blank"
-                            className="font-semibold text-neutral-600 hover:text-neutral-800"
-                        >
-                            Terms of Service
-                        </a>{" "}
-                        and{" "}
-                        <a
-                            href="/legal/privacy"
-                            target="_blank"
-                            className="font-semibold text-neutral-600 hover:text-neutral-800"
-                        >
-                            Privacy Policy
-                        </a>
-                    </p>
-                </div>
+            <div className="grow basis-0">
+                <div className="h-24" />
             </div>
-        </ContentLayout>
+            <ClientOnly className="relative flex w-full flex-col items-center justify-center px-4">
+                <Suspense>{children}</Suspense>
+            </ClientOnly>
+            <div className="flex grow basis-0 flex-col justify-end">
+                <p className="px-20 py-8 text-center text-xs font-medium text-neutral-500 md:px-0">
+                    By continuing, you agree to Quiz Master&rsquo;s{" "}
+                    <a
+                        href="/legal/terms"
+                        target="_blank"
+                        className="font-semibold text-neutral-600 hover:text-neutral-800"
+                    >
+                        {t("common.terms")}
+                    </a>{" "}
+                    and{" "}
+                    <a
+                        href="/legal/privacy"
+                        target="_blank"
+                        className="font-semibold text-neutral-600 hover:text-neutral-800"
+                    >
+                        {t("common.privacy")}
+                    </a>
+                </p>
+            </div>
+        </div>
     );
 }
 
